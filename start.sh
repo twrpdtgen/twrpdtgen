@@ -93,6 +93,7 @@ elif echo $INIT | grep -q x86
 		if echo $INIT | grep -q x86-64
 			then
 				DEVICE_ARCH=x86_64
+				DEVICE_IS_64BIT=true
 			else
 				DEVICE_ARCH=x86
 		fi
@@ -278,7 +279,7 @@ echo "# Specify phone tech before including full_phone
 \$(call inherit-product, \$(SRC_TARGET_DIR)/product/languages_full.mk)
 " >> omni_$DEVICE_CODENAME.mk
 # Inherit 64bit things if device is 64bit
-if [ -z $DEVICE_IS_64BIT ]
+if [ $DEVICE_IS_64BIT = true ]
 	then
 		echo "# Inherit 64bit support
 \$(call inherit-product, \$(SRC_TARGET_DIR)/product/core_64_bit.mk)
