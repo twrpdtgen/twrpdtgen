@@ -283,7 +283,6 @@ if [ $DEVICE_IS_64BIT = true ]
 	then
 		echo "# Inherit 64bit support
 \$(call inherit-product, \$(SRC_TARGET_DIR)/product/core_64_bit.mk)
-
 " >> omni_$DEVICE_CODENAME.mk
 fi
 
