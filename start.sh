@@ -125,10 +125,11 @@ echo " done"
 # Check if a fstab is present
 if [ -f extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab ]
 	then
-		# Ooooh, you are very lucky, it seems that your OEM did all the work for me, a ready-to-use fstab
-		cp extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME
+		printf "Extracting stock fstab..."
+		cp extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp
+		echo " done"
 	else
-		cp extract/$DEVICE_CODENAME/ramdisk/fstab.qcom $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
+		echo "WARNING! The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have"
 fi
 
 # Extract init.rc files
