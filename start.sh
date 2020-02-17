@@ -130,6 +130,16 @@ if [ -f extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab ]
 	else
 		cp extract/$DEVICE_CODENAME/ramdisk/fstab.qcom $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
 fi
+
+# Extract init.rc files
+printf "Extracting init.rc files..."
+for i in $(ls extract/$DEVICE_CODENAME/ramdisk | grep ".rc")
+	do
+		if [ $i != init.rc ]
+			then
+				cp extract/$DEVICE_CODENAME/ramdisk/$i $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
+		fi
+done
 echo " done"
 
 # Cleanup
