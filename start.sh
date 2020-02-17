@@ -63,7 +63,7 @@ mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
 
 # Start analizing stock recovery.img and extract kernel
 printf "Extracting stock recovery..."
-cp $DEVICE_STOCK_RECOVERY_PATH extract/$DEVICE_CODENAME.img
+cp "$DEVICE_STOCK_RECOVERY_PATH" extract/$DEVICE_CODENAME.img
 echo " done"
 
 # Obtain stock recovery.img size
