@@ -44,12 +44,12 @@ read -p "Insert the device release year (eg. 2018)
 clear
 
 logo
-read -p "Insert the device full name (or commercial name) (eg. Xiaomi Redmi Note 5)
+read -p "Insert the device commercial name (eg. Xiaomi Redmi Note 5)
 > " DEVICE_FULL_NAME
 clear
 
 logo
-read -p "Drag and drop stock recovery.img or type the full path of the file (you can obtain it from stock OTA or with device dump)
+read -p "Drag and drop or type the full path of stock recovery.img (you can obtain it from stock OTA or with device dump)
 > " DEVICE_STOCK_RECOVERY_PATH
 clear
 DEVICE_STOCK_RECOVERY_PATH=$(echo $DEVICE_STOCK_RECOVERY_PATH | cut -d "'" -f 2)
@@ -62,13 +62,17 @@ mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt
 mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
 
 # Start analizing stock recovery.img and extract kernel
-printf "Extracting stock kernel and grabbing device info..."
+printf "Extracting stock recovery..."
 cp $DEVICE_STOCK_RECOVERY_PATH extract/$DEVICE_CODENAME.img
+echo " done"
+
 # Obtain stock recovery.img size
+printf "Obtaining stock recovery image info..."
 FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
 cd extract
 chmod 0777 split_boot
 chmod 0777 boot_info
+
 # Obtain recovery.img format info
 ./split_boot $DEVICE_CODENAME.img > result.txt
 RESULT=$(cat result.txt)
@@ -108,9 +112,14 @@ if [ $DEVICE_ARCH = x86_64 ]
 		echo "NOTE! x86_64 arch is not supported for now!"
 		exit
 fi
+echo " done"
 
-cd ..
+# Copy kernel to device tree
+printf "Copying stock kernel..."
 cp extract/$DEVICE_CODENAME/$DEVICE_CODENAME.img-kernel $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel
+echo " done"
+
+# Check if a fstab is present
 if [ -f extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab ]
 	then
 		# Ooooh, you are very lucky, it seems that your OEM did all the work for me, a ready-to-use fstab
