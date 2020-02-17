@@ -75,14 +75,15 @@ chmod 0777 boot_info
 
 # Obtain recovery.img format info
 ./split_boot $DEVICE_CODENAME.img > result.txt
-RESULT=$(cat result.txt)
+cd ..
+RESULT=$(cat extract/result.txt)
 BOOTLOADERNAME=$(echo "$RESULT" | grep "Board name" | sed -e "s/^Board name: //")
-CMDLINE=$(./boot_info $DEVICE_CODENAME.img | grep "CMDLINE" | sed -e "s/^CMDLINE: //" | cut -d "'" -f 2)
-PAGESIZE=$(./boot_info $DEVICE_CODENAME.img | grep "PAGE SIZE" | sed -e "s/^PAGE SIZE: //")
-BASEADDRESS=$(./boot_info $DEVICE_CODENAME.img | grep "BASE ADDRESS" | sed -e "s/^BASE ADDRESS: //")
-RAMDISKADDRESS=$(./boot_info $DEVICE_CODENAME.img | grep "RAMDISK ADDRESS" | sed -e "s/^RAMDISK ADDRESS: //")
+CMDLINE=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "CMDLINE" | sed -e "s/^CMDLINE: //" | cut -d "'" -f 2)
+PAGESIZE=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "PAGE SIZE" | sed -e "s/^PAGE SIZE: //")
+BASEADDRESS=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "BASE ADDRESS" | sed -e "s/^BASE ADDRESS: //")
+RAMDISKADDRESS=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "RAMDISK ADDRESS" | sed -e "s/^RAMDISK ADDRESS: //")
 # See what arch is by analizing init executable
-INIT=$(file $DEVICE_CODENAME/ramdisk/init)
+INIT=$(file extract/$DEVICE_CODENAME/ramdisk/init)
 if echo $INIT | grep -q ARM
 	then
 		if echo $INIT | grep -q aarch64
