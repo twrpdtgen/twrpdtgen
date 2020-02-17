@@ -323,6 +323,60 @@ printf "Generating vendorsetup.sh..."
 echo "add_lunch_combo omni_$DEVICE_CODENAME-userdebug
 add_lunch_combo omni_$DEVICE_CODENAME-eng" >> vendorsetup.sh
 echo " done"
+
+# Generate custom fstab
+if [ -f fstab.temp ]
+	then
+		printf "Generating fstab..."
+		# Header
+		echo "# Android fstab file.
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+
+# Mount point		FS		Device									Flags" > recovery.fstab
+		for i in boot recovery cache system vendor data dtbo persist splash firmware cust misc modem aboot
+			do
+				a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev" | cut -d " " -f 1 | cut -d "	" -f 1)
+				if [ "$a" != "" ]
+					then
+						case $i in
+							boot)
+								echo "/boot				emmc	$a" >> recovery.fstab
+								;;
+							recovery)
+								echo "/recovery			emmc	$a" >> recovery.fstab
+								;;
+							cache)
+								echo "/cache				ext4	$a" >> recovery.fstab
+								;;
+							system)
+								echo "/system				ext4	$a
+/system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
+								;;
+							vendor)
+								echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
+/vendor_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
+								;;
+							data)
+								echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
+								;;
+							dtbo)
+								echo "/dtbo				emmc	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
+								;;
+							*)
+								echo "/$i			ext4	$a" >> recovery.fstab
+								;;
+						esac
+				fi
+		done
+		# Add External SDCard entry
+		echo "
+# External storage
+/sdcard1			vfat	/dev/block/mmcblk1p1 /dev/block/mmcblk1	flags=fsflags=utf8;display="SDcard";storage;wipeingui;removable" >> recovery.fstab
+		rm fstab.temp
+		echo " done"
+fi
+
 # Automatically create a ready-to-push repo
 if [ $(dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed") -eq 0 ]
 	then
