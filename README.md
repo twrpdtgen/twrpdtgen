@@ -10,7 +10,10 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 - Add proper license headers in every file
 - Automatically detect device architecture
 - Pick stock recovery image info (eg. image size, kernel pagesize etc.)
-- Extract stock kernel and fstab automatically
+- Create ad-hoc recovery.fstab
+- Add needed init.rc files
+- MTK support
+- Extract stock kernel automatically
 - Fill BoardConfig.mk without needing to inherit external makefiles (like TwrpBuilder does), making a standalone device tree
 - Easily improveable with a text editor, w/o needing to know any programming language
 - Create a ready-to-push git repo in device tree folder
