@@ -92,6 +92,7 @@ if echo $INIT | grep -q ARM
 				DEVICE_IS_64BIT=true
 			else
 				DEVICE_ARCH=arm
+				DEVICE_IS_64BIT=false
 		fi
 elif echo $INIT | grep -q x86
 	then	
@@ -101,6 +102,7 @@ elif echo $INIT | grep -q x86
 				DEVICE_IS_64BIT=true
 			else
 				DEVICE_ARCH=x86
+				DEVICE_IS_64BIT=false
 		fi
 else
 	# Nothing matches, were you trying to make TWRP for Symbian OS devices, Playstation 2 or PowerPC-based Macintosh?
