@@ -361,10 +361,10 @@ if [ -f fstab.temp ]
 								echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
 								;;
 							dtbo)
-								echo "/dtbo				emmc	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
+								echo "/dtbo				emmc	$a" >> recovery.fstab
 								;;
 							*)
-								echo "/$i			ext4	$a" >> recovery.fstab
+								echo "/$i				ext4	$a" >> recovery.fstab
 								;;
 						esac
 				fi
