@@ -334,7 +334,7 @@ if [ -f fstab.temp ]
 # specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
 
 # Mount point		FS		Device									Flags" > recovery.fstab
-		for i in boot recovery cache system vendor data dtbo persist splash firmware cust misc modem aboot
+		for i in boot recovery cache system vendor data dtbo persist odm omr splash firmware cust misc modem aboot
 			do
 				a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev" | cut -d " " -f 1 | cut -d "	" -f 1)
 				if [ "$a" != "" ]
@@ -362,6 +362,11 @@ if [ -f fstab.temp ]
 								;;
 							dtbo)
 								echo "/dtbo				emmc	$a" >> recovery.fstab
+							odm)
+								echo "/odm				ext4	$a" >> recovery.fstab
+								;;
+							omr)
+								echo "/omr				ext4	$a" >> recovery.fstab
 								;;
 							*)
 								echo "/$i				ext4	$a" >> recovery.fstab
