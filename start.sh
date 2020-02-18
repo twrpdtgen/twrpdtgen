@@ -61,12 +61,8 @@ rm -rf $DEVICE_MANUFACTURER/$DEVICE_CODENAME
 mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt
 mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
 
-# Start analizing stock recovery.img and extract kernel
-printf "Extracting stock recovery..."
-cp "$DEVICE_STOCK_RECOVERY_PATH" extract/$DEVICE_CODENAME.img
-echo " done"
-
 # Obtain stock recovery.img size
+cp "$DEVICE_STOCK_RECOVERY_PATH" extract/$DEVICE_CODENAME.img
 printf "Obtaining stock recovery image info..."
 FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
 cd extract
@@ -260,8 +256,8 @@ TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/
 
 # Platform
 # It's not needed for booting TWRP, but it should be added
-#TARGET_BOARD_PLATFORM := sdm660 #Change this
-#TARGET_BOARD_PLATFORM_GPU := qcom-adreno509 #Change this
+#TARGET_BOARD_PLATFORM := 
+#TARGET_BOARD_PLATFORM_GPU := 
 
 # Assert
 TARGET_OTA_ASSERT_DEVICE := $DEVICE_CODENAME
