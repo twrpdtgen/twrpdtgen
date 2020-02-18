@@ -263,7 +263,7 @@ TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/
 TARGET_OTA_ASSERT_DEVICE := $DEVICE_CODENAME
 
 # Partitions
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := $FILESIZE
+#BOARD_RECOVERYIMAGE_PARTITION_SIZE := $FILESIZE # This is the maximum known partition size, but it can be higher, so we just omit it
 
 # File systems
 BOARD_HAS_LARGE_FILESYSTEM := true
