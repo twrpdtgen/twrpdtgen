@@ -340,17 +340,11 @@ if [ -f fstab.temp ]
 				if [ "$a" != "" ]
 					then
 						case $i in
-							boot)
-								echo "/boot				emmc	$a" >> recovery.fstab
-								;;
-							recovery)
-								echo "/recovery			emmc	$a" >> recovery.fstab
-								;;
 							cache)
-								echo "/cache				ext4	$a" >> recovery.fstab
+								echo "/cache			ext4	$a" >> recovery.fstab
 								;;
 							system)
-								echo "/system				ext4	$a
+								echo "/system			ext4	$a
 /system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
 								;;
 							vendor)
@@ -360,16 +354,20 @@ if [ -f fstab.temp ]
 							data)
 								echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
 								;;
-							dtbo)
-								echo "/dtbo				emmc	$a" >> recovery.fstab
+							persist)
+								echo "/persist			ext4	$a" >> recovery.fstab
+								;;
 							odm)
 								echo "/odm				ext4	$a" >> recovery.fstab
 								;;
 							omr)
 								echo "/omr				ext4	$a" >> recovery.fstab
 								;;
+							cust)
+								echo "/cust				ext4	$a" >> recovery.fstab
+								;;
 							*)
-								echo "/$i				ext4	$a" >> recovery.fstab
+								echo "/$i				emmc	$a" >> recovery.fstab
 								;;
 						esac
 				fi
