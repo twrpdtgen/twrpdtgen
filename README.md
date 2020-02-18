@@ -20,7 +20,4 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 
 ## TODO
 
-- Create ad-hoc recovery.fstab from fstab.qcom or other fstab type
-- Try to add needed init.rc files
-- Add better MTK support, even thought it already works right now
 - Inherit more infos directly from the device with ADB
