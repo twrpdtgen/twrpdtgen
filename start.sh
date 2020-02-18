@@ -70,20 +70,22 @@ echo " done"
 printf "Obtaining stock recovery image info..."
 FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
 cd extract
-chmod 0777 split_boot
-chmod 0777 boot_info
+chmod 0777 unpackimg.sh
 
 # Obtain recovery.img format info
-./split_boot $DEVICE_CODENAME.img > result.txt
+EXTRACT=$(./unpackimg.sh --nosudo $DEVICE_CODENAME.img)
 cd ..
-RESULT=$(cat extract/result.txt)
-BOOTLOADERNAME=$(echo "$RESULT" | grep "Board name" | sed -e "s/^Board name: //")
-CMDLINE=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "CMDLINE" | sed -e "s/^CMDLINE: //" | cut -d "'" -f 2)
-PAGESIZE=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "PAGE SIZE" | sed -e "s/^PAGE SIZE: //")
-BASEADDRESS=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "BASE ADDRESS" | sed -e "s/^BASE ADDRESS: //")
-RAMDISKADDRESS=$(./extract/boot_info extract/$DEVICE_CODENAME.img | grep "RAMDISK ADDRESS" | sed -e "s/^RAMDISK ADDRESS: //")
+EXTRACTION_DIR=extract/split_img
+BOOTLOADERNAME=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-board)
+CMDLINE=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-cmdline)
+PAGESIZE=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-pagesize)
+BASEADDRESS=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-base)
+KERNELOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-kerneloff)
+RAMDISKOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskoff)
+SECONDOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-secondoff)
+TAGSOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-tagsoff)
 # See what arch is by analizing init executable
-INIT=$(file extract/$DEVICE_CODENAME/ramdisk/init)
+INIT=$(file extract/ramdisk/init)
 if echo $INIT | grep -q ARM
 	then
 		if echo $INIT | grep -q aarch64
@@ -119,14 +121,14 @@ echo " done"
 
 # Copy kernel to device tree
 printf "Copying stock kernel..."
-cp extract/$DEVICE_CODENAME/$DEVICE_CODENAME.img-kernel $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel
+cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel
 echo " done"
 
 # Check if a fstab is present
-if [ -f extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab ]
+if [ -f extract/ramdisk/etc/recovery.fstab ]
 	then
 		printf "Extracting stock fstab..."
-		cp extract/$DEVICE_CODENAME/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp
+		cp extract/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp
 		echo " done"
 	else
 		echo "WARNING! The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have"
@@ -134,19 +136,19 @@ fi
 
 # Extract init.rc files
 printf "Extracting init.rc files..."
-for i in $(ls extract/$DEVICE_CODENAME/ramdisk | grep ".rc")
+for i in $(ls extract/ramdisk | grep ".rc")
 	do
 		if [ $i != init.rc ]
 			then
-				cp extract/$DEVICE_CODENAME/ramdisk/$i $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
+				cp extract/ramdisk/$i $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
 		fi
 done
 echo " done"
 
 # Cleanup
 rm extract/$DEVICE_CODENAME.img
-rm -rf extract/$DEVICE_CODENAME
-rm extract/result.txt
+rm -rf extract/split_img
+rm -rf extract/ramdisk
 
 cd $DEVICE_MANUFACTURER/$DEVICE_CODENAME
 
@@ -247,10 +249,13 @@ fi
 
 echo "# Kernel
 BOARD_KERNEL_CMDLINE := $CMDLINE
-BOARD_KERNEL_BASE := $BASEADDRESS
+BOARD_KERNEL_BASE := 0x$BASEADDRESS
 BOARD_KERNEL_PAGESIZE := $PAGESIZE
-BOARD_RAMDISK_OFFSET := $RAMDISKADDRESS
-BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64))
+BOARD_KERNEL_OFFSET := 0x$KERNELOFFSET
+BOARD_RAMDISK_OFFSET := 0x$RAMDISKOFFSET
+BOARD_SECOND_OFFSET := 0x$SECONDOFFSET
+BOARD_KERNEL_TAGS_OFFSET := 0x$TAGSOFFSET
+BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)
 TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel
 
 # Platform
