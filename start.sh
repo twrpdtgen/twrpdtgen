@@ -244,7 +244,7 @@ TARGET_CPU_VARIANT := generic
 " >> BoardConfig.mk
 fi
 # Some stock recovery.img doesn't have board name attached, so just ignore it
-if [ !"$BOOTLOADERNAME" = "" ]
+if [ "$BOOTLOADERNAME" != "" ]
 	then
 		echo "# Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := $BOOTLOADERNAME
