@@ -141,6 +141,14 @@ for i in $(ls extract/ramdisk | grep ".rc")
 done
 echo " done"
 
+# Check if device tree blobs are not appended to kernel
+if [ -f $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt ]
+	then
+		printf "DTB are not appended to kernel, copying..."
+		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img
+		echo " done"
+fi
+
 # Cleanup
 rm extract/$DEVICE_CODENAME.img
 rm -rf extract/split_img
@@ -252,9 +260,18 @@ BOARD_RAMDISK_OFFSET := 0x$RAMDISKOFFSET
 BOARD_SECOND_OFFSET := 0x$SECONDOFFSET
 BOARD_KERNEL_TAGS_OFFSET := 0x$TAGSOFFSET
 BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)
-TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel
+TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel" >> BoardConfig.mk
 
-# Platform
+# Check for dtb image and add it to BoardConfig.mk
+if [ -f prebuilt/dt.img ]
+	then
+		echo "BOARD_MKBOOTIMG_ARGS := --dt device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img
+" >> BoardConfig.mk
+	else
+		echo ""
+fi
+
+echo "# Platform
 # It's not needed for booting TWRP, but it should be added
 #TARGET_BOARD_PLATFORM := 
 #TARGET_BOARD_PLATFORM_GPU := 
