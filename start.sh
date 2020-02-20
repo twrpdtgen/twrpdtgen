@@ -69,7 +69,7 @@ cd extract
 chmod 0777 unpackimg.sh
 
 # Obtain recovery.img format info
-EXTRACT=$(./unpackimg.sh --nosudo $DEVICE_CODENAME.img)
+./unpackimg.sh --nosudo $DEVICE_CODENAME.img > /dev/null
 cd ..
 EXTRACTION_DIR=extract/split_img
 BOOTLOADERNAME=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-board)
