@@ -80,6 +80,8 @@ KERNELOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-kerneloff)
 RAMDISKOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskoff)
 SECONDOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-secondoff)
 TAGSOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-tagsoff)
+RAMDISKCOMPRESSION=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskcomp)
+
 # See what arch is by analizing init executable
 INIT=$(file extract/ramdisk/init)
 if echo $INIT | grep -q ARM
@@ -265,11 +267,27 @@ TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/
 # Check for dtb image and add it to BoardConfig.mk
 if [ -f prebuilt/dt.img ]
 	then
-		echo "BOARD_MKBOOTIMG_ARGS := --dt device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img
-" >> BoardConfig.mk
-	else
-		echo ""
+		echo "BOARD_MKBOOTIMG_ARGS := --dt device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img" >> BoardConfig.mk
 fi
+
+# Add LZMA compression if kernel suppport it
+case $RAMDISKCOMPRESSION in
+	lzma)
+		echo "
+# LZMA
+LZMA_RAMDISK_TARGETS := recovery
+" >> BoardConfig.mk
+		;;
+	lz4)
+		echo "" >> BoardConfig.mk
+		;;
+	xz)
+		echo "" >> BoardConfig.mk
+		;;
+	*)
+		echo "" >> BoardConfig.mk
+		;;
+esac
 
 echo "# Platform
 # It's not needed for booting TWRP, but it should be added
@@ -303,6 +321,18 @@ TW_SCREEN_BLANK_ON_BOOT := true
 TW_INPUT_BLACKLIST := \"hbtp_vm\"
 TW_USE_TOOLBOX := true" >> BoardConfig.mk
 echo " done"
+
+case $RAMDISKCOMPRESSION in
+	lzma)
+		echo "Kernel support lzma compression, using it"
+		;;
+	lz4)
+		echo "Kernel support lz4 compression, but I don't know how to enable it .-."
+		;;
+	xz)
+		echo "Kernel support xz compression, but I don't know how to enable it .-."
+		;;
+esac
 
 # omni_device.mk
 printf "Generating omni_$DEVICE_CODENAME.mk..."
