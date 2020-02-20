@@ -123,7 +123,12 @@ cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODE
 echo " done"
 
 # Check if a fstab is present
-if [ -f extract/ramdisk/etc/recovery.fstab ]
+if [ -f extract/ramdisk/etc/twrp.fstab ]
+	then
+		printf "Extracting fstab already made (this is for sure a custom recovery)..."
+		cp extract/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab
+		echo " done"
+elif [ -f extract/ramdisk/etc/recovery.fstab ]
 	then
 		printf "Extracting stock fstab..."
 		cp extract/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp
@@ -372,7 +377,7 @@ echo "add_lunch_combo omni_$DEVICE_CODENAME-userdebug
 add_lunch_combo omni_$DEVICE_CODENAME-eng" >> vendorsetup.sh
 echo " done"
 
-# Generate custom fstab
+# Generate custom fstab if it's not ready
 if [ -f fstab.temp ]
 	then
 		printf "Generating fstab..."
