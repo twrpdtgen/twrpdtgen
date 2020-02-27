@@ -191,6 +191,82 @@ echo "#
 done
 echo " done"
 
+# Generate custom fstab if it's not ready
+if [ -f fstab.temp ]
+	then
+		printf "Generating fstab..."
+		# Header
+		echo "# Android fstab file.
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+
+# Mount point		FS		Device									Flags" > recovery.fstab
+		for i in boot recovery cache system system_root vendor data dtbo
+			do
+				a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
+				# If /dev doesn't exist, try /emmc
+				if [ "$a" = "" ]
+					then
+						a=$(cat fstab.temp | grep -wi "/$i" | grep "/emmc.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
+				fi
+				if [ "$a" != "" ]
+					then
+						case $i in
+							cache)
+								echo "/cache			ext4	$a" >> recovery.fstab
+								;;
+							system)
+								echo "/system			ext4	$a
+/system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
+								;;
+							system_root)
+								echo "/system_root			ext4	$a		flags=display="System"
+/system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
+								;;
+							vendor)
+								echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
+/vendor_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
+								;;
+							data)
+								echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
+								;;
+							persist)
+								echo "/persist			ext4	$a" >> recovery.fstab
+								;;
+							odm)
+								echo "/odm				ext4	$a" >> recovery.fstab
+								;;
+							omr)
+								echo "/omr				ext4	$a" >> recovery.fstab
+								;;
+							cust)
+								echo "/cust				ext4	$a" >> recovery.fstab
+								;;
+							*)
+								echo "/$i				emmc	$a" >> recovery.fstab
+								;;
+						esac
+				fi
+		done
+		# Add External SDCard entry
+		echo "
+# External storage
+/sdcard1			vfat	/dev/block/mmcblk1p1 /dev/block/mmcblk1	flags=fsflags=utf8;display="SDcard";storage;wipeingui;removable" >> recovery.fstab
+		rm fstab.temp
+		echo " done"
+fi
+
+# Check for system-as-root setup
+if [ "$(cat recovery.fstab | grep -w "system_root")" != "" ]
+	then
+		printf "Device is system-as-root, adding necessary flags..."
+		DEVICE_IS_SAR=1
+		echo " done"
+
+	else
+		DEVICE_IS_SAR=0
+fi
+
 # Android.mk
 printf "Generating Android.mk..."
 echo "LOCAL_PATH := \$(call my-dir)
@@ -298,6 +374,15 @@ LZMA_RAMDISK_TARGETS := recovery
 		;;
 esac
 
+# Add system-as-root flags if device system-as-root
+if [ $DEVICE_IS_SAR = 1 ]
+	then
+		echo "# System as root
+BOARD_BUILD_SYSTEM_ROOT_IMAGE := true
+BOARD_SUPPRESS_SECURE_ERASE := true
+" >> BoardConfig.mk
+fi
+
 echo "# Platform
 # It's not needed for booting TWRP, but it should be added
 #TARGET_BOARD_PLATFORM := 
@@ -358,6 +443,7 @@ echo "# Specify phone tech before including full_phone
 # Inherit language packages
 \$(call inherit-product, \$(SRC_TARGET_DIR)/product/languages_full.mk)
 " >> omni_$DEVICE_CODENAME.mk
+
 # Inherit 64bit things if device is 64bit
 if [ $DEVICE_IS_64BIT = true ]
 	then
@@ -381,65 +467,11 @@ echo "add_lunch_combo omni_$DEVICE_CODENAME-userdebug
 add_lunch_combo omni_$DEVICE_CODENAME-eng" >> vendorsetup.sh
 echo " done"
 
-# Generate custom fstab if it's not ready
-if [ -f fstab.temp ]
+# Add system-as-root declaration
+if [ $DEVICE_IS_SAR = 1 ]
 	then
-		printf "Generating fstab..."
-		# Header
-		echo "# Android fstab file.
-# The filesystem that contains the filesystem checker binary (typically /system) cannot
-# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
-
-# Mount point		FS		Device									Flags" > recovery.fstab
-		for i in boot recovery cache system vendor data dtbo
-			do
-				a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
-				# If /dev doesn't exist, try /emmc
-				if [ "$a" = "" ]
-					then
-						a=$(cat fstab.temp | grep -wi "/$i" | grep "/emmc.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
-				fi
-				if [ "$a" != "" ]
-					then
-						case $i in
-							cache)
-								echo "/cache			ext4	$a" >> recovery.fstab
-								;;
-							system)
-								echo "/system			ext4	$a
-/system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-								;;
-							vendor)
-								echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
-/vendor_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-								;;
-							data)
-								echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
-								;;
-							persist)
-								echo "/persist			ext4	$a" >> recovery.fstab
-								;;
-							odm)
-								echo "/odm				ext4	$a" >> recovery.fstab
-								;;
-							omr)
-								echo "/omr				ext4	$a" >> recovery.fstab
-								;;
-							cust)
-								echo "/cust				ext4	$a" >> recovery.fstab
-								;;
-							*)
-								echo "/$i				emmc	$a" >> recovery.fstab
-								;;
-						esac
-				fi
-		done
-		# Add External SDCard entry
-		echo "
-# External storage
-/sdcard1			vfat	/dev/block/mmcblk1p1 /dev/block/mmcblk1	flags=fsflags=utf8;display="SDcard";storage;wipeingui;removable" >> recovery.fstab
-		rm fstab.temp
-		echo " done"
+		echo "on fs
+	export ANDROID_ROOT /system_root" >> recovery/root/init.recovery.sar.rc
 fi
 
 # Automatically create a ready-to-push repo
