@@ -394,6 +394,11 @@ if [ -f fstab.temp ]
 		for i in boot recovery cache system vendor data dtbo
 			do
 				a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
+				# If /dev doesn't exist, try /emmc
+				if [ "$a" = "" ]
+					then
+						a=$(cat fstab.temp | grep -wi "/$i" | grep "/emmc.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
+				fi
 				if [ "$a" != "" ]
 					then
 						case $i in
