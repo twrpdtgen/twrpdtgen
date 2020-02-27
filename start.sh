@@ -34,9 +34,12 @@ read -p "Insert the device codename (eg. whyred)
 clear
 
 logo
-read -p "Insert the device manufacturer (eg. Xiaomi)
+read -p "Insert the device manufacturer (eg. xiaomi)
 > " DEVICE_MANUFACTURER
 clear
+
+# Manufacturer name must be lowercase
+DEVICE_MANUFACTURER=$(echo "$DEVICE_MANUFACTURER" | tr '[:upper:]' '[:lower:]')
 
 logo
 read -p "Insert the device release year (eg. 2018)
