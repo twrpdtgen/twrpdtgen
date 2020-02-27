@@ -117,10 +117,20 @@ if [ $DEVICE_ARCH = x86_64 ]
 fi
 echo " done"
 
-# Copy kernel to device tree
-printf "Copying stock kernel..."
-cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel
-echo " done"
+# Check if device tree blobs are not appended to kernel and copy kernel
+if [ -f $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt ]
+	then
+		printf "Copying stock kernel..."
+		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage
+		echo " done"
+		printf "DTB are not appended to kernel, copying..."
+		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img
+		echo " done"
+	else
+		printf "Copying stock kernel..."
+		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb
+		echo " done"
+fi
 
 # Check if a fstab is present
 if [ -f extract/ramdisk/etc/twrp.fstab ]
@@ -147,14 +157,6 @@ for i in $(ls extract/ramdisk | grep ".rc")
 		fi
 done
 echo " done"
-
-# Check if device tree blobs are not appended to kernel
-if [ -f $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt ]
-	then
-		printf "DTB are not appended to kernel, copying..."
-		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img
-		echo " done"
-fi
 
 # Cleanup
 rm extract/$DEVICE_CODENAME.img
@@ -266,13 +268,15 @@ BOARD_KERNEL_OFFSET := 0x$KERNELOFFSET
 BOARD_RAMDISK_OFFSET := 0x$RAMDISKOFFSET
 BOARD_SECOND_OFFSET := 0x$SECONDOFFSET
 BOARD_KERNEL_TAGS_OFFSET := 0x$TAGSOFFSET
-BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)
-TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/kernel" >> BoardConfig.mk
+BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)" >> BoardConfig.mk
 
 # Check for dtb image and add it to BoardConfig.mk
 if [ -f prebuilt/dt.img ]
 	then
-		echo "BOARD_MKBOOTIMG_ARGS := --dt device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img" >> BoardConfig.mk
+		echo "TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage
+BOARD_MKBOOTIMG_ARGS := --dt device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img" >> BoardConfig.mk
+	else
+		echo "TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb" >> BoardConfig.mk
 fi
 
 # Add LZMA compression if kernel suppport it
