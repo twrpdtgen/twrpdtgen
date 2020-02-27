@@ -12,6 +12,10 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 - Pick stock recovery image info (eg. image size, kernel pagesize etc.)
 - Create ad-hoc recovery.fstab
 - Add needed init.rc files
+- Take cmdline automatically
+- System-as-root support
+- dt.img support (not appended DTBs)
+- Ramdisk compression support (LZMA, 7Z, GZIP etc...)
 - MTK support
 - Extract stock kernel automatically
 - Fill BoardConfig.mk without needing to inherit external makefiles (like TwrpBuilder does), making a standalone device tree
