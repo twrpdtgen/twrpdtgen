@@ -18,6 +18,17 @@
 #
 
 VERSION="1.0"
+LAST_COMMIT=$(git log -1 --format="%h")
+size=${#LAST_COMMIT}
+if [ ${#LAST_COMMIT} != 7 ]
+	then
+		echo "Error retreiving last git commit
+Please use git clone, and don't download repo zip file
+If you haven't it, also install git"
+		exit
+fi
+
+
 # Clean screen
 clear
 
@@ -25,6 +36,7 @@ clear
 logo() {
 echo "TWRP device tree generator
 by SebaUbuntu
+Version $VERSION
 "
 }
 
