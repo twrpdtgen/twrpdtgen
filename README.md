@@ -2,7 +2,7 @@
 
 Create a TWRP-compatible device tree only from a recovery.img
 
-With this script I tried to write TwrpBuilder script in Bash, and somehow I succeded, doing a better job ^_^
+With this script I tried to write TwrpBuilder script in Bash, and somehow I succeded, supporing more features
 
 ## Features
 
