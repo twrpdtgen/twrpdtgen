@@ -43,11 +43,21 @@ Version $VERSION
 logo
 read -p "Insert the device codename (eg. whyred)
 > " DEVICE_CODENAME
+if [ -z "$DEVICE_CODENAME" ]
+	then
+		echo "Error: device codename can't be empty"
+		exit
+fi
 clear
 
 logo
 read -p "Insert the device manufacturer (eg. xiaomi)
 > " DEVICE_MANUFACTURER
+if [ -z "$DEVICE_MANUFACTURER" ]
+	then
+		echo "Error: device manufacturer can't be empty"
+		exit
+fi
 clear
 
 # Manufacturer name must be lowercase
@@ -56,18 +66,33 @@ DEVICE_MANUFACTURER=$(echo "$DEVICE_MANUFACTURER" | tr '[:upper:]' '[:lower:]')
 logo
 read -p "Insert the device release year (eg. 2018)
 > " DEVICE_YEAR_RELEASE
+if [ -z "$DEVICE_YEAR_RELEASE" ]
+	then
+		echo "Error: device year release can't be empty"
+		exit
+fi
 clear
 
 logo
 read -p "Insert the device commercial name (eg. Xiaomi Redmi Note 5)
 > " DEVICE_FULL_NAME
+if [ -z "$DEVICE_FULL_NAME" ]
+	then
+		echo "Error: device commercial name can't be empty"
+		exit
+fi
 clear
 
 logo
 read -p "Drag and drop or type the full path of stock recovery.img (you can obtain it from stock OTA or with device dump)
 > " DEVICE_STOCK_RECOVERY_PATH
-clear
 DEVICE_STOCK_RECOVERY_PATH=$(echo $DEVICE_STOCK_RECOVERY_PATH | cut -d "'" -f 2)
+if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]
+	then
+		echo "Error: file not found"
+		exit
+fi
+clear
 
 logo
 
