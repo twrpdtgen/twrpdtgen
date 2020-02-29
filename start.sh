@@ -287,7 +287,7 @@ echo " done"
 
 # BoardConfig.mk
 printf "Generating BoardConfig.mk..."
-echo "LOCAL_PATH := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME
+echo "DEVICE_PATH := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME
 
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES := true
@@ -352,15 +352,15 @@ BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)" >> 
 # Check for dtb image and add it to BoardConfig.mk
 if [ -f prebuilt/dt.img ]
 	then
-		echo "TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage
+		echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage
 BOARD_MKBOOTIMG_ARGS := --dt device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img" >> BoardConfig.mk
 	else
-		echo "TARGET_PREBUILT_KERNEL := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb" >> BoardConfig.mk
+		echo "TARGET_PREBUILT_KERNEL += \$(DEVICE_PATH)/prebuilt/zImage-dtb" >> BoardConfig.mk
 fi
 
 if [ "$DEVICE_MANUFACTURER" = "samsung" ]
 	then
-		echo "BOARD_CUSTOM_BOOTIMG_MK := \$LOCAL_PATH/mkbootimg.mk" >> BoardConfig.mk
+		echo "BOARD_CUSTOM_BOOTIMG_MK := \$(DEVICE_PATH)/mkbootimg.mk" >> BoardConfig.mk
 fi
 
 # Add LZMA compression if kernel suppport it
