@@ -19,7 +19,6 @@
 
 VERSION="1.0"
 LAST_COMMIT=$(git log -1 --format="%h")
-size=${#LAST_COMMIT}
 if [ ${#LAST_COMMIT} != 7 ]
 	then
 		echo "Error retreiving last git commit
@@ -518,22 +517,21 @@ if [ "$DEVICE_MANUFACTURER" = "samsung" ]
 fi
 
 # Automatically create a ready-to-push repo
-if [ $(dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed") -eq 0 ]
-	then
- 		echo "Git is not installed, can't automatically create a repo"
-	else
-		printf "Creating ready-to-push git repo..."
-		git init -q
-		git add -A
-		# Please don't be an ass and keep authorship
-		git commit -m "$DEVICE_CODENAME: initial TWRP device tree
+printf "Creating ready-to-push git repo..."
+git init -q
+git add -A
+# Please don't be an ass and keep authorship
+git commit -m "$DEVICE_CODENAME: initial TWRP device tree
 
 Made with SebaUbuntu's TWRP device tree generator
 Arch: $DEVICE_ARCH
 Manufacturer: $DEVICE_MANUFACTURER
-Device full name: $DEVICE_FULL_NAME" --author "Sebastiano Barezzi <barezzisebastiano@gmail.com>" -q
-		echo " done"
-fi
+Device full name: $DEVICE_FULL_NAME
+Script version: $VERSION
+Last script commit: $LAST_COMMIT
+
+Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>" --author "Sebastiano Barezzi <barezzisebastiano@gmail.com>" -q
+echo " done"
 
 echo ""
 echo "Device tree successfully made, you can find it in $DEVICE_MANUFACTURER/$DEVICE_CODENAME
