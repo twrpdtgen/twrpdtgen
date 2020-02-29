@@ -2,7 +2,7 @@
 
 Create a TWRP-compatible device tree only from a recovery.img
 
-With this script I tried to write TwrpBuilder script in Bash, and somehow I succeded (even thought it doesn't do all TwrpBuilder script does, it's still WIP)
+With this script I tried to write TwrpBuilder script in Bash, and somehow I succeded, doing a better job ^_^
 
 ## Features
 
@@ -15,6 +15,8 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 - Take cmdline automatically
 - System-as-root support
 - dt.img support (not appended DTBs)
+- Samsung Odin TAR support
+- Samsung SEAndroid support
 - Ramdisk compression support (LZMA, 7Z, GZIP etc...)
 - MTK support
 - Extract stock kernel automatically
