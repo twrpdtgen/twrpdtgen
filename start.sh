@@ -391,7 +391,7 @@ if [ -f prebuilt/dt.img ]
 	then
 		echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage
 TARGET_PREBUILT_DTB := \$(DEVICE_PATH)/prebuilt/dt.img
-BOARD_MKBOOTIMG_ARGS += --dt \$(TARGET_PREBUILT_DTB) >> BoardConfig.mk
+BOARD_MKBOOTIMG_ARGS += --dt \$(TARGET_PREBUILT_DTB)" >> BoardConfig.mk
 	else
 		echo "TARGET_PREBUILT_KERNEL += \$(DEVICE_PATH)/prebuilt/zImage-dtb" >> BoardConfig.mk
 fi
