@@ -10,6 +10,7 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 - Add proper license headers in every file
 - Automatically detect device architecture
 - Pick stock recovery image info (eg. image size, kernel pagesize etc.)
+- Inherit more infos directly from the device with ADB (optional)
 - Create ad-hoc recovery.fstab
 - Add needed init.rc files
 - Take cmdline automatically
@@ -26,4 +27,4 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 
 ## TODO
 
-- Inherit more infos directly from the device with ADB
+- A/B support
