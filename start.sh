@@ -95,6 +95,63 @@ fi
 clear
 
 logo
+read -p "Do you want to add additional flags via ADB? (Optional)
+This can help the script making a better device tree by taking precise data
+But you need to have the device on hands and adb command needs to be present
+Type yes to use this feature
+> " ADB_CHOICE
+if [ "$ADB_CHOICE" = "yes" ]
+	then
+		if [ "$(command -v adb)" != "" ]
+			then
+				clear
+				logo
+				echo "ADB is installed"
+				echo ""
+				echo "Connect your device with USB debugging enabled"
+				echo "If asked, on your device grant USB ADB request"
+				echo "Waiting for device..."
+				while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ]
+					do
+						sleep 1
+						ADB_COUNTER=$(( ADB_COUNTER + 1 ))
+						if [ "$ADB_COUNTER" = 30 ]
+							then
+								echo "Timeout, ADB will not be used"
+								sleep 5
+								NO_ADB=true
+								break
+						fi
+						[ "$NO_ADB" = "true" ] && break
+				done
+				[ "$NO_ADB" = "true" ] && break
+				printf "Device connected, taking values, do not disconnect the device..."
+				DEVICE_SOC_MANUFACTURER=$(adb shell getprop ro.hardware)
+				DEVICE_CPU_VARIANT=$(adb shell getprop ro.bionic.cpu_variant)
+				if [ "$DEVICE_CPU_VARIANT" = "" ]
+					then
+						DEVICE_CPU_VARIANT=generic
+				fi
+				DEVICE_2ND_CPU_VARIANT=$(adb shell getprop ro.bionic.2nd_cpu_variant)
+				if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]
+					then
+						DEVICE_2ND_CPU_VARIANT=generic
+				fi
+				echo " done"
+			else
+				echo "ADB is not installed, skipping..."
+				NO_ADB=true
+		fi
+	else
+		echo "ADB will not be used, using generic values"
+		NO_ADB=true
+fi
+
+if [ "$NO_ADB" = "true" ]
+	then
+		DEVICE_CPU_VARIANT=generic
+		DEVICE_2ND_CPU_VARIANT=generic
+fi
 
 # Start cleanly
 rm -rf $DEVICE_MANUFACTURER/$DEVICE_CODENAME
@@ -337,13 +394,13 @@ TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 :=
-TARGET_CPU_VARIANT := generic
+TARGET_CPU_VARIANT := $DEVICE_CPU_VARIANT
 
 TARGET_2ND_ARCH := arm
 TARGET_2ND_ARCH_VARIANT := armv7-a-neon
 TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
-TARGET_2ND_CPU_VARIANT := generic
+TARGET_2ND_CPU_VARIANT := $DEVICE_2ND_CPU_VARIANT
 TARGET_BOARD_SUFFIX := _64
 TARGET_USES_64_BIT_BINDER := true
 " >> BoardConfig.mk
@@ -354,7 +411,7 @@ TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
-TARGET_CPU_VARIANT := generic
+TARGET_CPU_VARIANT := $DEVICE_CPU_VARIANT
 " >> BoardConfig.mk
 	elif [ $DEVICE_ARCH = x86 ] # NOTE! x86 can't be tested by me, if you have a x86 device and you want to test this, feel free to report me results
 		then
@@ -365,7 +422,7 @@ TARGET_CPU_ABI := x86
 TARGET_CPU_ABI2 := armeabi-v7a
 TARGET_CPU_ABI_LIST := x86,armeabi-v7a,armeabi
 TARGET_CPU_ABI_LIST_32_BIT := x86,armeabi-v7a,armeabi
-TARGET_CPU_VARIANT := generic
+TARGET_CPU_VARIANT := $DEVICE_CPU_VARIANT
 " >> BoardConfig.mk
 fi
 # Some stock recovery.img doesn't have board name attached, so just ignore it
