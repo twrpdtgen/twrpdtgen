@@ -233,7 +233,7 @@ fi
 if [ -f extract/ramdisk/etc/twrp.fstab ]
 	then
 		printf "Extracting fstab already made (this is for sure a custom recovery)..."
-		cp extract/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab
+		cp extract/ramdisk/etc/twrp.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab
 		echo " done"
 elif [ -f extract/ramdisk/etc/recovery.fstab ]
 	then
