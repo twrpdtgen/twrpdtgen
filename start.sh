@@ -154,36 +154,36 @@ if [ "$NO_ADB" = "true" ]
 fi
 
 # Start cleanly
-rm -rf $DEVICE_MANUFACTURER/$DEVICE_CODENAME
-mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt
-mkdir -p $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
+rm -rf "$DEVICE_MANUFACTURER/$DEVICE_CODENAME"
+mkdir -p "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt"
+mkdir -p "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root"
 
 # Obtain stock recovery.img size
-cp "$DEVICE_STOCK_RECOVERY_PATH" extract/$DEVICE_CODENAME.img
+cp "$DEVICE_STOCK_RECOVERY_PATH" "extract/$DEVICE_CODENAME.img"
 printf "Obtaining stock recovery image info..."
 FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
 cd extract
 chmod 0777 unpackimg.sh
 
 # Obtain recovery.img format info
-./unpackimg.sh --nosudo $DEVICE_CODENAME.img > /dev/null
+./unpackimg.sh --nosudo "$DEVICE_CODENAME.img" > /dev/null
 cd ..
 EXTRACTION_DIR=extract/split_img
-BOOTLOADERNAME=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-board)
-CMDLINE=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-cmdline)
-PAGESIZE=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-pagesize)
-BASEADDRESS=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-base)
-KERNELOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-kerneloff)
-RAMDISKOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskoff)
-SECONDOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-secondoff)
-TAGSOFFSET=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-tagsoff)
-RAMDISKCOMPRESSION=$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskcomp)
+BOOTLOADERNAME="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-board)"
+CMDLINE="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-cmdline)"
+PAGESIZE="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-pagesize)"
+BASEADDRESS="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-base)"
+KERNELOFFSET="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-kerneloff)"
+RAMDISKOFFSET="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskoff)"
+SECONDOFFSET="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-secondoff)"
+TAGSOFFSET="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-tagsoff)"
+RAMDISKCOMPRESSION="$(cat $EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskcomp)"
 
 # See what arch is by analizing init executable
 INIT=$(file extract/ramdisk/init)
-if echo $INIT | grep -q ARM
+if echo "$INIT" | grep -q ARM
 	then
-		if echo $INIT | grep -q aarch64
+		if echo "$INIT" | grep -q aarch64
 			then
 				DEVICE_ARCH=arm64
 				DEVICE_IS_64BIT=true
@@ -191,9 +191,9 @@ if echo $INIT | grep -q ARM
 				DEVICE_ARCH=arm
 				DEVICE_IS_64BIT=false
 		fi
-elif echo $INIT | grep -q x86
+elif echo "$INIT" | grep -q x86
 	then	
-		if echo $INIT | grep -q x86-64
+		if echo "$INIT" | grep -q x86-64
 			then
 				DEVICE_ARCH=x86_64
 				DEVICE_IS_64BIT=true
@@ -215,30 +215,30 @@ fi
 echo " done"
 
 # Check if device tree blobs are not appended to kernel and copy kernel
-if [ -f $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt ]
+if [ -f "$EXTRACTION_DIR/$DEVICE_CODENAME.img-dt" ]
 	then
 		printf "Copying stock kernel..."
-		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage
+		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage"
 		echo " done"
 		printf "DTB are not appended to kernel, copying..."
-		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-dt $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img
+		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img"
 		echo " done"
 	else
 		printf "Copying stock kernel..."
-		cp $EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage $DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb
+		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb"
 		echo " done"
 fi
 
 # Check if a fstab is present
-if [ -f extract/ramdisk/etc/twrp.fstab ]
+if [ -f "extract/ramdisk/etc/twrp.fstab" ]
 	then
 		printf "Extracting fstab already made (this is for sure a custom recovery)..."
-		cp extract/ramdisk/etc/twrp.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab
+		cp "extract/ramdisk/etc/twrp.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab"
 		echo " done"
 elif [ -f extract/ramdisk/etc/recovery.fstab ]
 	then
 		printf "Extracting stock fstab..."
-		cp extract/ramdisk/etc/recovery.fstab $DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp
+		cp "extract/ramdisk/etc/recovery.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp"
 		echo " done"
 	else
 		echo "WARNING! The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have"
@@ -248,23 +248,23 @@ fi
 printf "Extracting init.rc files..."
 for i in $(ls extract/ramdisk | grep ".rc")
 	do
-		if [ $i != init.rc ]
+		if [ "$i" != init.rc ]
 			then
-				cp extract/ramdisk/$i $DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root
+				cp "extract/ramdisk/$i" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root"
 		fi
 done
 echo " done"
 
 # Cleanup
-rm extract/$DEVICE_CODENAME.img
+rm "extract/$DEVICE_CODENAME.img"
 rm -rf extract/split_img
 rm -rf extract/ramdisk
 
-cd $DEVICE_MANUFACTURER/$DEVICE_CODENAME
+cd "$DEVICE_MANUFACTURER/$DEVICE_CODENAME"
 
 # License - please keep it as is, thanks
 printf "Adding license headers..."
-CURRENT_YEAR=$(date +%Y)
+CURRENT_YEAR="$(date +%Y)"
 for file in Android.mk AndroidProducts.mk BoardConfig.mk omni_$DEVICE_CODENAME.mk vendorsetup.sh
 	do
 echo "#
