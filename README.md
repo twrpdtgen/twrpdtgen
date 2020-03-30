@@ -1,5 +1,7 @@
 # TWRP device tree generator
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/69d10f044ce34de2bf7ae6ee7fe0595e)](https://app.codacy.com/manual/SebaUbuntu/TWRP-device-tree-generator?utm_source=github.com&utm_medium=referral&utm_content=SebaUbuntu/TWRP-device-tree-generator&utm_campaign=Badge_Grade_Dashboard)
+
 Create a TWRP-compatible device tree only from a recovery.img
 
 With this script I tried to write TwrpBuilder script in Bash, and somehow I succeded, supporing more features
