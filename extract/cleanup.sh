@@ -26,11 +26,11 @@ esac;
 chmod -R 755 "$bin" "$aik"/*.sh;
 chmod 644 "$bin/magic" "$bin/androidbootimg.magic" "$bin/BootSignature.jar" "$bin/avb/"* "$bin/chromeos/"*;
 
-if [ -d ramdisk ] && [ "$(stat $statarg ramdisk | head -n 1)" = "root" -o ! "$(find ramdisk 2>&1 | cpio -o >/dev/null 2>&1; echo $?)" -eq "0" ]; then
+if [ -d ramdisk ] && [ "$(stat "$statarg" ramdisk | head -n 1)" = "root" -o ! "$(find ramdisk 2>&1 | cpio -o >/dev/null 2>&1; echo "$?")" -eq "0" ]; then
   sudo=sudo;
 fi;
 
-$sudo rm -rf ramdisk split_img *new.* || exit 1;
+$sudo rm -rf ramdisk split_img ./*new.* || exit 1;
 
 case $1 in
   --quiet) ;;
