@@ -2,7 +2,7 @@
 # AIK-Linux/unpackimg: split image and unpack ramdisk
 # osm0sis @ xda-developers
 
-cleanup() { "$aik/cleanup.sh" $local --quiet; }
+cleanup() { "$aik/cleanup.sh" "$local" --quiet; }
 abort() { echo "Error!"; }
 
 case $1 in
@@ -24,7 +24,7 @@ case $(uname -s) in
   ;;
   *) plat="linux";;
 esac;
-arch=$plat/`uname -m`;
+arch="$plat/$(uname -m)";
 
 aik="${BASH_SOURCE:-$0}";
 aik="$(dirname "$(readlink -f "$aik")")";
@@ -62,7 +62,7 @@ if [ ! "$img" ]; then
     esac;
     img="$line";
     break;
-  done < <(ls *.elf *.img *.sin 2>/dev/null);
+  done < <(ls ./*.elf ./*.img ./*.sin 2>/dev/null);
 fi;
 img="$(readlink -f "$img")";
 if [ ! -f "$img" ]; then
@@ -82,7 +82,7 @@ echo "Supplied image: $file";
 echo " ";
 
 if [ -d split_img -o -d ramdisk ]; then
-  if [ -d ramdisk ] && [ "$(stat $statarg ramdisk | head -n 1)" = "root" -o ! "$(find ramdisk 2>&1 | cpio -o >/dev/null 2>&1; echo $?)" -eq "0" ]; then
+  if [ -d ramdisk ] && [ "$(stat $statarg ramdisk | head -n 1)" = "root" -o ! "$(find ramdisk 2>&1 | cpio -o >/dev/null 2>&1; echo "$?")" -eq "0" ]; then
     rmsumsg=" (as root)";
   fi;
   echo "Removing old work folders and files$rmsumsg...";
@@ -96,8 +96,8 @@ mkdir split_img ramdisk;
 
 cd split_img;
 imgtest="$(file -m "$bin/androidbootimg.magic" "$img" 2>/dev/null | cut -d: -f2-)";
-if [ "$(echo $imgtest | awk '{ print $2 }' | cut -d, -f1)" = "signing" ]; then
-  echo $imgtest | awk '{ print $1 }' > "$file-sigtype";
+if [ "$(echo "$imgtest" | awk '{ print $2 }' | cut -d, -f1)" = "signing" ]; then
+  echo "$imgtest" | awk '{ print $1 }' > "$file-sigtype";
   sigtype=$(cat "$file-sigtype");
   echo "Signature with \"$sigtype\" type detected, removing...";
   echo " ";
@@ -127,9 +127,9 @@ if [ "$(echo $imgtest | awk '{ print $2 }' | cut -d, -f1)" = "signing" ]; then
 fi;
 
 imgtest="$(file -m "$bin/androidbootimg.magic" "$img" 2>/dev/null | cut -d: -f2-)";
-if [ "$(echo $imgtest | awk '{ print $2 }' | cut -d, -f1)" = "bootimg" ]; then
-  test "$(echo $imgtest | awk '{ print $3 }')" = "PXA" && typesuffix=-PXA;
-  echo "$(echo $imgtest | awk '{ print $1 }')$typesuffix" > "$file-imgtype";
+if [ "$(echo "$imgtest" | awk '{ print $2 }' | cut -d, -f1)" = "bootimg" ]; then
+  test "$(echo "$imgtest" | awk '{ print $3 }')" = "PXA" && typesuffix=-PXA;
+  echo "$(echo "$imgtest" | awk '{ print $1 }')$typesuffix" > "$file-imgtype";
   imgtype=$(cat "$file-imgtype");
 else
   cd ..;
@@ -152,8 +152,8 @@ case $imgtype in
   ;;
 esac;
 
-if [ "$(echo $imgtest | awk '{ print $3 }')" = "LOKI" ]; then
-  echo $imgtest | awk '{ print $5 }' | cut -d\( -f2 | cut -d\) -f1 > "$file-lokitype";
+if [ "$(echo "$imgtest" | awk '{ print $3 }')" = "LOKI" ]; then
+  echo "$imgtest" | awk '{ print $5 }' | cut -d\( -f2 | cut -d\) -f1 > "$file-lokitype";
   lokitype=$(cat "$file-lokitype");
   echo "Loki patch with \"$lokitype\" type detected, reverting...";
   echo " ";
@@ -163,26 +163,26 @@ if [ "$(echo $imgtest | awk '{ print $3 }')" = "LOKI" ]; then
   img="$file";
 fi;
 
-tailtest="$(dd if="$img" iflag=skip_bytes skip=$(($(wc -c < "$img") - 8192)) bs=8192 count=1 2>/dev/null | file -m $bin/androidbootimg.magic - 2>/dev/null | cut -d: -f2-)";
+tailtest="$(dd if="$img" iflag=skip_bytes skip=$(($(wc -c < "$img") - 8192)) bs=8192 count=1 2>/dev/null | file -m "$bin/androidbootimg.magic" - 2>/dev/null | cut -d: -f2-)";
 case $tailtest in
   *data) tailtest="$(tail -n50 "$img" | file -m "$bin/androidbootimg.magic" - 2>/dev/null | cut -d: -f2-)";;
 esac;
-tailtype="$(echo $tailtest | awk '{ print $1 }')";
+tailtype="$(echo "$tailtest" | awk '{ print $1 }')";
 case $tailtype in
   AVB*)
     echo "Signature with \"$tailtype\" type detected.";
     echo " ";
     case $tailtype in
       *v1)
-        echo $tailtype > "$file-sigtype";
-        echo $tailtest | awk '{ print $4 }' > "$file-avbtype";
+        echo "$tailtype" > "$file-sigtype";
+        echo "$tailtest" | awk '{ print $4 }' > "$file-avbtype";
       ;;
     esac;
   ;;
   Bump|SEAndroid)
     echo "Footer with \"$tailtype\" type detected.";
     echo " ";
-    echo $tailtype > "$file-tailtype";
+    echo "$tailtype" > "$file-tailtype";
   ;;
 esac;
 
@@ -248,24 +248,24 @@ if [ "$imgtype" = "AOSP" ] && [ "$(cat "$file-hash")" = "unknown" ]; then
   echo "sha1" > "$file-hash";
 fi;
 
-if [ "$(file -m "$bin/androidbootimg.magic" *-zImage 2>/dev/null | cut -d: -f2 | awk '{ print $1 }')" = "MTK" ]; then
+if [ "$(file -m "$bin/androidbootimg.magic" ./*-zImage 2>/dev/null | cut -d: -f2 | awk '{ print $1 }')" = "MTK" ]; then
   mtk=1;
   echo " ";
   echo "MTK header found in zImage, removing...";
   dd bs=512 skip=1 conv=notrunc if="$file-zImage" of=tempzimg 2>/dev/null;
   mv -f tempzimg "$file-zImage";
 fi;
-mtktest="$(file -m "$bin/androidbootimg.magic" *-ramdisk*.gz 2>/dev/null | cut -d: -f2-)";
-mtktype=$(echo $mtktest | awk '{ print $3 }');
-if [ "$(echo $mtktest | awk '{ print $1 }')" = "MTK" ]; then
+mtktest="$(file -m "$bin/androidbootimg.magic" ./*-ramdisk*.gz 2>/dev/null | cut -d: -f2-)";
+mtktype=$(echo "$mtktest" | awk '{ print $3 }');
+if [ "$(echo "$mtktest" | awk '{ print $1 }')" = "MTK" ]; then
   if [ ! "$mtk" ]; then
     echo " ";
     echo "Warning: No MTK header found in zImage!";
     mtk=1;
   fi;
   echo "MTK header found in \"$mtktype\" type ramdisk, removing...";
-  dd bs=512 skip=1 conv=notrunc if="$(ls *-ramdisk*.gz)" of=temprd 2>/dev/null;
-  mv -f temprd "$(ls *-ramdisk*.gz)";
+  dd bs=512 skip=1 conv=notrunc if="$(ls ./*-ramdisk*.gz)" of=temprd 2>/dev/null;
+  mv -f temprd "$(ls ./*-ramdisk*.gz)";
 else
   if [ "$mtk" ]; then
     if [ ! "$mtktype" ]; then
@@ -277,8 +277,8 @@ fi;
 test "$mtk" && echo $mtktype > "$file-mtktype";
 
 if [ -f *-dt ]; then
-  dttest="$(file -m "$bin/androidbootimg.magic" *-dt 2>/dev/null | cut -d: -f2 | awk '{ print $1 }')";
-  echo $dttest > "$file-dttype";
+  dttest="$(file -m "$bin/androidbootimg.magic" ./*-dt 2>/dev/null | cut -d: -f2 | awk '{ print $1 }')";
+  echo "$dttest" > "$file-dttype";
   if [ "$imgtype" = "ELF" ]; then
     case $dttest in
       QCDT|ELF) ;;
@@ -292,8 +292,8 @@ if [ -f *-dt ]; then
   fi;
 fi;
 
-file -m "$bin/magic" *-ramdisk*.gz 2>/dev/null | cut -d: -f2 | awk '{ print $1 }' > "$file-ramdiskcomp";
-ramdiskcomp=`cat *-ramdiskcomp`;
+file -m "$bin/magic" ./*-ramdisk*.gz 2>/dev/null | cut -d: -f2 | awk '{ print $1 }' > "$file-ramdiskcomp";
+ramdiskcomp=$(cat *-ramdiskcomp);
 unpackcmd="$ramdiskcomp -dc";
 compext=$ramdiskcomp;
 case $ramdiskcomp in
@@ -310,7 +310,7 @@ esac;
 if [ "$compext" ]; then
   compext=.$compext;
 fi;
-mv -f "$(ls *-ramdisk*.gz)" "$file-ramdisk.cpio$compext" 2>/dev/null;
+mv -f "$(ls ./*-ramdisk*.gz)" "$file-ramdisk.cpio$compext" 2>/dev/null;
 cd ..;
 if [ "$ramdiskcomp" = "data" ]; then
   echo "Unrecognized format.";
