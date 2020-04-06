@@ -18,6 +18,17 @@
 #
 
 VERSION="1.0"
+
+# Color definition
+red=`tput setaf 1`
+green=`tput setaf 2`
+yellow=`tput setaf 3`
+blue=`tput setaf 4`
+magenta=`tput setaf 5`
+cyan=`tput setaf 6`
+white=`tput setaf 7`
+reset=`tput sgr0`
+
 LAST_COMMIT=$(git log -1 --format="%h")
 if [ ${#LAST_COMMIT} != 7 ]
 	then
@@ -33,9 +44,33 @@ clear
 
 # Logo function
 logo() {
-echo "TWRP device tree generator
-by SebaUbuntu
-Version $VERSION
+
+echo "$cyan
+                   ████                    
+              █████████         ██         
+           ████████████         █████      
+         ██████████████         ███████    
+       ████████████████         █████████  
+      █████████████                 ██████ 
+     ████████████████              ████████
+     █████████████████           ██████████
+    ████████████████████       ████████████
+    █████████████████████     █████████████
+    ███████████████   █████ ███████████████
+    █████████████      ████████████████████
+    ████████████         ██████████████████
+     █████████            █████████████████
+      ███████               ██████████████ 
+       ████                   ███████████  
+        ████████         ███████████████   
+          ██████         █████████████     
+            ████         ███████████       
+                         ███████           
+$reset
+
+          TWRP device tree generator
+                by SebaUbuntu
+                 Version $VERSION
 "
 }
 
