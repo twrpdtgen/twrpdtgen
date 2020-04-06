@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-VERSION="1.0"
+VERSION="1.1"
 
 # Color definition
 red=`tput setaf 1`
