@@ -98,7 +98,7 @@ logo
 read -p "Do you want to add additional flags via ADB? (Optional)
 This can help the script making a better device tree by taking precise data
 But you need to have the device on hands and adb command needs to be present
-Type yes to use this feature
+Type \"yes\" to use this feature
 > " ADB_CHOICE
 if [ "$ADB_CHOICE" = "yes" ]
 	then
@@ -111,45 +111,40 @@ if [ "$ADB_CHOICE" = "yes" ]
 				echo "Connect your device with USB debugging enabled"
 				echo "If asked, on your device grant USB ADB request"
 				echo "Waiting for device..."
-				while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ]
+				ADB_TIMEOUT=0
+				while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "ADB_TIMEOUT" != 30 ]
 					do
 						sleep 1
-						ADB_COUNTER=$(( ADB_COUNTER + 1 ))
-						if [ "$ADB_COUNTER" = 30 ]
-							then
-								echo "Timeout, ADB will not be used"
-								sleep 5
-								NO_ADB=true
-								break
-						fi
-						[ "$NO_ADB" = "true" ] && break
+						ADB_TIMEOUT=$(( ADB_TIMEOUT + 1 ))
 				done
-				[ "$NO_ADB" = "true" ] && break
-				printf "Device connected, taking values, do not disconnect the device..."
-				DEVICE_SOC_MANUFACTURER=$(adb shell getprop ro.hardware)
-				DEVICE_CPU_VARIANT=$(adb shell getprop ro.bionic.cpu_variant)
-				if [ "$DEVICE_CPU_VARIANT" = "" ]
+				if [ "$ADB_COUNTER" = 30 ]
 					then
-						DEVICE_CPU_VARIANT=generic
+						echo "Timeout, ADB will not be used"
+						sleep 3
+						break
+					else
+						printf "Device connected, taking values, do not disconnect the device..."
+						DEVICE_SOC_MANUFACTURER=$(adb shell getprop ro.hardware)
+						DEVICE_CPU_VARIANT=$(adb shell getprop ro.bionic.cpu_variant)
+						DEVICE_2ND_CPU_VARIANT=$(adb shell getprop ro.bionic.2nd_cpu_variant)
+						echo " done"
 				fi
-				DEVICE_2ND_CPU_VARIANT=$(adb shell getprop ro.bionic.2nd_cpu_variant)
-				if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]
-					then
-						DEVICE_2ND_CPU_VARIANT=generic
-				fi
-				echo " done"
 			else
 				echo "ADB is not installed, skipping..."
-				NO_ADB=true
 		fi
 	else
 		echo "ADB will not be used, using generic values"
 		NO_ADB=true
 fi
 
-if [ "$NO_ADB" = "true" ]
+if [ "$DEVICE_CPU_VARIANT" = "" ]
 	then
+		echo "Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant"
 		DEVICE_CPU_VARIANT=generic
+fi
+if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]
+	then
+		echo "Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant"
 		DEVICE_2ND_CPU_VARIANT=generic
 fi
 
