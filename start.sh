@@ -86,7 +86,7 @@ clear
 logo
 read -p "Drag and drop or type the full path of stock recovery.img (you can obtain it from stock OTA or with device dump)
 > " DEVICE_STOCK_RECOVERY_PATH
-DEVICE_STOCK_RECOVERY_PATH=$(echo $DEVICE_STOCK_RECOVERY_PATH | cut -d "'" -f 2)
+DEVICE_STOCK_RECOVERY_PATH=$(echo "$DEVICE_STOCK_RECOVERY_PATH" | cut -d "'" -f 2)
 if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]
 	then
 		echo "Error: file not found"
