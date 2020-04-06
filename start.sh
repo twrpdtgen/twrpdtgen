@@ -22,19 +22,16 @@ VERSION="1.1"
 # Color definition
 red=$(tput setaf 1)
 green=$(tput setaf 2)
-yellow=$(tput setaf 3)
 blue=$(tput setaf 4)
-magenta=$(tput setaf 5)
 cyan=$(tput setaf 6)
-white=$(tput setaf 7)
 reset=$(tput sgr0)
 
 LAST_COMMIT=$(git log -1 --format="%h")
 if [ ${#LAST_COMMIT} != 7 ]
 	then
-		echo "Error retreiving last git commit
+		echo "$red Error retreiving last git commit
 Please use git clone, and don't download repo zip file
-If you don't have it, also install git"
+If you don't have it, also install git $reset"
 		exit
 fi
 
@@ -65,8 +62,8 @@ echo "$cyan
         ████████         ███████████████   
           ██████         █████████████     
             ████         ███████████       
-                         ███████           
-$reset
+                         ███████           $reset
+
 
           TWRP device tree generator
                 by SebaUbuntu
@@ -80,7 +77,7 @@ read -p "Insert the device codename (eg. whyred)
 > " DEVICE_CODENAME
 if [ -z "$DEVICE_CODENAME" ]
 	then
-		echo "Error: device codename can't be empty"
+		echo "$red Error: device codename can't be empty $reset"
 		exit
 fi
 clear
@@ -90,7 +87,7 @@ read -p "Insert the device manufacturer (eg. xiaomi)
 > " DEVICE_MANUFACTURER
 if [ -z "$DEVICE_MANUFACTURER" ]
 	then
-		echo "Error: device manufacturer can't be empty"
+		echo "$red Error: device manufacturer can't be empty $reset"
 		exit
 fi
 clear
@@ -103,7 +100,7 @@ read -p "Insert the device release year (eg. 2018)
 > " DEVICE_YEAR_RELEASE
 if [ -z "$DEVICE_YEAR_RELEASE" ]
 	then
-		echo "Error: device year release can't be empty"
+		echo "$red Error: device year release can't be empty $reset"
 		exit
 fi
 clear
@@ -113,7 +110,7 @@ read -p "Insert the device commercial name (eg. Xiaomi Redmi Note 5)
 > " DEVICE_FULL_NAME
 if [ -z "$DEVICE_FULL_NAME" ]
 	then
-		echo "Error: device commercial name can't be empty"
+		echo "$red Error: device commercial name can't be empty $reset"
 		exit
 fi
 clear
@@ -124,7 +121,7 @@ read -p "Drag and drop or type the full path of stock recovery.img (you can obta
 DEVICE_STOCK_RECOVERY_PATH=$(echo "$DEVICE_STOCK_RECOVERY_PATH" | cut -d "'" -f 2)
 if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]
 	then
-		echo "Error: file not found"
+		echo "$red Error: file not found $reset"
 		exit
 fi
 clear
@@ -154,7 +151,7 @@ if [ "$ADB_CHOICE" = "yes" ]
 				done
 				if [ "$ADB_COUNTER" = 30 ]
 					then
-						echo "Timeout, ADB will not be used"
+						echo "$red Error: Timeout, ADB will not be used $reset"
 						sleep 3
 						break
 					else
@@ -165,21 +162,23 @@ if [ "$ADB_CHOICE" = "yes" ]
 						echo " done"
 				fi
 			else
-				echo "ADB is not installed, skipping..."
+				echo "$red Error: ADB is not installed, skipping... $reset"
 		fi
-	else
-		echo "ADB will not be used, using generic values"
 fi
 
 if [ "$DEVICE_CPU_VARIANT" = "" ]
 	then
-		echo "Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant"
+		echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant $reset"
 		DEVICE_CPU_VARIANT=generic
 fi
 if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]
 	then
-		echo "Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant"
+		echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant $reset"
 		DEVICE_2ND_CPU_VARIANT=generic
+fi
+if [ "$DEVICE_SOC_MANUFACTURER" != "" ]
+	then
+		echo "$blue Info: Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER $reset"
 fi
 
 # Start cleanly
@@ -232,28 +231,33 @@ elif echo "$INIT" | grep -q x86
 		fi
 else
 	# Nothing matches, were you trying to make TWRP for Symbian OS devices, Playstation 2 or PowerPC-based Macintosh?
-	echo "Arch not supported"
+	echo "$red Error: Arch not supported $reset"
 	exit
 fi
+
 if [ $DEVICE_ARCH = x86_64 ]
 	then
 		# idk how you can have a x86_64 Android based device, unless it's Android-x86 project
-		echo "NOTE! x86_64 arch is not supported for now!"
+		echo "$red Error: x86_64 arch is not supported for now! $reset"
 		exit
 fi
 echo " done"
 
+echo "$blue Info: Device is $DEVICE_ARCH $reset"
+
 # Check if device tree blobs are not appended to kernel and copy kernel
 if [ -f "$EXTRACTION_DIR/$DEVICE_CODENAME.img-dt" ]
 	then
-		printf "Copying stock kernel..."
+		echo "$blue Info: DTB are not appended to kernel $reset"
+		printf "Copying kernel..."
 		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage"
 		echo " done"
-		printf "DTB are not appended to kernel, copying..."
+		printf "Copying DTB..."
 		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img"
 		echo " done"
 	else
-		printf "Copying stock kernel..."
+		echo "$blue Info: DTB are appended to kernel $reset"
+		printf "Copying kernel..."
 		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb"
 		echo " done"
 fi
@@ -261,16 +265,16 @@ fi
 # Check if a fstab is present
 if [ -f "extract/ramdisk/etc/twrp.fstab" ]
 	then
-		printf "Extracting fstab already made (this is for sure a custom recovery)..."
+		printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
 		cp "extract/ramdisk/etc/twrp.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab"
 		echo " done"
 elif [ -f extract/ramdisk/etc/recovery.fstab ]
 	then
-		printf "Extracting stock fstab..."
+		printf "Extracting fstab..."
 		cp "extract/ramdisk/etc/recovery.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp"
 		echo " done"
 	else
-		echo "WARNING! The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have"
+		echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
 fi
 
 # Extract init.rc files
@@ -385,11 +389,10 @@ fi
 # Check for system-as-root setup
 if [ "$(cat recovery.fstab | grep -w "system_root")" != "" ]
 	then
-		printf "Device is system-as-root, adding necessary flags..."
+		printf "$blue Info: Device is system-as-root $reset"
 		DEVICE_IS_SAR=1
-		echo " done"
-
 	else
+		echo "$blue Info: Device is not system-as-root $reset"
 		DEVICE_IS_SAR=0
 fi
 
@@ -608,6 +611,7 @@ fi
 # If this is a Samsung device, add support to SEAndroid status and make an Odin-flashable tar
 if [ "$DEVICE_MANUFACTURER" = "samsung" ]
 	then
+		echo "$blue Info: This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg $reset"
 		echo "LOCAL_PATH := \$(call my-dir)
 
 \$(INSTALLED_BOOTIMAGE_TARGET): \$(MKBOOTIMG) \$(INTERNAL_BOOTIMAGE_FILES)
@@ -645,7 +649,7 @@ Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>" --author "Sebas
 echo " done"
 
 echo ""
-echo "Device tree successfully made, you can find it in $DEVICE_MANUFACTURER/$DEVICE_CODENAME
+echo "$green Device tree successfully made, you can find it in $DEVICE_MANUFACTURER/$DEVICE_CODENAME $reset
 
-NOTE! This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
-If this is the case, then see if OEM provide kernel sources and build the kernel by yourself"
+$blue Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
+If this is the case, then see if OEM provide kernel sources and build the kernel by yourself $reset"
