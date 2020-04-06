@@ -293,7 +293,7 @@ if [ -f *-dt ]; then
 fi;
 
 file -m "$bin/magic" ./*-ramdisk*.gz 2>/dev/null | cut -d: -f2 | awk '{ print $1 }' > "$file-ramdiskcomp";
-ramdiskcomp=$(cat *-ramdiskcomp);
+ramdiskcomp=$(cat ./*-ramdiskcomp);
 unpackcmd="$ramdiskcomp -dc";
 compext=$ramdiskcomp;
 case $ramdiskcomp in
