@@ -34,7 +34,7 @@ if [ ${#LAST_COMMIT} != 7 ]
 	then
 		echo "Error retreiving last git commit
 Please use git clone, and don't download repo zip file
-If you haven't it, also install git"
+If you don't have it, also install git"
 		exit
 fi
 
