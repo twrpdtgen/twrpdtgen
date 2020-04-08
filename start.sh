@@ -132,6 +132,9 @@ This can help the script making a better device tree by taking precise data
 But you need to have the device on hands and adb command needs to be present
 Type \"yes\" to use this feature
 > " ADB_CHOICE
+clear
+
+logo
 if [ "$ADB_CHOICE" = "yes" ]
 	then
 		if [ "$(command -v adb)" != "" ]
