@@ -169,6 +169,8 @@ if [ "$ADB_CHOICE" = "yes" ]
 		fi
 fi
 
+# Start generation
+
 if [ "$DEVICE_CPU_VARIANT" = "" ]
 	then
 		echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant $reset"
@@ -547,12 +549,6 @@ case $RAMDISK_COMPRESSION in
 # LZMA
 LZMA_RAMDISK_TARGETS := recovery
 " >> BoardConfig.mk
-		;;
-	lz4)
-		echo "" >> BoardConfig.mk
-		;;
-	xz)
-		echo "" >> BoardConfig.mk
 		;;
 	*)
 		echo "" >> BoardConfig.mk
