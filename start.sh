@@ -280,12 +280,17 @@ if [ -f "extract/ramdisk/etc/twrp.fstab" ]
 		printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
 		cp "extract/ramdisk/etc/twrp.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab"
 		echo " done"
-elif [ -f extract/ramdisk/etc/recovery.fstab ]
+elif [ -f "extract/ramdisk/etc/recovery.fstab" ]
 	then
 		printf "Extracting fstab..."
 		cp "extract/ramdisk/etc/recovery.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp"
 		echo " done"
-	else
+elif [ -f "extract/ramdisk/system/etc/recovery.fstab" ]
+	then
+		printf "Extracting fstab..."
+		cp "extract/ramdisk/system/etc/recovery.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp"
+		echo " done"
+else
 		echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
 fi
 
