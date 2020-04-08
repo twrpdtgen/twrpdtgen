@@ -207,8 +207,21 @@ SECONDOFFSET=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-secondoff")
 TAGSOFFSET=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-tagsoff")
 RAMDISKCOMPRESSION=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskcomp")
 
+echo " done"
+
 # See what arch is by analizing init executable
 INIT=$(file extract/ramdisk/init)
+
+# // Android 10 change: now init binary is a symlink to /system/etc/init, check for other binary files
+if [ "$(echo "$INIT" | grep -o "broken symbolic")" = "broken symbolic" ]
+	then
+		for i in $(ls extract/ramdisk/sbin)
+			do
+				INIT=$(file extract/ramdisk/sbin/$i)
+		done
+		echo "$blue Info: Recovery is built using Android 10, using a random binary from sbin folder $reset" 
+fi
+
 if echo "$INIT" | grep -q ARM
 	then
 		if echo "$INIT" | grep -q aarch64
@@ -241,7 +254,6 @@ if [ $DEVICE_ARCH = x86_64 ]
 		echo "$red Error: x86_64 arch is not supported for now! $reset"
 		exit
 fi
-echo " done"
 
 echo "$blue Info: Device is $DEVICE_ARCH $reset"
 
