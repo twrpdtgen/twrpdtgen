@@ -9,6 +9,7 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 ## Features
 
 -   Create device tree initial structure (like Android.mk, AndroidProduct.mk etc.)
+-   Android 10 support (beta)
 -   Add proper license headers in every file
 -   Automatically detect device architecture
 -   Pick stock recovery image info (eg. image size, kernel pagesize etc.)
@@ -18,6 +19,7 @@ With this script I tried to write TwrpBuilder script in Bash, and somehow I succ
 -   Take cmdline automatically
 -   System-as-root support
 -   dt.img support (not appended DTBs)
+-   dtbo.img support (device tree blobs overlay)
 -   Samsung Odin TAR support
 -   Samsung SEAndroid support
 -   Ramdisk compression support (LZMA, 7Z, GZIP etc...)
