@@ -181,43 +181,46 @@ if [ "$DEVICE_SOC_MANUFACTURER" != "" ]
 		echo "$blue Info: Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER $reset"
 fi
 
+# Path declarations
+SPLITIMG_DIR=extract/split_img
+RAMDISK_DIR=extract/ramdisk
+DEVICE_TREE_PATH="$DEVICE_MANUFACTURER/$DEVICE_CODENAME"
+
 # Start cleanly
-rm -rf "$DEVICE_MANUFACTURER/$DEVICE_CODENAME"
-mkdir -p "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt"
-mkdir -p "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root"
+rm -rf "$DEVICE_TREE_PATH"
+mkdir -p "$DEVICE_TREE_PATH/prebuilt"
+mkdir -p "$DEVICE_TREE_PATH/recovery/root"
 
 # Obtain stock recovery.img size
 cp "$DEVICE_STOCK_RECOVERY_PATH" "extract/$DEVICE_CODENAME.img"
 printf "Obtaining stock recovery image info..."
-FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
+IMAGE_FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
 cd extract
-chmod 0777 unpackimg.sh
 
 # Obtain recovery.img format info
 ./unpackimg.sh --nosudo "$DEVICE_CODENAME.img" > /dev/null
 cd ..
-EXTRACTION_DIR=extract/split_img
-BOOTLOADERNAME=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-board")
-CMDLINE=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-cmdline")
-PAGESIZE=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-pagesize")
-BASEADDRESS=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-base")
-KERNELOFFSET=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-kerneloff")
-RAMDISKOFFSET=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskoff")
-SECONDOFFSET=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-secondoff")
-TAGSOFFSET=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-tagsoff")
-RAMDISKCOMPRESSION=$(cat "$EXTRACTION_DIR/$DEVICE_CODENAME.img-ramdiskcomp")
+KERNEL_BOOTLOADER_NAME=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-board")
+KERNEL_CMDLINE=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-cmdline")
+KERNEL_PAGESIZE=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-pagesize")
+KERNEL_BASEADDRESS=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-base")
+KERNEL_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-kerneloff")
+RAMDISK_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-ramdiskoff")
+KERNEL_SECOND_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-secondoff")
+KERNEL_TAGS_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-tagsoff")
+RAMDISK_COMPRESSION_TYPE=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-ramdiskcomp")
 
 echo " done"
 
 # See what arch is by analizing init executable
-INIT=$(file extract/ramdisk/init)
+INIT=$(file "$RAMDISK_DIR/init")
 
 # // Android 10 change: now init binary is a symlink to /system/etc/init, check for other binary files
 if [ "$(echo "$INIT" | grep -o "broken symbolic")" = "broken symbolic" ]
 	then
-		for i in $(ls extract/ramdisk/sbin)
+		for i in $(ls "$RAMDISK_DIR/sbin")
 			do
-				INIT=$(file extract/ramdisk/sbin/$i)
+				INIT=$(file "$RAMDISK_DIR/sbin/$i")
 		done
 		echo "$blue Info: Recovery is built using Android 10, using a random binary from sbin folder $reset" 
 fi
@@ -258,37 +261,37 @@ fi
 echo "$blue Info: Device is $DEVICE_ARCH $reset"
 
 # Check if device tree blobs are not appended to kernel and copy kernel
-if [ -f "$EXTRACTION_DIR/$DEVICE_CODENAME.img-dt" ]
+if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]
 	then
 		echo "$blue Info: DTB are not appended to kernel $reset"
 		printf "Copying kernel..."
-		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage"
+		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage"
 		echo " done"
 		printf "Copying DTB..."
-		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/dt.img"
+		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_TREE_PATH/prebuilt/dt.img"
 		echo " done"
 	else
 		echo "$blue Info: DTB are appended to kernel $reset"
 		printf "Copying kernel..."
-		cp "$EXTRACTION_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/prebuilt/zImage-dtb"
+		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage-dtb"
 		echo " done"
 fi
 
 # Check if a fstab is present
-if [ -f "extract/ramdisk/etc/twrp.fstab" ]
+if [ -f "$RAMDISK_DIR/etc/twrp.fstab" ]
 	then
 		printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
-		cp "extract/ramdisk/etc/twrp.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery.fstab"
+		cp "$RAMDISK_DIR/etc/twrp.fstab" "$DEVICE_TREE_PATH/recovery.fstab"
 		echo " done"
-elif [ -f "extract/ramdisk/etc/recovery.fstab" ]
+elif [ -f "$RAMDISK_DIR/etc/recovery.fstab" ]
 	then
 		printf "Extracting fstab..."
-		cp "extract/ramdisk/etc/recovery.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp"
+		cp "$RAMDISK_DIR/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
 		echo " done"
-elif [ -f "extract/ramdisk/system/etc/recovery.fstab" ]
+elif [ -f "$RAMDISK_DIR/system/etc/recovery.fstab" ]
 	then
 		printf "Extracting fstab..."
-		cp "extract/ramdisk/system/etc/recovery.fstab" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/fstab.temp"
+		cp "$RAMDISK_DIR/system/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
 		echo " done"
 else
 		echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
@@ -296,21 +299,21 @@ fi
 
 # Extract init.rc files
 printf "Extracting init.rc files..."
-for i in $(ls extract/ramdisk | grep ".rc")
+for i in $(ls $RAMDISK_DIR | grep ".rc")
 	do
 		if [ "$i" != init.rc ]
 			then
-				cp "extract/ramdisk/$i" "$DEVICE_MANUFACTURER/$DEVICE_CODENAME/recovery/root"
+				cp "$RAMDISK_DIR/$i" "$DEVICE_TREE_PATH/recovery/root"
 		fi
 done
 echo " done"
 
 # Cleanup
 rm "extract/$DEVICE_CODENAME.img"
-rm -rf extract/split_img
-rm -rf extract/ramdisk
+rm -rf $SPLITIMG_DIR
+rm -rf $RAMDISK_DIR
 
-cd "$DEVICE_MANUFACTURER/$DEVICE_CODENAME"
+cd "$DEVICE_TREE_PATH"
 
 # License - please keep it as is, thanks
 printf "Adding license headers..."
@@ -430,7 +433,7 @@ echo " done"
 
 # BoardConfig.mk
 printf "Generating BoardConfig.mk..."
-echo "DEVICE_PATH := device/$DEVICE_MANUFACTURER/$DEVICE_CODENAME
+echo "DEVICE_PATH := device/$DEVICE_TREE_PATH
 
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES := true
@@ -478,19 +481,19 @@ fi
 if [ "$BOOTLOADERNAME" != "" ]
 	then
 		echo "# Bootloader
-TARGET_BOOTLOADER_BOARD_NAME := $BOOTLOADERNAME
+TARGET_BOOTLOADER_BOARD_NAME := $KERNEL_BOOTLOADER_NAME
 " >> BoardConfig.mk
 fi
 
 echo "# Kernel
-BOARD_KERNEL_CMDLINE := $CMDLINE
-BOARD_KERNEL_BASE := 0x$BASEADDRESS
-BOARD_KERNEL_PAGESIZE := $PAGESIZE
-BOARD_KERNEL_OFFSET := 0x$KERNELOFFSET
-BOARD_RAMDISK_OFFSET := 0x$RAMDISKOFFSET
-BOARD_SECOND_OFFSET := 0x$SECONDOFFSET
-BOARD_KERNEL_TAGS_OFFSET := 0x$TAGSOFFSET
-BOARD_FLASH_BLOCK_SIZE := $((PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)" >> BoardConfig.mk
+BOARD_KERNEL_CMDLINE := $KERNEL_CMDLINE
+BOARD_KERNEL_BASE := 0x$KERNEL_BASEADDRESS
+BOARD_KERNEL_PAGESIZE := $KERNEL_PAGESIZE
+BOARD_KERNEL_OFFSET := 0x$KERNEL_OFFSET
+BOARD_RAMDISK_OFFSET := 0x$RAMDISK_OFFSET
+BOARD_SECOND_OFFSET := 0x$KERNEL_SECOND_OFFSET
+BOARD_KERNEL_TAGS_OFFSET := 0x$KERNEL_TAGS_OFFSET
+BOARD_FLASH_BLOCK_SIZE := $((KERNEL_PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)" >> BoardConfig.mk
 
 # Check for dtb image and add it to BoardConfig.mk
 if [ -f prebuilt/dt.img ]
@@ -508,7 +511,7 @@ if [ "$DEVICE_MANUFACTURER" = "samsung" ]
 fi
 
 # Add LZMA compression if kernel suppport it
-case $RAMDISKCOMPRESSION in
+case $RAMDISK_COMPRESSION in
 	lzma)
 		echo "
 # LZMA
@@ -544,7 +547,7 @@ echo "# Platform
 TARGET_OTA_ASSERT_DEVICE := $DEVICE_CODENAME
 
 # Partitions
-#BOARD_RECOVERYIMAGE_PARTITION_SIZE := $FILESIZE # This is the maximum known partition size, but it can be higher, so we just omit it
+#BOARD_RECOVERYIMAGE_PARTITION_SIZE := $IMAGE_FILESIZE # This is the maximum known partition size, but it can be higher, so we just omit it
 
 # File systems
 BOARD_HAS_LARGE_FILESYSTEM := true
@@ -567,7 +570,7 @@ TW_INPUT_BLACKLIST := \"hbtp_vm\"
 TW_USE_TOOLBOX := true" >> BoardConfig.mk
 echo " done"
 
-case $RAMDISKCOMPRESSION in
+case $RAMDISK_COMPRESSION in
 	lzma)
 		echo "Kernel support lzma compression, using it"
 		;;
@@ -666,7 +669,7 @@ Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>" --author "Sebas
 echo " done"
 
 echo ""
-echo "$green Device tree successfully made, you can find it in $DEVICE_MANUFACTURER/$DEVICE_CODENAME $reset
+echo "$green Device tree successfully made, you can find it in $DEVICE_TREE_PATH $reset
 
 $blue Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
 If this is the case, then see if OEM provide kernel sources and build the kernel by yourself $reset"
