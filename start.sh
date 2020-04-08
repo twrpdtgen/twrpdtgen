@@ -543,7 +543,7 @@ if [ "$DEVICE_MANUFACTURER" = "samsung" ]
 fi
 
 # Add LZMA compression if kernel suppport it
-case $RAMDISK_COMPRESSION in
+case $RAMDISK_COMPRESSION_TYPE in
 	lzma)
 		echo "
 # LZMA
