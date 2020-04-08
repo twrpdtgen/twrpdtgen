@@ -212,6 +212,7 @@ RAMDISK_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-ramdiskoff")
 KERNEL_SECOND_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-secondoff")
 KERNEL_TAGS_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-tagsoff")
 RAMDISK_COMPRESSION_TYPE=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-ramdiskcomp")
+KERNEL_HEADER_VERSION=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-headerversion")
 
 echo " done"
 
@@ -277,6 +278,15 @@ if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]
 		echo "$blue Info: DTB are appended to kernel $reset"
 		printf "Copying kernel..."
 		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage-dtb"
+		echo " done"
+fi
+
+# Check if dtbo image is present
+if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" ]
+	then
+		echo "$blue Info: DTBO image exists $reset"
+		printf "Copying DTBO..."
+		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" "$DEVICE_TREE_PATH/prebuilt/dtbo.img"
 		echo " done"
 fi
 
@@ -496,16 +506,33 @@ BOARD_KERNEL_OFFSET := 0x$KERNEL_OFFSET
 BOARD_RAMDISK_OFFSET := 0x$RAMDISK_OFFSET
 BOARD_SECOND_OFFSET := 0x$KERNEL_SECOND_OFFSET
 BOARD_KERNEL_TAGS_OFFSET := 0x$KERNEL_TAGS_OFFSET
-BOARD_FLASH_BLOCK_SIZE := $((KERNEL_PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)" >> BoardConfig.mk
+BOARD_FLASH_BLOCK_SIZE := $((KERNEL_PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)
+BOARD_BOOTIMG_HEADER_VERSION := $KERNEL_HEADER_VERSION" >> BoardConfig.mk
 
 # Check for dtb image and add it to BoardConfig.mk
 if [ -f prebuilt/dt.img ]
 	then
 		echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage
-TARGET_PREBUILT_DTB := \$(DEVICE_PATH)/prebuilt/dt.img
-BOARD_MKBOOTIMG_ARGS += --dt \$(TARGET_PREBUILT_DTB)" >> BoardConfig.mk
+TARGET_PREBUILT_DTB := \$(DEVICE_PATH)/prebuilt/dt.img" >> BoardConfig.mk
 	else
 		echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage-dtb" >> BoardConfig.mk
+fi
+
+# Check for dtbo image and add it to BoardConfig.mk
+if [ -f prebuilt/dtbo.img ]
+	then
+		echo "BOARD_PREBUILT_DTBOIMAGE := \$(DEVICE_PATH)/prebuilt/dtbo.img
+BOARD_INCLUDE_RECOVERY_DTBO := true" >> BoardConfig.mk
+fi
+
+# Additional mkbootimg arguments
+echo "BOARD_MKBOOTIMG_ARGS += --ramdisk_offset \$(BOARD_RAMDISK_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --tags_offset \$(BOARD_KERNEL_TAGS_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --header_version \$(BOARD_BOOTIMG_HEADER_VERSION)" >> BoardConfig.mk
+
+if [ -f prebuilt/dt.img ]
+	then
+		echo "BOARD_MKBOOTIMG_ARGS += --dt \$(TARGET_PREBUILT_DTB)" >> BoardConfig.mk
 fi
 
 if [ "$DEVICE_MANUFACTURER" = "samsung" ]
