@@ -4,8 +4,6 @@
 
 Create a TWRP-compatible device tree only from a recovery.img
 
-With this script I tried to write TwrpBuilder script in Bash, and somehow I succeded, supporing more features
-
 ## Features
 
 -   Create device tree initial structure (like Android.mk, AndroidProduct.mk etc.)
