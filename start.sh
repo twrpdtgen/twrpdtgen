@@ -219,21 +219,68 @@ KERNEL_HEADER_VERSION=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-headerversion")
 echo " done"
 
 # See what arch is by analizing init executable
-INIT=$(file "$RAMDISK_DIR/init")
+BINARY=$(file "$RAMDISK_DIR/init")
 
 # // Android 10 change: now init binary is a symlink to /system/etc/init, check for other binary files
-if [ "$(echo "$INIT" | grep -o "broken symbolic")" = "broken symbolic" ]
-	then
-		for i in $(ls "$RAMDISK_DIR/sbin")
-			do
-				INIT=$(file "$RAMDISK_DIR/sbin/$i")
+if [ "$(echo "$BINARY" | grep -o "symbolic")" = "symbolic" ]; then
+	echo "$blue Info: Init binary not found, using a random binary $reset"
+	for i in $(ls "$RAMDISK_DIR/sbin"); do
+		BINARY=$(file "$RAMDISK_DIR/sbin/$i")
+		if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
+			BINARY_FOUND=true
+			break
+		fi
+		[ "$BINARY_FOUND" ] && break
+	done
+	if [ "$BINARY_FOUND" != true ]; then
+		for i in $(ls "$RAMDISK_DIR/system/lib64"); do
+			BINARY=$(file "$RAMDISK_DIR/system/lib64/$i")
+			if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
+				BINARY_FOUND=true
+				break
+			fi
+			[ "$BINARY_FOUND" ] && break
 		done
-		echo "$blue Info: Recovery is built using Android 10, using a random binary from sbin folder $reset" 
+	fi
+	if [ "$BINARY_FOUND" != true ]; then
+		for i in $(ls "$RAMDISK_DIR/vendor/lib64"); do
+			BINARY=$(file "$RAMDISK_DIR/vendor/lib64/$i")
+			if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
+				BINARY_FOUND=true
+				break
+			fi
+			[ "$BINARY_FOUND" ] && break
+		done
+	fi
+	if [ "$BINARY_FOUND" != true ]; then
+		for i in $(ls "$RAMDISK_DIR/system/lib"); do
+			BINARY=$(file "$RAMDISK_DIR/system/lib/$i")
+			if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
+				BINARY_FOUND=true
+				break
+			fi
+			[ "$BINARY_FOUND" ] && break
+		done
+	fi
+	if [ "$BINARY_FOUND" != true ]; then
+		for i in $(ls "$RAMDISK_DIR/vendor/lib"); do
+			BINARY=$(file "$RAMDISK_DIR/vendor/lib/$i")
+			if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
+				BINARY_FOUND=true
+				break
+			fi
+			[ "$BINARY_FOUND" ] && break
+		done
+	fi
+	if [ "$BINARY_FOUND" != true ]; then
+		echo "$red Error: Script can't find a binary file, aborting $reset"
+		exit
+	fi
 fi
 
-if echo "$INIT" | grep -q ARM
+if echo "$BINARY" | grep -q ARM
 	then
-		if echo "$INIT" | grep -q aarch64
+		if echo "$BINARY" | grep -q aarch64
 			then
 				DEVICE_ARCH=arm64
 				DEVICE_IS_64BIT=true
@@ -241,9 +288,9 @@ if echo "$INIT" | grep -q ARM
 				DEVICE_ARCH=arm
 				DEVICE_IS_64BIT=false
 		fi
-elif echo "$INIT" | grep -q x86
+elif echo "$BINARY" | grep -q x86
 	then	
-		if echo "$INIT" | grep -q x86-64
+		if echo "$BINARY" | grep -q x86-64
 			then
 				DEVICE_ARCH=x86_64
 				DEVICE_IS_64BIT=true
