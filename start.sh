@@ -555,8 +555,13 @@ BOARD_KERNEL_OFFSET := 0x$KERNEL_OFFSET
 BOARD_RAMDISK_OFFSET := 0x$RAMDISK_OFFSET
 BOARD_SECOND_OFFSET := 0x$KERNEL_SECOND_OFFSET
 BOARD_KERNEL_TAGS_OFFSET := 0x$KERNEL_TAGS_OFFSET
-BOARD_FLASH_BLOCK_SIZE := $((KERNEL_PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)
-BOARD_BOOTIMG_HEADER_VERSION := $KERNEL_HEADER_VERSION" >> BoardConfig.mk
+BOARD_FLASH_BLOCK_SIZE := $((KERNEL_PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 64)" >> BoardConfig.mk
+
+# Add kernel header version only if it's different than 0
+# Passing argument 0 to mkbootimg is not allowed
+if [ "$KERNEL_HEADER_VERSION" != "0" ]; then
+    echo "BOARD_BOOTIMG_HEADER_VERSION := $KERNEL_HEADER_VERSION" >> BoardConfig.mk
+fi
 
 # Check for dtb image and add it to BoardConfig.mk
 if [ -f prebuilt/dt.img ]
@@ -576,8 +581,13 @@ fi
 
 # Additional mkbootimg arguments
 echo "BOARD_MKBOOTIMG_ARGS += --ramdisk_offset \$(BOARD_RAMDISK_OFFSET)
-BOARD_MKBOOTIMG_ARGS += --tags_offset \$(BOARD_KERNEL_TAGS_OFFSET)
-BOARD_MKBOOTIMG_ARGS += --header_version \$(BOARD_BOOTIMG_HEADER_VERSION)" >> BoardConfig.mk
+BOARD_MKBOOTIMG_ARGS += --tags_offset \$(BOARD_KERNEL_TAGS_OFFSET)" >> BoardConfig.mk
+
+# Add kernel header version only if it's different than 0
+# Passing argument 0 to mkbootimg is not allowed
+if [ "$KERNEL_HEADER_VERSION" != "0" ]; then
+    echo "BOARD_MKBOOTIMG_ARGS += --header_version \$(BOARD_BOOTIMG_HEADER_VERSION)" >> BoardConfig.mk
+fi
 
 if [ -f prebuilt/dt.img ]
 	then
