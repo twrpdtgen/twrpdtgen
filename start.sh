@@ -599,6 +599,22 @@ if [ "$DEVICE_MANUFACTURER" = "samsung" ]
 		echo "BOARD_CUSTOM_BOOTIMG_MK := \$(DEVICE_PATH)/mkbootimg.mk" >> BoardConfig.mk
 fi
 
+# Add flags to support kernel building from source
+if [ "$DEVICE_ARCH" = arm64 ]; then
+    echo "BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb" >> BoardConfig.mk
+elif [ "$DEVICE_ARCH" = arm ]; then
+    echo "BOARD_KERNEL_IMAGE_NAME := zImage-dtb" >> BoardConfig.mk
+elif [ "$DEVICE_ARCH" = x86 ]; then
+    echo "BOARD_KERNEL_IMAGE_NAME := bzImage" >> BoardConfig.mk
+elif [ "$DEVICE_ARCH" = x86_64 ]; then
+    echo "BOARD_KERNEL_IMAGE_NAME := bzImage" >> BoardConfig.mk
+fi
+
+echo "TARGET_KERNEL_ARCH := $DEVICE_ARCH
+TARGET_KERNEL_HEADER_ARCH := $DEVICE_ARCH
+TARGET_KERNEL_SOURCE := kernel/$DEVICE_MANUFACTURER/$DEVICE_CODENAME
+TARGET_KERNEL_CONFIG := ${DEVICE_CODENAME}_defconfig" >> BoardConfig.mk
+
 # Add LZMA compression if kernel suppport it
 case $RAMDISK_COMPRESSION_TYPE in
 	lzma)
