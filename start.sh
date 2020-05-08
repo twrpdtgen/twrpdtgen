@@ -645,6 +645,10 @@ BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
 # Workaround for error copying vendor files to recovery ramdisk
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 TARGET_COPY_OUT_VENDOR := vendor
+
+# Hack: prevent anti rollback
+PLATFORM_SECURITY_PATCH := 2099-12-31
+PLATFORM_VERSION := 16.1.0
 " >> BoardConfig.mk
 
 if [ "$DEVICE_IS_AB" = 1 ]; then
