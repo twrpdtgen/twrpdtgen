@@ -27,12 +27,11 @@ cyan=$(tput setaf 6)
 reset=$(tput sgr0)
 
 LAST_COMMIT=$(git log -1 --format="%h")
-if [ ${#LAST_COMMIT} != 7 ]
-	then
-		echo "$red Error retreiving last git commit
+if [ ${#LAST_COMMIT} != 7 ]; then
+	echo "$red Error retreiving last git commit
 Please use git clone, and don't download repo zip file
 If you don't have it, also install git $reset"
-		exit
+	exit
 fi
 
 
@@ -75,20 +74,18 @@ echo "$cyan
 logo
 read -p "Insert the device codename (eg. whyred)
 > " DEVICE_CODENAME
-if [ -z "$DEVICE_CODENAME" ]
-	then
-		echo "$red Error: device codename can't be empty $reset"
-		exit
+if [ -z "$DEVICE_CODENAME" ]; then
+	echo "$red Error: device codename can't be empty $reset"
+	exit
 fi
 clear
 
 logo
 read -p "Insert the device manufacturer (eg. xiaomi)
 > " DEVICE_MANUFACTURER
-if [ -z "$DEVICE_MANUFACTURER" ]
-	then
-		echo "$red Error: device manufacturer can't be empty $reset"
-		exit
+if [ -z "$DEVICE_MANUFACTURER" ]; then
+	echo "$red Error: device manufacturer can't be empty $reset"
+	exit
 fi
 clear
 
@@ -98,20 +95,18 @@ DEVICE_MANUFACTURER=$(echo "$DEVICE_MANUFACTURER" | tr '[:upper:]' '[:lower:]')
 logo
 read -p "Insert the device release year (eg. 2018)
 > " DEVICE_YEAR_RELEASE
-if [ -z "$DEVICE_YEAR_RELEASE" ]
-	then
-		echo "$red Error: device year release can't be empty $reset"
-		exit
+if [ -z "$DEVICE_YEAR_RELEASE" ]; then
+	echo "$red Error: device year release can't be empty $reset"
+	exit
 fi
 clear
 
 logo
 read -p "Insert the device commercial name (eg. Xiaomi Redmi Note 5)
 > " DEVICE_FULL_NAME
-if [ -z "$DEVICE_FULL_NAME" ]
-	then
-		echo "$red Error: device commercial name can't be empty $reset"
-		exit
+if [ -z "$DEVICE_FULL_NAME" ]; then
+	echo "$red Error: device commercial name can't be empty $reset"
+	exit
 fi
 clear
 
@@ -119,10 +114,9 @@ logo
 read -p "Drag and drop or type the full path of stock recovery.img (you can obtain it from stock OTA or with device dump)
 > " DEVICE_STOCK_RECOVERY_PATH
 DEVICE_STOCK_RECOVERY_PATH=$(echo "$DEVICE_STOCK_RECOVERY_PATH" | cut -d "'" -f 2)
-if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]
-	then
-		echo "$red Error: file not found $reset"
-		exit
+if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]; then
+	echo "$red Error: file not found $reset"
+	exit
 fi
 clear
 
@@ -135,55 +129,48 @@ Type \"yes\" to use this feature
 clear
 
 logo
-if [ "$ADB_CHOICE" = "yes" ]
-	then
-		if [ "$(command -v adb)" != "" ]
-			then
-				clear
-				logo
-				echo "ADB is installed"
-				echo ""
-				echo "Connect your device with USB debugging enabled"
-				echo "If asked, on your device grant USB ADB request"
-				echo "Waiting for device..."
-				ADB_TIMEOUT=0
-				while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "ADB_TIMEOUT" != 30 ]
-					do
-						sleep 1
-						ADB_TIMEOUT=$(( ADB_TIMEOUT + 1 ))
-				done
-				if [ "$ADB_COUNTER" = 30 ]
-					then
-						echo "$red Error: Timeout, ADB will not be used $reset"
-						sleep 3
-						break
-					else
-						printf "Device connected, taking values, do not disconnect the device..."
-						DEVICE_SOC_MANUFACTURER=$(adb shell getprop ro.hardware)
-						DEVICE_CPU_VARIANT=$(adb shell getprop ro.bionic.cpu_variant)
-						DEVICE_2ND_CPU_VARIANT=$(adb shell getprop ro.bionic.2nd_cpu_variant)
-						echo " done"
-				fi
-			else
-				echo "$red Error: ADB is not installed, skipping... $reset"
+if [ "$ADB_CHOICE" = "yes" ]; then
+	if [ "$(command -v adb)" != "" ]; then
+		clear
+		logo
+		echo "ADB is installed"
+		echo ""
+		echo "Connect your device with USB debugging enabled"
+		echo "If asked, on your device grant USB ADB request"
+		echo "Waiting for device..."
+		ADB_TIMEOUT=0
+		while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "ADB_TIMEOUT" != 30 ]; do
+			sleep 1
+			ADB_TIMEOUT=$(( ADB_TIMEOUT + 1 ))
+		done
+		if [ "$ADB_COUNTER" = 30 ]; then
+			echo "$red Error: Timeout, ADB will not be used $reset"
+			sleep 3
+			break
+		else
+			printf "Device connected, taking values, do not disconnect the device..."
+			DEVICE_SOC_MANUFACTURER=$(adb shell getprop ro.hardware)
+			DEVICE_CPU_VARIANT=$(adb shell getprop ro.bionic.cpu_variant)
+			DEVICE_2ND_CPU_VARIANT=$(adb shell getprop ro.bionic.2nd_cpu_variant)
+			echo " done"
 		fi
+	else
+		echo "$red Error: ADB is not installed, skipping... $reset"
+	fi
 fi
 
 # Start generation
 
-if [ "$DEVICE_CPU_VARIANT" = "" ]
-	then
-		echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant $reset"
-		DEVICE_CPU_VARIANT=generic
+if [ "$DEVICE_CPU_VARIANT" = "" ]; then
+	echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant $reset"
+	DEVICE_CPU_VARIANT=generic
 fi
-if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]
-	then
-		echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant $reset"
-		DEVICE_2ND_CPU_VARIANT=generic
+if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]; then
+	echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant $reset"
+	DEVICE_2ND_CPU_VARIANT=generic
 fi
-if [ "$DEVICE_SOC_MANUFACTURER" != "" ]
-	then
-		echo "$blue Info: Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER $reset"
+if [ "$DEVICE_SOC_MANUFACTURER" != "" ]; then
+	echo "$blue Info: Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER $reset"
 fi
 
 # Path declarations
@@ -278,95 +265,83 @@ if [ "$(echo "$BINARY" | grep -o "symbolic")" = "symbolic" ]; then
 	fi
 fi
 
-if echo "$BINARY" | grep -q ARM
-	then
-		if echo "$BINARY" | grep -q aarch64
-			then
-				DEVICE_ARCH=arm64
-				DEVICE_IS_64BIT=true
-			else
-				DEVICE_ARCH=arm
-				DEVICE_IS_64BIT=false
-		fi
-elif echo "$BINARY" | grep -q x86
-	then	
-		if echo "$BINARY" | grep -q x86-64
-			then
-				DEVICE_ARCH=x86_64
-				DEVICE_IS_64BIT=true
-			else
-				DEVICE_ARCH=x86
-				DEVICE_IS_64BIT=false
-		fi
+if echo "$BINARY" | grep -q ARM; then
+	if echo "$BINARY" | grep -q aarch64; then
+		DEVICE_ARCH=arm64
+		DEVICE_IS_64BIT=true
+	else
+		DEVICE_ARCH=arm
+		DEVICE_IS_64BIT=false
+	fi
+elif echo "$BINARY" | grep -q x86; then	
+	if echo "$BINARY" | grep -q x86-64; then
+		DEVICE_ARCH=x86_64
+		DEVICE_IS_64BIT=true
+	else
+		DEVICE_ARCH=x86
+		DEVICE_IS_64BIT=false
+	fi
 else
 	# Nothing matches, were you trying to make TWRP for Symbian OS devices, Playstation 2 or PowerPC-based Macintosh?
 	echo "$red Error: Arch not supported $reset"
 	exit
 fi
 
-if [ $DEVICE_ARCH = x86_64 ]
-	then
-		# idk how you can have a x86_64 Android based device, unless it's Android-x86 project
-		echo "$red Error: x86_64 arch is not supported for now! $reset"
-		exit
+if [ $DEVICE_ARCH = x86_64 ]; then
+	# idk how you can have a x86_64 Android based device, unless it's Android-x86 project
+	echo "$red Error: x86_64 arch is not supported for now! $reset"
+	exit
 fi
 
 echo "$blue Info: Device is $DEVICE_ARCH $reset"
 
 # Check if device tree blobs are not appended to kernel and copy kernel
-if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]
-	then
-		echo "$blue Info: DTB are not appended to kernel $reset"
-		printf "Copying kernel..."
-		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage"
-		echo " done"
-		printf "Copying DTB..."
-		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_TREE_PATH/prebuilt/dt.img"
-		echo " done"
-	else
-		echo "$blue Info: DTB are appended to kernel $reset"
-		printf "Copying kernel..."
-		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage-dtb"
-		echo " done"
+if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]; then
+	echo "$blue Info: DTB are not appended to kernel $reset"
+	printf "Copying kernel..."
+	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage"
+	echo " done"
+	printf "Copying DTB..."
+	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_TREE_PATH/prebuilt/dt.img"
+	echo " done"
+else
+	echo "$blue Info: DTB are appended to kernel $reset"
+	printf "Copying kernel..."
+	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage-dtb"
+	echo " done"
 fi
 
 # Check if dtbo image is present
-if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" ]
-	then
-		echo "$blue Info: DTBO image exists $reset"
-		printf "Copying DTBO..."
-		cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" "$DEVICE_TREE_PATH/prebuilt/dtbo.img"
-		echo " done"
+if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" ]; then
+	echo "$blue Info: DTBO image exists $reset"
+	printf "Copying DTBO..."
+	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" "$DEVICE_TREE_PATH/prebuilt/dtbo.img"
+	echo " done"
 fi
 
 # Check if a fstab is present
-if [ -f "$RAMDISK_DIR/etc/twrp.fstab" ]
-	then
-		printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
-		cp "$RAMDISK_DIR/etc/twrp.fstab" "$DEVICE_TREE_PATH/recovery.fstab"
-		echo " done"
-elif [ -f "$RAMDISK_DIR/etc/recovery.fstab" ]
-	then
-		printf "Extracting fstab..."
-		cp "$RAMDISK_DIR/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
-		echo " done"
-elif [ -f "$RAMDISK_DIR/system/etc/recovery.fstab" ]
-	then
-		printf "Extracting fstab..."
-		cp "$RAMDISK_DIR/system/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
-		echo " done"
+if [ -f "$RAMDISK_DIR/etc/twrp.fstab" ]; then
+	printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
+	cp "$RAMDISK_DIR/etc/twrp.fstab" "$DEVICE_TREE_PATH/recovery.fstab"
+	echo " done"
+elif [ -f "$RAMDISK_DIR/etc/recovery.fstab" ]; then
+	printf "Extracting fstab..."
+	cp "$RAMDISK_DIR/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
+	echo " done"
+elif [ -f "$RAMDISK_DIR/system/etc/recovery.fstab" ]; then
+	printf "Extracting fstab..."
+	cp "$RAMDISK_DIR/system/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
+	echo " done"
 else
-		echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
+	echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
 fi
 
 # Extract init.rc files
 printf "Extracting init.rc files..."
-for i in $(ls $RAMDISK_DIR | grep ".rc")
-	do
-		if [ "$i" != init.rc ]
-			then
-				cp "$RAMDISK_DIR/$i" "$DEVICE_TREE_PATH/recovery/root"
-		fi
+for i in $(ls $RAMDISK_DIR | grep ".rc"); do
+	if [ "$i" != init.rc ]; then
+		cp "$RAMDISK_DIR/$i" "$DEVICE_TREE_PATH/recovery/root"
+	fi
 done
 echo " done"
 
@@ -380,9 +355,8 @@ cd "$DEVICE_TREE_PATH"
 # License - please keep it as is, thanks
 printf "Adding license headers..."
 CURRENT_YEAR="$(date +%Y)"
-for file in Android.mk AndroidProducts.mk BoardConfig.mk omni_$DEVICE_CODENAME.mk vendorsetup.sh
-	do
-echo "#
+for file in Android.mk AndroidProducts.mk BoardConfig.mk omni_$DEVICE_CODENAME.mk vendorsetup.sh; do
+	echo "#
 # Copyright (C) $DEVICE_YEAR_RELEASE The Android Open Source Project
 # Copyright (C) $DEVICE_YEAR_RELEASE The TWRP Open Source Project
 # Copyright (C) $CURRENT_YEAR SebaUbuntu's TWRP device tree generator 
@@ -404,78 +378,73 @@ done
 echo " done"
 
 # Generate custom fstab if it's not ready
-if [ -f fstab.temp ]
-	then
-		printf "Generating fstab..."
-		# Header
-		echo "# Android fstab file.
+if [ -f fstab.temp ]; then
+	printf "Generating fstab..."
+	# Header
+	echo "# Android fstab file.
 # The filesystem that contains the filesystem checker binary (typically /system) cannot
 # specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
 
 # Mount point		FS		Device									Flags" > recovery.fstab
-		for i in boot recovery cache system system_root vendor data dtbo
-			do
-				a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
-				# If /dev doesn't exist, try /emmc
-				if [ "$a" = "" ]
-					then
-						a=$(cat fstab.temp | grep -wi "/$i" | grep "/emmc.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
-				fi
-				if [ "$a" != "" ]
-					then
-						case $i in
-							cache)
-								echo "/cache			ext4	$a" >> recovery.fstab
-								;;
-							system)
-								echo "/system			ext4	$a
+	for i in boot recovery cache system system_root vendor data dtbo; do
+		a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
+		# If /dev doesn't exist, try /emmc
+		if [ "$a" = "" ]; then
+			a=$(cat fstab.temp | grep -wi "/$i" | grep "/emmc.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
+		fi
+		if [ "$a" != "" ]; then
+			case $i in
+				cache)
+					echo "/cache			ext4	$a" >> recovery.fstab
+					;;
+				system)
+					echo "/system			ext4	$a
 /system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-								;;
-							system_root)
-								echo "/system_root			ext4	$a		flags=display="System"
+					;;
+				system_root)
+					echo "/system_root			ext4	$a		flags=display="System"
 /system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-								;;
-							vendor)
-								echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
+					;;
+				vendor)
+					echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
 /vendor_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-								;;
-							data)
-								echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
-								;;
-							persist)
-								echo "/persist			ext4	$a" >> recovery.fstab
-								;;
-							odm)
-								echo "/odm				ext4	$a" >> recovery.fstab
-								;;
-							omr)
-								echo "/omr				ext4	$a" >> recovery.fstab
-								;;
-							cust)
-								echo "/cust				ext4	$a" >> recovery.fstab
-								;;
-							*)
-								echo "/$i				emmc	$a" >> recovery.fstab
-								;;
-						esac
-				fi
-		done
-		# Add External SDCard entry
-		echo "
+					;;
+				data)
+					echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
+					;;
+				persist)
+					echo "/persist			ext4	$a" >> recovery.fstab
+					;;
+				odm)
+					echo "/odm				ext4	$a" >> recovery.fstab
+					;;
+				omr)
+					echo "/omr				ext4	$a" >> recovery.fstab
+					;;
+				cust)
+					echo "/cust				ext4	$a" >> recovery.fstab
+					;;
+				*)
+					echo "/$i				emmc	$a" >> recovery.fstab
+					;;
+			esac
+		fi
+	done
+	# Add External SDCard entry
+	echo "
 # External storage
 /sdcard1			vfat	/dev/block/mmcblk1p1 /dev/block/mmcblk1	flags=fsflags=utf8;display="SDcard";storage;wipeingui;removable" >> recovery.fstab
-		rm fstab.temp
-		echo " done"
+	rm fstab.temp
+	echo " done"
 fi
 
 # Check for system-as-root setup
-if [ "$(cat recovery.fstab | grep -w "system_root")" != "" ]
-	then
-		printf "$blue Info: Device is system-as-root $reset"
-		DEVICE_IS_SAR=1
-	else
-		echo "$blue Info: Device is not system-as-root $reset"
-		DEVICE_IS_SAR=0
+if [ "$(cat recovery.fstab | grep -w "system_root")" != "" ]; then
+	printf "$blue Info: Device is system-as-root $reset"
+	DEVICE_IS_SAR=1
+else
+	echo "$blue Info: Device is not system-as-root $reset"
+	DEVICE_IS_SAR=0
 fi
 
 # Android.mk
@@ -501,9 +470,8 @@ echo "DEVICE_PATH := device/$DEVICE_TREE_PATH
 ALLOW_MISSING_DEPENDENCIES := true
 " >> BoardConfig.mk
 # Use arch values based on what has been found in init binary
-if [ $DEVICE_ARCH = arm64 ]
-	then
-		echo "# Architecture
+if [ $DEVICE_ARCH = arm64 ]; then
+	echo "# Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
@@ -518,18 +486,16 @@ TARGET_2ND_CPU_VARIANT := $DEVICE_2ND_CPU_VARIANT
 TARGET_BOARD_SUFFIX := _64
 TARGET_USES_64_BIT_BINDER := true
 " >> BoardConfig.mk
-	elif [ $DEVICE_ARCH = arm ]
-		then
-			echo "# Architecture
+elif [ $DEVICE_ARCH = arm ]; then
+	echo "# Architecture
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_VARIANT := $DEVICE_CPU_VARIANT
 " >> BoardConfig.mk
-	elif [ $DEVICE_ARCH = x86 ] # NOTE! x86 can't be tested by me, if you have a x86 device and you want to test this, feel free to report me results
-		then
-			echo "# Architecture
+elif [ $DEVICE_ARCH = x86 ]; then # NOTE! x86 can't be tested by me, if you have a x86 device and you want to test this, feel free to report me results
+	echo "# Architecture
 TARGET_ARCH := x86
 TARGET_ARCH_VARIANT := generic
 TARGET_CPU_ABI := x86
@@ -540,9 +506,8 @@ TARGET_CPU_VARIANT := $DEVICE_CPU_VARIANT
 " >> BoardConfig.mk
 fi
 # Some stock recovery.img doesn't have board name attached, so just ignore it
-if [ "$BOOTLOADERNAME" != "" ]
-	then
-		echo "# Bootloader
+if [ "$BOOTLOADERNAME" != "" ]; then
+	echo "# Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := $KERNEL_BOOTLOADER_NAME
 " >> BoardConfig.mk
 fi
@@ -564,18 +529,16 @@ if [ "$KERNEL_HEADER_VERSION" != "0" ]; then
 fi
 
 # Check for dtb image and add it to BoardConfig.mk
-if [ -f prebuilt/dt.img ]
-	then
-		echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage
+if [ -f prebuilt/dt.img ]; then
+	echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage
 TARGET_PREBUILT_DTB := \$(DEVICE_PATH)/prebuilt/dt.img" >> BoardConfig.mk
-	else
-		echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage-dtb" >> BoardConfig.mk
+else
+	echo "TARGET_PREBUILT_KERNEL := \$(DEVICE_PATH)/prebuilt/zImage-dtb" >> BoardConfig.mk
 fi
 
 # Check for dtbo image and add it to BoardConfig.mk
-if [ -f prebuilt/dtbo.img ]
-	then
-		echo "BOARD_PREBUILT_DTBOIMAGE := \$(DEVICE_PATH)/prebuilt/dtbo.img
+if [ -f prebuilt/dtbo.img ]; then
+	echo "BOARD_PREBUILT_DTBOIMAGE := \$(DEVICE_PATH)/prebuilt/dtbo.img
 BOARD_INCLUDE_RECOVERY_DTBO := true" >> BoardConfig.mk
 fi
 
@@ -589,14 +552,12 @@ if [ "$KERNEL_HEADER_VERSION" != "0" ]; then
     echo "BOARD_MKBOOTIMG_ARGS += --header_version \$(BOARD_BOOTIMG_HEADER_VERSION)" >> BoardConfig.mk
 fi
 
-if [ -f prebuilt/dt.img ]
-	then
-		echo "BOARD_MKBOOTIMG_ARGS += --dt \$(TARGET_PREBUILT_DTB)" >> BoardConfig.mk
+if [ -f prebuilt/dt.img ]; then
+	echo "BOARD_MKBOOTIMG_ARGS += --dt \$(TARGET_PREBUILT_DTB)" >> BoardConfig.mk
 fi
 
-if [ "$DEVICE_MANUFACTURER" = "samsung" ]
-	then
-		echo "BOARD_CUSTOM_BOOTIMG_MK := \$(DEVICE_PATH)/mkbootimg.mk" >> BoardConfig.mk
+if [ "$DEVICE_MANUFACTURER" = "samsung" ]; then
+	echo "BOARD_CUSTOM_BOOTIMG_MK := \$(DEVICE_PATH)/mkbootimg.mk" >> BoardConfig.mk
 fi
 
 # Add flags to support kernel building from source
@@ -613,25 +574,21 @@ fi
 echo "TARGET_KERNEL_ARCH := $DEVICE_ARCH
 TARGET_KERNEL_HEADER_ARCH := $DEVICE_ARCH
 TARGET_KERNEL_SOURCE := kernel/$DEVICE_MANUFACTURER/$DEVICE_CODENAME
-TARGET_KERNEL_CONFIG := ${DEVICE_CODENAME}_defconfig" >> BoardConfig.mk
+TARGET_KERNEL_CONFIG := ${DEVICE_CODENAME}_defconfig
+" >> BoardConfig.mk
 
 # Add LZMA compression if kernel suppport it
 case $RAMDISK_COMPRESSION_TYPE in
 	lzma)
-		echo "
-# LZMA
+		echo "# LZMA
 LZMA_RAMDISK_TARGETS := recovery
 " >> BoardConfig.mk
-		;;
-	*)
-		echo "" >> BoardConfig.mk
 		;;
 esac
 
 # Add system-as-root flags if device system-as-root
-if [ $DEVICE_IS_SAR = 1 ]
-	then
-		echo "# System as root
+if [ $DEVICE_IS_SAR = 1 ]; then
+	echo "# System as root
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := true
 BOARD_SUPPRESS_SECURE_ERASE := true
 " >> BoardConfig.mk
@@ -698,9 +655,8 @@ echo "# Specify phone tech before including full_phone
 " >> "omni_$DEVICE_CODENAME.mk"
 
 # Inherit 64bit things if device is 64bit
-if [ $DEVICE_IS_64BIT = true ]
-	then
-		echo "# Inherit 64bit support
+if [ $DEVICE_IS_64BIT = true ]; then
+	echo "# Inherit 64bit support
 \$(call inherit-product, \$(SRC_TARGET_DIR)/product/core_64_bit.mk)
 " >> "omni_$DEVICE_CODENAME.mk"
 fi
@@ -721,17 +677,15 @@ add_lunch_combo omni_$DEVICE_CODENAME-eng" >> vendorsetup.sh
 echo " done"
 
 # Add system-as-root declaration
-if [ $DEVICE_IS_SAR = 1 ]
-	then
-		echo "on fs
+if [ $DEVICE_IS_SAR = 1 ]; then
+	echo "on fs
 	export ANDROID_ROOT /system_root" >> recovery/root/init.recovery.sar.rc
 fi
 
 # If this is a Samsung device, add support to SEAndroid status and make an Odin-flashable tar
-if [ "$DEVICE_MANUFACTURER" = "samsung" ]
-	then
-		echo "$blue Info: This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg $reset"
-		echo "LOCAL_PATH := \$(call my-dir)
+if [ "$DEVICE_MANUFACTURER" = "samsung" ]; then
+	echo "$blue Info: This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg $reset"
+	echo "LOCAL_PATH := \$(call my-dir)
 
 \$(INSTALLED_BOOTIMAGE_TARGET): \$(MKBOOTIMG) \$(INTERNAL_BOOTIMAGE_FILES)
 	\$(call pretty,\"Target boot image: \$@\")
