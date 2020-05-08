@@ -111,7 +111,18 @@ fi
 clear
 
 logo
-read -p "Drag and drop or type the full path of stock recovery.img (you can obtain it from stock OTA or with device dump)
+read -p "Is the device A/B? Type \"1\" if it is
+> " DEVICE_IS_AB
+if [ -z "$DEVICE_IS_AB" ]; then
+	echo "$blue Nothing inserted, assuming A-only device $reset"
+	sleep 3
+elif [ "$DEVICE_IS_AB" = 1 ]; then
+	echo "$blue Device will be treated as A/B $reset"
+fi
+clear
+
+logo
+read -p "Drag and drop or type the full path of stock recovery.img or boot.img if the device is A/B (you can obtain it from stock OTA or with device dump)
 > " DEVICE_STOCK_RECOVERY_PATH
 DEVICE_STOCK_RECOVERY_PATH=$(echo "$DEVICE_STOCK_RECOVERY_PATH" | cut -d "'" -f 2)
 if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]; then
@@ -323,6 +334,10 @@ fi
 if [ -f "$RAMDISK_DIR/etc/twrp.fstab" ]; then
 	printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
 	cp "$RAMDISK_DIR/etc/twrp.fstab" "$DEVICE_TREE_PATH/recovery.fstab"
+	# Do a quick check if vendor partition is present
+	if [ $(grep vendor "$DEVICE_TREE_PATH/recovery.fstab" > /dev/null; echo $?) = 0 ]; then
+		DEVICE_HAS_VENDOR_PARTITION=true
+	fi
 	echo " done"
 elif [ -f "$RAMDISK_DIR/etc/recovery.fstab" ]; then
 	printf "Extracting fstab..."
@@ -334,6 +349,15 @@ elif [ -f "$RAMDISK_DIR/system/etc/recovery.fstab" ]; then
 	echo " done"
 else
 	echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
+fi
+
+# Check if recovery.wipe is there
+if [ "$DEVICE_IS_AB" ]; then
+	printf "Copying A/B stuff..."
+	if [ -f "$RAMDISK_DIR/etc/recovery.wipe" ]; then
+		cp "$RAMDISK_DIR/etc/recovery.wipe" "$DEVICE_TREE_PATH/recovery.wipe"
+	fi
+	echo " done"
 fi
 
 # Extract init.rc files
@@ -408,6 +432,7 @@ if [ -f fstab.temp ]; then
 				vendor)
 					echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
 /vendor_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
+					DEVICE_HAS_VENDOR_PARTITION=true
 					;;
 				data)
 					echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
@@ -513,8 +538,11 @@ TARGET_BOOTLOADER_BOARD_NAME := $KERNEL_BOOTLOADER_NAME
 fi
 
 echo "# Kernel
-BOARD_KERNEL_CMDLINE := $KERNEL_CMDLINE
-BOARD_KERNEL_BASE := 0x$KERNEL_BASEADDRESS
+BOARD_KERNEL_CMDLINE := $KERNEL_CMDLINE" >> BoardConfig.mk
+if [ "$DEVICE_IS_AB" = 1 ]; then
+	echo "BOARD_KERNEL_CMDLINE += skip_override androidboot.fastboot=1" >> BoardConfig.mk
+fi
+echo "BOARD_KERNEL_BASE := 0x$KERNEL_BASEADDRESS
 BOARD_KERNEL_PAGESIZE := $KERNEL_PAGESIZE
 BOARD_KERNEL_OFFSET := 0x$KERNEL_OFFSET
 BOARD_RAMDISK_OFFSET := 0x$RAMDISK_OFFSET
@@ -595,7 +623,7 @@ BOARD_SUPPRESS_SECURE_ERASE := true
 fi
 
 echo "# Platform
-# It's not needed for booting TWRP, but it should be added
+# Fix this
 #TARGET_BOARD_PLATFORM := 
 #TARGET_BOARD_PLATFORM_GPU := 
 
@@ -617,8 +645,17 @@ BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
 # Workaround for error copying vendor files to recovery ramdisk
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 TARGET_COPY_OUT_VENDOR := vendor
+" >> BoardConfig.mk
 
-# TWRP Configuration
+if [ "$DEVICE_IS_AB" = 1 ]; then
+	echo "# A/B
+AB_OTA_UPDATER := true
+TW_INCLUDE_REPACKTOOLS := true
+TARGET_RECOVERY_WIPE := \$(DEVICE_PATH)/recovery/root/etc/recovery.wipe
+" >> BoardConfig.mk
+fi
+
+echo "# TWRP Configuration
 TW_THEME := portrait_hdpi
 TW_EXTRA_LANGUAGES := true
 TW_SCREEN_BLANK_ON_BOOT := true
@@ -658,6 +695,49 @@ echo "# Specify phone tech before including full_phone
 if [ $DEVICE_IS_64BIT = true ]; then
 	echo "# Inherit 64bit support
 \$(call inherit-product, \$(SRC_TARGET_DIR)/product/core_64_bit.mk)
+" >> "omni_$DEVICE_CODENAME.mk"
+fi
+
+# Add A/B flags
+if [ "$DEVICE_IS_AB" = 1 ]; then
+	printf "# A/B
+AB_OTA_PARTITIONS += \\
+    boot \\
+    system" >> "omni_$DEVICE_CODENAME.mk"
+	if [ "$DEVICE_HAS_VENDOR_PARTITION" = true ]; then
+		echo " \\
+    vendor" >> "omni_$DEVICE_CODENAME.mk"
+	else
+		echo "" >> "omni_$DEVICE_CODENAME.mk"
+	fi
+	
+	echo "
+AB_OTA_POSTINSTALL_CONFIG += \\
+    RUN_POSTINSTALL_system=true \\
+    POSTINSTALL_PATH_system=system/bin/otapreopt_script \\
+    FILESYSTEM_TYPE_system=ext4 \\
+    POSTINSTALL_OPTIONAL_system=true
+
+# Boot control HAL
+PRODUCT_PACKAGES += \\
+    android.hardware.boot@1.0-impl \\
+    android.hardware.boot@1.0-service
+
+PRODUCT_PACKAGES += \\
+    bootctrl.\$(TARGET_BOARD_PLATFORM)
+    
+PRODUCT_STATIC_BOOT_CONTROL_HAL := \\
+    bootctrl.\$(TARGET_BOARD_PLATFORM) \\
+    libgptutils \\
+    libz \\
+    libcutils
+    
+PRODUCT_PACKAGES += \\
+    otapreopt_script \\
+    cppreopts.sh \\
+    update_engine \\
+    update_verifier \\
+    update_engine_sideload
 " >> "omni_$DEVICE_CODENAME.mk"
 fi
 
@@ -723,6 +803,11 @@ echo " done"
 
 echo ""
 echo "$green Device tree successfully made, you can find it in $DEVICE_TREE_PATH $reset
-
-$blue Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
+"
+echo "$blue Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
 If this is the case, then see if OEM provide kernel sources and build the kernel by yourself $reset"
+if [ "$DEVICE_IS_AB" = 1 ]; then
+	echo "$red Warning: A/B support is experimental.
+You need to fix TARGET_BOARD_PLATFORM and TARGET_BOARD_PLATFORM_GPU values in BoardConfig.mk + fstab, these are needed for A/B"
+fi
+
