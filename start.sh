@@ -19,7 +19,7 @@
 
 clear
 
-VERSION="1.1"
+VERSION="1.2"
 
 # Source additional tools
 if [ ! -f ./tools/adb.sh ]; then
