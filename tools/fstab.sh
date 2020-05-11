@@ -1,3 +1,4 @@
+#!/bin/bash
 generate_fstab() {
     if [ -f "$1" ]; then
 		# Header

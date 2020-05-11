@@ -1,3 +1,4 @@
+#!/bin/bash
 set_colors() {
     # Color definition
     red=$(tput setaf 1)

@@ -1,3 +1,4 @@
+#!/bin/bash
 license_headers() {
 	echo "#
 # Copyright (C) $DEVICE_YEAR_RELEASE The Android Open Source Project

@@ -1,3 +1,4 @@
+#!/bin/bash
 adb_check_device() {
     if [ "$(command -v adb)" != "" ]; then
 		echo "ADB is installed"

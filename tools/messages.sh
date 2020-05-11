@@ -1,3 +1,4 @@
+#!/bin/bash
 info() {
     echo "${blue}Info: ${1}${reset}"
 }
