@@ -1,11 +1,11 @@
 #!/bin/bash
 set_colors() {
     # Color definition
-    red=$(tput setaf 1)
-    green=$(tput setaf 2)
-    blue=$(tput setaf 4)
-    cyan=$(tput setaf 6)
-    reset=$(tput sgr0)
+    export red=$(tput setaf 1)
+    export green=$(tput setaf 2)
+    export blue=$(tput setaf 4)
+    export cyan=$(tput setaf 6)
+    export reset=$(tput sgr0)
 }
 
 logo() {
