@@ -17,14 +17,21 @@
 # limitations under the License.
 #
 
+clear
+
 VERSION="1.1"
 
-# Color definition
-red=$(tput setaf 1)
-green=$(tput setaf 2)
-blue=$(tput setaf 4)
-cyan=$(tput setaf 6)
-reset=$(tput sgr0)
+# Source additional tools
+if [ ! -f ./tools/adb.sh ]; then
+	echo "Please fully clone the script"
+	exit
+fi
+source ./tools/adb.sh
+source ./tools/files.sh
+source ./tools/fstab.sh
+source ./tools/graphics.sh
+
+set_colors
 
 LAST_COMMIT=$(git log -1 --format="%h")
 if [ ${#LAST_COMMIT} != 7 ]; then
@@ -33,42 +40,6 @@ Please use git clone, and don't download repo zip file
 If you don't have it, also install git $reset"
 	exit
 fi
-
-
-# Clean screen
-clear
-
-# Logo function
-logo() {
-
-echo "$cyan
-                   ████                    
-              █████████         ██         
-           ████████████         █████      
-         ██████████████         ███████    
-       ████████████████         █████████  
-      █████████████                 ██████ 
-     ████████████████              ████████
-     █████████████████           ██████████
-    ████████████████████       ████████████
-    █████████████████████     █████████████
-    ███████████████   █████ ███████████████
-    █████████████      ████████████████████
-    ████████████         ██████████████████
-     █████████            █████████████████
-      ███████               ██████████████ 
-       ████                   ███████████  
-        ████████         ███████████████   
-          ██████         █████████████     
-            ████         ███████████       
-                         ███████           $reset
-
-
-          TWRP device tree generator
-                by SebaUbuntu
-                 Version $VERSION
-"
-}
 
 # Ask user for device info because we don't use build.prop
 logo
@@ -141,37 +112,21 @@ clear
 
 logo
 if [ "$ADB_CHOICE" = "yes" ]; then
-	if [ "$(command -v adb)" != "" ]; then
-		clear
-		logo
-		echo "ADB is installed"
-		echo ""
-		echo "Connect your device with USB debugging enabled"
-		echo "If asked, on your device grant USB ADB request"
-		echo "Waiting for device..."
-		ADB_TIMEOUT=0
-		while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "ADB_TIMEOUT" != 30 ]; do
-			sleep 1
-			ADB_TIMEOUT=$(( ADB_TIMEOUT + 1 ))
-		done
-		if [ "$ADB_COUNTER" = 30 ]; then
-			echo "$red Error: Timeout, ADB will not be used $reset"
-			sleep 3
-			break
-		else
-			printf "Device connected, taking values, do not disconnect the device..."
-			DEVICE_SOC_MANUFACTURER=$(adb shell getprop ro.hardware)
-			DEVICE_CPU_VARIANT=$(adb shell getprop ro.bionic.cpu_variant)
-			DEVICE_2ND_CPU_VARIANT=$(adb shell getprop ro.bionic.2nd_cpu_variant)
-			echo " done"
-		fi
+	adb_check_device
+	if [ $? = 0 ]; then
+		printf "Device connected, taking values, do not disconnect the device..."
+		DEVICE_SOC_MANUFACTURER=$(adb_get_prop ro.hardware)
+		DEVICE_CPU_VARIANT=$(adb_get_prop ro.bionic.cpu_variant)
+		DEVICE_2ND_CPU_VARIANT=$(adb_get_prop ro.bionic.cpu_variant)
+		echo " done"
 	else
-		echo "$red Error: ADB is not installed, skipping... $reset"
+		echo "$red Error: device not connected or ADB is not installed $reset"
 	fi
+else
+	echo "$blue ADB will be skipped $reset"
 fi
 
 # Start generation
-
 if [ "$DEVICE_CPU_VARIANT" = "" ]; then
 	echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant $reset"
 	DEVICE_CPU_VARIANT=generic
@@ -380,85 +335,14 @@ cd "$DEVICE_TREE_PATH"
 printf "Adding license headers..."
 CURRENT_YEAR="$(date +%Y)"
 for file in Android.mk AndroidProducts.mk BoardConfig.mk omni_$DEVICE_CODENAME.mk vendorsetup.sh; do
-	echo "#
-# Copyright (C) $DEVICE_YEAR_RELEASE The Android Open Source Project
-# Copyright (C) $DEVICE_YEAR_RELEASE The TWRP Open Source Project
-# Copyright (C) $CURRENT_YEAR SebaUbuntu's TWRP device tree generator 
-#
-# Licensed under the Apache License, Version 2.0 (the \"License\");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an \"AS IS\" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-" >> "$file"
+	license_headers "$file"
 done
 echo " done"
 
 # Generate custom fstab if it's not ready
 if [ -f fstab.temp ]; then
 	printf "Generating fstab..."
-	# Header
-	echo "# Android fstab file.
-# The filesystem that contains the filesystem checker binary (typically /system) cannot
-# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
-
-# Mount point		FS		Device									Flags" > recovery.fstab
-	for i in boot recovery cache system system_root vendor data dtbo; do
-		a=$(cat fstab.temp | grep -wi "/$i" | grep "/dev.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
-		# If /dev doesn't exist, try /emmc
-		if [ "$a" = "" ]; then
-			a=$(cat fstab.temp | grep -wi "/$i" | grep "/emmc.*" -o | cut -d " " -f 1 | cut -d "	" -f 1)
-		fi
-		if [ "$a" != "" ]; then
-			case $i in
-				cache)
-					echo "/cache			ext4	$a" >> recovery.fstab
-					;;
-				system)
-					echo "/system			ext4	$a
-/system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-					;;
-				system_root)
-					echo "/system_root			ext4	$a		flags=display="System"
-/system_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-					;;
-				vendor)
-					echo "/vendor			ext4	$a		flags=display="Vendor";backup=1;wipeingui
-/vendor_image		emmc	$a		flags=backup=1;flashimg=1" >> recovery.fstab
-					DEVICE_HAS_VENDOR_PARTITION=true
-					;;
-				data)
-					echo "/data				ext4	$a		flags=encryptable=footer;length=-16384" >> recovery.fstab
-					;;
-				persist)
-					echo "/persist			ext4	$a" >> recovery.fstab
-					;;
-				odm)
-					echo "/odm				ext4	$a" >> recovery.fstab
-					;;
-				omr)
-					echo "/omr				ext4	$a" >> recovery.fstab
-					;;
-				cust)
-					echo "/cust				ext4	$a" >> recovery.fstab
-					;;
-				*)
-					echo "/$i				emmc	$a" >> recovery.fstab
-					;;
-			esac
-		fi
-	done
-	# Add External SDCard entry
-	echo "
-# External storage
-/sdcard1			vfat	/dev/block/mmcblk1p1 /dev/block/mmcblk1	flags=fsflags=utf8;display="SDcard";storage;wipeingui;removable" >> recovery.fstab
+	generate_fstab fstab.temp
 	rm fstab.temp
 	echo " done"
 fi
