@@ -30,14 +30,15 @@ source ./tools/adb.sh
 source ./tools/files.sh
 source ./tools/fstab.sh
 source ./tools/graphics.sh
+source ./tools/messages.sh
 
 set_colors
 
 LAST_COMMIT=$(git log -1 --format="%h")
 if [ ${#LAST_COMMIT} != 7 ]; then
-	echo "$red Error retreiving last git commit
+	error "Failed retreiving last git commit
 Please use git clone, and don't download repo zip file
-If you don't have it, also install git $reset"
+If you don't have it, also install git"
 	exit
 fi
 
@@ -46,7 +47,7 @@ logo
 read -p "Insert the device codename (eg. whyred)
 > " DEVICE_CODENAME
 if [ -z "$DEVICE_CODENAME" ]; then
-	echo "$red Error: device codename can't be empty $reset"
+	error "Device codename can't be empty"
 	exit
 fi
 clear
@@ -55,7 +56,7 @@ logo
 read -p "Insert the device manufacturer (eg. xiaomi)
 > " DEVICE_MANUFACTURER
 if [ -z "$DEVICE_MANUFACTURER" ]; then
-	echo "$red Error: device manufacturer can't be empty $reset"
+	error "Device manufacturer can't be empty"
 	exit
 fi
 clear
@@ -67,7 +68,7 @@ logo
 read -p "Insert the device release year (eg. 2018)
 > " DEVICE_YEAR_RELEASE
 if [ -z "$DEVICE_YEAR_RELEASE" ]; then
-	echo "$red Error: device year release can't be empty $reset"
+	error "Device year release can't be empty"
 	exit
 fi
 clear
@@ -76,7 +77,7 @@ logo
 read -p "Insert the device commercial name (eg. Xiaomi Redmi Note 5)
 > " DEVICE_FULL_NAME
 if [ -z "$DEVICE_FULL_NAME" ]; then
-	echo "$red Error: device commercial name can't be empty $reset"
+	error "Device commercial name can't be empty"
 	exit
 fi
 clear
@@ -85,10 +86,10 @@ logo
 read -p "Is the device A/B? Type \"1\" if it is
 > " DEVICE_IS_AB
 if [ -z "$DEVICE_IS_AB" ]; then
-	echo "$blue Nothing inserted, assuming A-only device $reset"
+	info "Nothing inserted, assuming A-only device"
 	sleep 3
 elif [ "$DEVICE_IS_AB" = 1 ]; then
-	echo "$blue Device will be treated as A/B $reset"
+	info "Device will be treated as A/B"
 fi
 clear
 
@@ -97,7 +98,7 @@ read -p "Drag and drop or type the full path of stock recovery.img or boot.img i
 > " DEVICE_STOCK_RECOVERY_PATH
 DEVICE_STOCK_RECOVERY_PATH=$(echo "$DEVICE_STOCK_RECOVERY_PATH" | cut -d "'" -f 2)
 if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]; then
-	echo "$red Error: file not found $reset"
+	error "File not found"
 	exit
 fi
 clear
@@ -114,29 +115,29 @@ logo
 if [ "$ADB_CHOICE" = "yes" ]; then
 	adb_check_device
 	if [ $? = 0 ]; then
-		printf "Device connected, taking values, do not disconnect the device..."
+		printf "${blue}Device connected, taking values, do not disconnect the device..."
 		DEVICE_SOC_MANUFACTURER=$(adb_get_prop ro.hardware)
 		DEVICE_CPU_VARIANT=$(adb_get_prop ro.bionic.cpu_variant)
 		DEVICE_2ND_CPU_VARIANT=$(adb_get_prop ro.bionic.cpu_variant)
-		echo " done"
+		echo " done${reset}"
 	else
-		echo "$red Error: device not connected or ADB is not installed $reset"
+		error "Device not connected or ADB is not installed"
 	fi
 else
-	echo "$blue ADB will be skipped $reset"
+	info "ADB will be skipped"
 fi
 
 # Start generation
 if [ "$DEVICE_CPU_VARIANT" = "" ]; then
-	echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant $reset"
+	info "Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant"
 	DEVICE_CPU_VARIANT=generic
 fi
 if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]; then
-	echo "$blue Info: Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant $reset"
+	info "Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant"
 	DEVICE_2ND_CPU_VARIANT=generic
 fi
 if [ "$DEVICE_SOC_MANUFACTURER" != "" ]; then
-	echo "$blue Info: Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER $reset"
+	info "Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER"
 fi
 
 # Path declarations
@@ -176,7 +177,7 @@ BINARY=$(file "$RAMDISK_DIR/init")
 
 # // Android 10 change: now init binary is a symlink to /system/etc/init, check for other binary files
 if [ "$(echo "$BINARY" | grep -o "symbolic")" = "symbolic" ]; then
-	echo "$blue Info: Init binary not found, using a random binary $reset"
+	info "Init binary not found, using a random binary"
 	for i in $(ls "$RAMDISK_DIR/sbin"); do
 		BINARY=$(file "$RAMDISK_DIR/sbin/$i")
 		if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
@@ -226,7 +227,7 @@ if [ "$(echo "$BINARY" | grep -o "symbolic")" = "symbolic" ]; then
 		done
 	fi
 	if [ "$BINARY_FOUND" != true ]; then
-		echo "$red Error: Script can't find a binary file, aborting $reset"
+		error "Script can't find a binary file, aborting"
 		exit
 	fi
 fi
@@ -249,21 +250,21 @@ elif echo "$BINARY" | grep -q x86; then
 	fi
 else
 	# Nothing matches, were you trying to make TWRP for Symbian OS devices, Playstation 2 or PowerPC-based Macintosh?
-	echo "$red Error: Arch not supported $reset"
+	error "Arch not supported"
 	exit
 fi
 
 if [ $DEVICE_ARCH = x86_64 ]; then
 	# idk how you can have a x86_64 Android based device, unless it's Android-x86 project
-	echo "$red Error: x86_64 arch is not supported for now! $reset"
+	error "x86_64 arch is not supported for now!"
 	exit
 fi
 
-echo "$blue Info: Device is $DEVICE_ARCH $reset"
+info "Device is $DEVICE_ARCH"
 
 # Check if device tree blobs are not appended to kernel and copy kernel
 if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]; then
-	echo "$blue Info: DTB are not appended to kernel $reset"
+	info "DTB are not appended to kernel"
 	printf "Copying kernel..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage"
 	echo " done"
@@ -271,7 +272,7 @@ if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]; then
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_TREE_PATH/prebuilt/dt.img"
 	echo " done"
 else
-	echo "$blue Info: DTB are appended to kernel $reset"
+	info "DTB are appended to kernel"
 	printf "Copying kernel..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage-dtb"
 	echo " done"
@@ -279,7 +280,7 @@ fi
 
 # Check if dtbo image is present
 if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" ]; then
-	echo "$blue Info: DTBO image exists $reset"
+	info "DTBO image exists"
 	printf "Copying DTBO..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" "$DEVICE_TREE_PATH/prebuilt/dtbo.img"
 	echo " done"
@@ -287,7 +288,7 @@ fi
 
 # Check if a fstab is present
 if [ -f "$RAMDISK_DIR/etc/twrp.fstab" ]; then
-	printf "$blue Info: A TWRP fstab has been found, remember to give proper authorship to the creator of this build! $reset"
+	info "A TWRP fstab has been found, remember to give proper authorship to the creator of this build!"
 	cp "$RAMDISK_DIR/etc/twrp.fstab" "$DEVICE_TREE_PATH/recovery.fstab"
 	# Do a quick check if vendor partition is present
 	if [ $(grep vendor "$DEVICE_TREE_PATH/recovery.fstab" > /dev/null; echo $?) = 0 ]; then
@@ -303,7 +304,7 @@ elif [ -f "$RAMDISK_DIR/system/etc/recovery.fstab" ]; then
 	cp "$RAMDISK_DIR/system/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
 	echo " done"
 else
-	echo "$blue Info: The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have $reset"
+	error "The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have"
 fi
 
 # Check if recovery.wipe is there
@@ -349,10 +350,10 @@ fi
 
 # Check for system-as-root setup
 if [ "$(cat recovery.fstab | grep -w "system_root")" != "" ]; then
-	printf "$blue Info: Device is system-as-root $reset"
+	info "Device is system-as-root"
 	DEVICE_IS_SAR=1
 else
-	echo "$blue Info: Device is not system-as-root $reset"
+	info "Device is not system-as-root"
 	DEVICE_IS_SAR=0
 fi
 
@@ -652,7 +653,7 @@ fi
 
 # If this is a Samsung device, add support to SEAndroid status and make an Odin-flashable tar
 if [ "$DEVICE_MANUFACTURER" = "samsung" ]; then
-	echo "$blue Info: This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg $reset"
+	info "This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg"
 	echo "LOCAL_PATH := \$(call my-dir)
 
 \$(INSTALLED_BOOTIMAGE_TARGET): \$(MKBOOTIMG) \$(INTERNAL_BOOTIMAGE_FILES)
@@ -690,12 +691,12 @@ Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>" --author "Sebas
 echo " done"
 
 echo ""
-echo "$green Device tree successfully made, you can find it in $DEVICE_TREE_PATH $reset
+success "Device tree successfully made, you can find it in $DEVICE_TREE_PATH
 "
-echo "$blue Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
-If this is the case, then see if OEM provide kernel sources and build the kernel by yourself $reset"
+info "Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
+If this is the case, then see if OEM provide kernel sources and build the kernel by yourself"
 if [ "$DEVICE_IS_AB" = 1 ]; then
-	echo "$red Warning: A/B support is experimental.
+	error "A/B support is experimental.
 You need to fix TARGET_BOARD_PLATFORM and TARGET_BOARD_PLATFORM_GPU values in BoardConfig.mk + fstab, these are needed for A/B"
 fi
 
