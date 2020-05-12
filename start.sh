@@ -555,13 +555,13 @@ echo " done"
 
 case $RAMDISK_COMPRESSION in
 	lzma)
-		echo "Kernel support lzma compression, using it"
+		info "Kernel support lzma compression, using it"
 		;;
 	lz4)
-		echo "Kernel support lz4 compression, but I don't know how to enable it .-."
+		info "Kernel support lz4 compression, but I don't know how to enable it .-."
 		;;
 	xz)
-		echo "Kernel support xz compression, but I don't know how to enable it .-."
+		info "Kernel support xz compression, but I don't know how to enable it .-."
 		;;
 esac
 
