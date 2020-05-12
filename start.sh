@@ -537,11 +537,12 @@ PLATFORM_VERSION := 16.1.0
 " >> BoardConfig.mk
 
 if [ "$DEVICE_IS_AB" = 1 ]; then
-	echo "# A/B
-AB_OTA_UPDATER := true
-TW_INCLUDE_REPACKTOOLS := true
-TARGET_RECOVERY_WIPE := \$(DEVICE_PATH)/recovery/root/etc/recovery.wipe
-" >> BoardConfig.mk
+	echo "# A/B" >> BoardConfig.mk
+    if [ -f recovery.wipe ]; then
+    	echo "TARGET_RECOVERY_WIPE := \$(DEVICE_PATH)/recovery/root/etc/recovery.wipe" >> BoardConfig.mk
+    fi
+    echo "AB_OTA_UPDATER := true
+TW_INCLUDE_REPACKTOOLS := true" >> BoardConfig.mk
 fi
 
 echo "# TWRP Configuration
