@@ -1,6 +1,6 @@
 #!/bin/bash
 adb_check_device() {
-    if [ "$(command -v adb)" != "" ]; then
+	if [ "$(command -v adb)" != "" ]; then
 		echo "ADB is installed"
 		echo ""
 		echo "Connect your device with USB debugging enabled"

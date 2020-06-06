@@ -438,7 +438,7 @@ BOARD_FLASH_BLOCK_SIZE := $((KERNEL_PAGESIZE * 64)) # (BOARD_KERNEL_PAGESIZE * 6
 # Add kernel header version only if it's different than 0
 # Passing argument 0 to mkbootimg is not allowed
 if [ "$KERNEL_HEADER_VERSION" != "0" ]; then
-    echo "BOARD_BOOTIMG_HEADER_VERSION := $KERNEL_HEADER_VERSION" >> BoardConfig.mk
+	echo "BOARD_BOOTIMG_HEADER_VERSION := $KERNEL_HEADER_VERSION" >> BoardConfig.mk
 fi
 
 # Check for dtb image and add it to BoardConfig.mk
@@ -462,7 +462,7 @@ BOARD_MKBOOTIMG_ARGS += --tags_offset \$(BOARD_KERNEL_TAGS_OFFSET)" >> BoardConf
 # Add kernel header version only if it's different than 0
 # Passing argument 0 to mkbootimg is not allowed
 if [ "$KERNEL_HEADER_VERSION" != "0" ]; then
-    echo "BOARD_MKBOOTIMG_ARGS += --header_version \$(BOARD_BOOTIMG_HEADER_VERSION)" >> BoardConfig.mk
+	echo "BOARD_MKBOOTIMG_ARGS += --header_version \$(BOARD_BOOTIMG_HEADER_VERSION)" >> BoardConfig.mk
 fi
 
 if [ -f prebuilt/dt.img ]; then
@@ -475,13 +475,13 @@ fi
 
 # Add flags to support kernel building from source
 if [ "$DEVICE_ARCH" = arm64 ]; then
-    echo "BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb" >> BoardConfig.mk
+	echo "BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb" >> BoardConfig.mk
 elif [ "$DEVICE_ARCH" = arm ]; then
-    echo "BOARD_KERNEL_IMAGE_NAME := zImage-dtb" >> BoardConfig.mk
+	echo "BOARD_KERNEL_IMAGE_NAME := zImage-dtb" >> BoardConfig.mk
 elif [ "$DEVICE_ARCH" = x86 ]; then
-    echo "BOARD_KERNEL_IMAGE_NAME := bzImage" >> BoardConfig.mk
+	echo "BOARD_KERNEL_IMAGE_NAME := bzImage" >> BoardConfig.mk
 elif [ "$DEVICE_ARCH" = x86_64 ]; then
-    echo "BOARD_KERNEL_IMAGE_NAME := bzImage" >> BoardConfig.mk
+	echo "BOARD_KERNEL_IMAGE_NAME := bzImage" >> BoardConfig.mk
 fi
 
 echo "TARGET_KERNEL_ARCH := $DEVICE_ARCH
@@ -538,10 +538,10 @@ PLATFORM_VERSION := 16.1.0
 
 if [ "$DEVICE_IS_AB" = 1 ]; then
 	echo "# A/B" >> BoardConfig.mk
-    if [ -f recovery.wipe ]; then
-    	echo "TARGET_RECOVERY_WIPE := \$(DEVICE_PATH)/recovery/root/etc/recovery.wipe" >> BoardConfig.mk
-    fi
-    echo "AB_OTA_UPDATER := true
+	if [ -f recovery.wipe ]; then
+		echo "TARGET_RECOVERY_WIPE := \$(DEVICE_PATH)/recovery/root/etc/recovery.wipe" >> BoardConfig.mk
+	fi
+	echo "AB_OTA_UPDATER := true
 TW_INCLUDE_REPACKTOOLS := true" >> BoardConfig.mk
 fi
 
