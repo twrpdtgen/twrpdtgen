@@ -57,7 +57,7 @@ generate_fstab() {
 # External storage
 /sdcard1			vfat	/dev/block/mmcblk1p1 /dev/block/mmcblk1	flags=fsflags=utf8;display="SDcard";storage;wipeingui;removable" >> recovery.fstab
 	else
-		echo "$red fastab not found!"
+		echo "$red fstab not found!"
 		exit
     fi
 }
