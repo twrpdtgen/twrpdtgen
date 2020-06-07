@@ -19,3 +19,19 @@ license_headers() {
 #
 " >> "$1"
 }
+
+loginfo() {
+	echo "Info: ${1}" >> "$SCRIPT_PWD/$DEVICE_CODENAME.log"
+}
+
+logerror() {
+	echo "Error: ${1}" >> "$SCRIPT_PWD/$DEVICE_CODENAME.log"
+}
+
+logstep() {
+	printf "${1}" >> "$SCRIPT_PWD/$DEVICE_CODENAME.log"
+}
+
+logdone() {
+	echo " done" >> "$SCRIPT_PWD/$DEVICE_CODENAME.log"
+}
