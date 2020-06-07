@@ -9,7 +9,8 @@ set_colors() {
 }
 
 logo() {
-	echo "$cyan
+	if [ "$USE_GUI" = false ]; then
+		echo "$cyan
                    ████                    
               █████████         ██         
            ████████████         █████      
@@ -36,4 +37,11 @@ logo() {
                 by SebaUbuntu
                  Version $VERSION
 "
+	fi
+}
+
+clean_screen() {
+	if [ "$USE_GUI" = false ]; then
+		clear
+	fi
 }

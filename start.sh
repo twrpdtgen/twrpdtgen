@@ -17,11 +17,13 @@
 # limitations under the License.
 #
 
-clear
-
 VERSION="1.2"
 
 SCRIPT_PWD=$(pwd)
+
+if [ "$1" = "--cli" ]; then
+	USE_GUI=false
+fi
 
 # Source additional tools
 if [ ! -f ./tools/adb.sh ]; then
@@ -32,9 +34,11 @@ source ./tools/adb.sh
 source ./tools/files.sh
 source ./tools/fstab.sh
 source ./tools/graphics.sh
-source ./tools/messages.sh
+source ./tools/user_interaction.sh
 
 set_colors
+clean_screen
+logo
 
 LAST_COMMIT=$(git log -1 --format="%h")
 if [ ${#LAST_COMMIT} != 7 ]; then
@@ -46,75 +50,90 @@ fi
 
 # Ask user for device info because we don't use build.prop
 logo
-read -p "Insert the device codename (eg. whyred)
-> " DEVICE_CODENAME
+DEVICE_CODENAME=$(get_info "Insert the device codename (eg. whyred)")
 if [ -z "$DEVICE_CODENAME" ]; then
 	error "Device codename can't be empty"
 	exit
 fi
-clear
+clean_screen
 
 logo
-read -p "Insert the device manufacturer (eg. xiaomi)
-> " DEVICE_MANUFACTURER
+DEVICE_MANUFACTURER=$(get_info "Insert the device manufacturer (eg. xiaomi)")
 if [ -z "$DEVICE_MANUFACTURER" ]; then
 	error "Device manufacturer can't be empty"
 	exit
 fi
-clear
-
 # Manufacturer name must be lowercase
 DEVICE_MANUFACTURER=$(echo "$DEVICE_MANUFACTURER" | tr '[:upper:]' '[:lower:]')
+clean_screen
 
 logo
-read -p "Insert the device release year (eg. 2018)
-> " DEVICE_YEAR_RELEASE
+DEVICE_YEAR_RELEASE=$(get_info "Insert the device release year (eg. 2018)")
 if [ -z "$DEVICE_YEAR_RELEASE" ]; then
 	error "Device year release can't be empty"
 	exit
 fi
-clear
+clean_screen
 
 logo
-read -p "Insert the device commercial name (eg. Xiaomi Redmi Note 5)
-> " DEVICE_FULL_NAME
+DEVICE_FULL_NAME=$(get_info "Insert the device commercial name (eg. Xiaomi Redmi Note 5)")
 if [ -z "$DEVICE_FULL_NAME" ]; then
 	error "Device commercial name can't be empty"
 	exit
 fi
-clear
+clean_screen
 
 logo
-read -p "Is the device A/B? Type \"1\" if it is
-> " DEVICE_IS_AB
+DEVICE_IS_AB=$(get_boolean "Is the device A/B?")
 if [ -z "$DEVICE_IS_AB" ]; then
 	info "Nothing inserted, assuming A-only device"
-	sleep 3
-elif [ "$DEVICE_IS_AB" = 1 ]; then
-	info "Device will be treated as A/B"
+	sleep 1
+elif [ "$DEVICE_IS_AB" != 1 ] && [ "$DEVICE_IS_AB" != 0 ]; then
+	error "Wrong input"
+	exit
 fi
-clear
+clean_screen
 
 logo
-read -p "Drag and drop or type the full path of stock recovery.img or boot.img if the device is A/B (you can obtain it from stock OTA or with device dump)
-> " DEVICE_STOCK_RECOVERY_PATH
-DEVICE_STOCK_RECOVERY_PATH=$(echo "$DEVICE_STOCK_RECOVERY_PATH" | cut -d "'" -f 2)
+DEVICE_STOCK_RECOVERY_PATH=$(get_file_path "recovery image (or a boot image if the device is A/B)" "*.img")
 if [ ! -f "$DEVICE_STOCK_RECOVERY_PATH" ]; then
 	error "File not found"
 	exit
 fi
-clear
+clean_screen
 
 logo
-read -p "Do you want to add additional flags via ADB? (Optional)
+ADB_CHOICE=$(get_boolean "Do you want to add additional flags via ADB? (Optional)
 This can help the script making a better device tree by taking precise data
-But you need to have the device on hands and adb command needs to be present
-Type \"yes\" to use this feature
-> " ADB_CHOICE
-clear
+But you need to have the device on hands and adb command needs to be present")
+if [ -z "$ADB_CHOICE" ]; then
+	info "Nothing inserted, assuming ADB won't be used"
+	sleep 1
+elif [ "$ADB_CHOICE" != 1 ] && [ "$ADB_CHOICE" != 0 ]; then
+	error "Wrong input"
+	exit
+fi
+clean_screen
 
+# Start generation
 logo
-if [ "$ADB_CHOICE" = "yes" ]; then
+if [ -f "$SCRIPT_PWD/$DEVICE_CODENAME.log" ]; then
+	rm -f "$SCRIPT_PWD/$DEVICE_CODENAME.log"
+fi
+loginfo "
+------------------------------------------------------------------------
+SebaUbuntu's TWRP device tree generator
+Version=$VERSION
+Device name=$DEVICE_FULL_NAME
+Device codename=$DEVICE_CODENAME
+Date and time=$(date)
+OS=$(uname)
+------------------------------------------------------------------------
+
+Starting device tree generation
+"
+
+if [ "$ADB_CHOICE" = "1" ]; then
 	adb_check_device
 	if [ $? = 0 ]; then
 		printf "${blue}Device connected, taking values, do not disconnect the device..."
@@ -124,22 +143,22 @@ if [ "$ADB_CHOICE" = "yes" ]; then
 		echo " done${reset}"
 	else
 		error "Device not connected or ADB is not installed"
+		logerror "Device not connected or ADB is not installed"
 	fi
 else
-	info "ADB will be skipped"
+	loginfo "ADB will be skipped"
 fi
 
-# Start generation
 if [ "$DEVICE_CPU_VARIANT" = "" ]; then
-	info "Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant"
+	loginfo "Value not found with ADB or ADB has not been used, using generic values for 1st CPU variant"
 	DEVICE_CPU_VARIANT=generic
 fi
 if [ "$DEVICE_2ND_CPU_VARIANT" = "" ]; then
-	info "Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant"
+	loginfo "Value not found with ADB or ADB has not been used, using generic values for 2nd CPU variant"
 	DEVICE_2ND_CPU_VARIANT=generic
 fi
 if [ "$DEVICE_SOC_MANUFACTURER" != "" ]; then
-	info "Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER"
+	loginfo "Device SoC manufacturer is $DEVICE_SOC_MANUFACTURER"
 fi
 
 # Path declarations
@@ -154,7 +173,7 @@ mkdir -p "$DEVICE_TREE_PATH/recovery/root"
 
 # Obtain stock recovery.img size
 cp "$DEVICE_STOCK_RECOVERY_PATH" "extract/$DEVICE_CODENAME.img"
-printf "Obtaining stock recovery image info..."
+logstep "Obtaining stock recovery image info..."
 IMAGE_FILESIZE=$(du -b "extract/$DEVICE_CODENAME.img" | cut -f1)
 cd extract
 
@@ -172,14 +191,14 @@ KERNEL_TAGS_OFFSET=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-tagsoff")
 RAMDISK_COMPRESSION_TYPE=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-ramdiskcomp")
 KERNEL_HEADER_VERSION=$(cat "$SPLITIMG_DIR/$DEVICE_CODENAME.img-headerversion")
 
-echo " done"
+logdone
 
 # See what arch is by analizing init executable
 BINARY=$(file "$RAMDISK_DIR/init")
 
 # // Android 10 change: now init binary is a symlink to /system/etc/init, check for other binary files
 if [ "$(echo "$BINARY" | grep -o "symbolic")" = "symbolic" ]; then
-	info "Init binary not found, using a random binary"
+	loginfo "Init binary not found, using a random binary"
 	for i in $(ls "$RAMDISK_DIR/sbin"); do
 		BINARY=$(file "$RAMDISK_DIR/sbin/$i")
 		if [ "$(echo "$BINARY" | grep -o "symbolic")" != "symbolic" ]; then
@@ -230,6 +249,7 @@ if [ "$(echo "$BINARY" | grep -o "symbolic")" = "symbolic" ]; then
 	fi
 	if [ "$BINARY_FOUND" != true ]; then
 		error "Script can't find a binary file, aborting"
+		logerror "Script can't find a binary file, aborting"
 		exit
 	fi
 fi
@@ -253,79 +273,82 @@ elif echo "$BINARY" | grep -q x86; then
 else
 	# Nothing matches, were you trying to make TWRP for Symbian OS devices, Playstation 2 or PowerPC-based Macintosh?
 	error "Arch not supported"
+	logerror "Arch not supported"
 	exit
 fi
 
 if [ $DEVICE_ARCH = x86_64 ]; then
 	# idk how you can have a x86_64 Android based device, unless it's Android-x86 project
 	error "x86_64 arch is not supported for now!"
+	logerror "x86_64 arch is not supported for now!"
 	exit
 fi
 
-info "Device is $DEVICE_ARCH"
+loginfo "Device is $DEVICE_ARCH"
 
 # Check if device tree blobs are not appended to kernel and copy kernel
 if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" ]; then
-	info "DTB are not appended to kernel"
-	printf "Copying kernel..."
+	loginfo "DTB are not appended to kernel"
+	logstep "Copying kernel..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage"
-	echo " done"
-	printf "Copying DTB..."
+	logdone
+	logstep "Copying DTB..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-dt" "$DEVICE_TREE_PATH/prebuilt/dt.img"
-	echo " done"
+	logdone
 else
-	info "DTB are appended to kernel"
-	printf "Copying kernel..."
+	loginfo "DTB are appended to kernel"
+	logstep "Copying kernel..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-zImage" "$DEVICE_TREE_PATH/prebuilt/zImage-dtb"
-	echo " done"
+	logdone
 fi
 
 # Check if dtbo image is present
 if [ -f "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" ]; then
-	info "DTBO image exists"
-	printf "Copying DTBO..."
+	loginfo "DTBO image exists"
+	logstep "Copying DTBO..."
 	cp "$SPLITIMG_DIR/$DEVICE_CODENAME.img-recoverydtbo" "$DEVICE_TREE_PATH/prebuilt/dtbo.img"
-	echo " done"
+	logdone
 fi
 
 # Check if a fstab is present
 if [ -f "$RAMDISK_DIR/etc/twrp.fstab" ]; then
-	info "A TWRP fstab has been found, remember to give proper authorship to the creator of this build!"
+	logstep "A TWRP fstab has been found, copying it..."
 	cp "$RAMDISK_DIR/etc/twrp.fstab" "$DEVICE_TREE_PATH/recovery.fstab"
 	# Do a quick check if vendor partition is present
 	if [ $(grep vendor "$DEVICE_TREE_PATH/recovery.fstab" > /dev/null; echo $?) = 0 ]; then
 		DEVICE_HAS_VENDOR_PARTITION=true
 	fi
-	echo " done"
+	logdone
 elif [ -f "$RAMDISK_DIR/etc/recovery.fstab" ]; then
-	printf "Extracting fstab..."
+	logstep "Extracting fstab..."
 	cp "$RAMDISK_DIR/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
-	echo " done"
+	logdone
 elif [ -f "$RAMDISK_DIR/system/etc/recovery.fstab" ]; then
-	printf "Extracting fstab..."
+	logstep "Extracting fstab..."
 	cp "$RAMDISK_DIR/system/etc/recovery.fstab" "$DEVICE_TREE_PATH/fstab.temp"
-	echo " done"
+	logdone
 else
 	error "The script haven't found any fstab, so you will need to make your own fstab based on what partitions you have"
+	logerror "The script haven't found any fstab"
 fi
 
 # Check if recovery.wipe is there
 if [ "$DEVICE_IS_AB" ]; then
-	printf "Copying A/B stuff..."
+	logstep "Copying A/B stuff..."
 	if [ -f "$RAMDISK_DIR/etc/recovery.wipe" ]; then
 		cp "$RAMDISK_DIR/etc/recovery.wipe" "$DEVICE_TREE_PATH/recovery.wipe"
 	fi
-	echo " done"
+	logdone
 fi
 
 # Extract init.rc files
-printf "Extracting init.rc files..."
+logstep "Extracting init.rc files..."
 for i in $(ls $RAMDISK_DIR | grep ".rc"); do
 	if [ "$i" != init.rc ]; then
 		cp "$RAMDISK_DIR/$i" "$DEVICE_TREE_PATH/recovery/root"
 	fi
 done
-echo " done"
+logdone
 
 # Cleanup
 rm "extract/$DEVICE_CODENAME.img"
@@ -335,47 +358,47 @@ rm -rf $RAMDISK_DIR
 cd "$DEVICE_TREE_PATH"
 
 # License - please keep it as is, thanks
-printf "Adding license headers..."
+logstep "Adding license headers..."
 CURRENT_YEAR="$(date +%Y)"
 for file in Android.mk AndroidProducts.mk BoardConfig.mk omni_$DEVICE_CODENAME.mk vendorsetup.sh; do
 	license_headers "$file"
 done
-echo " done"
+logdone
 
 # Generate custom fstab if it's not ready
 if [ -f fstab.temp ]; then
-	printf "Generating fstab..."
+	logstep "Generating fstab..."
 	generate_fstab fstab.temp
 	rm fstab.temp
-	echo " done"
+	logdone
 fi
 
 # Check for system-as-root setup
 if [ "$(cat recovery.fstab | grep -w "system_root")" != "" ]; then
-	info "Device is system-as-root"
+	loginfo "Device is system-as-root"
 	DEVICE_IS_SAR=1
 else
-	info "Device is not system-as-root"
+	loginfo "Device is not system-as-root"
 	DEVICE_IS_SAR=0
 fi
 
 # Android.mk
-printf "Generating Android.mk..."
+logstep "Generating Android.mk..."
 echo "LOCAL_PATH := \$(call my-dir)
 
 ifeq (\$(TARGET_DEVICE),$DEVICE_CODENAME)
 include \$(call all-subdir-makefiles,\$(LOCAL_PATH))
 endif" >> Android.mk
-echo " done"
+logdone
 
 # AndroidProducts.mk
-printf "Generating AndroidProducts.mk..."
+logstep "Generating AndroidProducts.mk..."
 echo "PRODUCT_MAKEFILES := \\
 	\$(LOCAL_DIR)/omni_$DEVICE_CODENAME.mk" >> AndroidProducts.mk
-echo " done"
+logdone
 
 # BoardConfig.mk
-printf "Generating BoardConfig.mk..."
+logstep "Generating BoardConfig.mk..."
 echo "DEVICE_PATH := device/$DEVICE_TREE_PATH
 
 # For building with minimal manifest
@@ -553,22 +576,22 @@ TW_EXTRA_LANGUAGES := true
 TW_SCREEN_BLANK_ON_BOOT := true
 TW_INPUT_BLACKLIST := \"hbtp_vm\"
 TW_USE_TOOLBOX := true" >> BoardConfig.mk
-echo " done"
+logdone
 
 case $RAMDISK_COMPRESSION in
 	lzma)
-		info "Kernel support lzma compression, using it"
+		loginfo "Kernel support lzma compression, using it"
 		;;
 	lz4)
-		info "Kernel support lz4 compression, but I don't know how to enable it .-."
+		loginfo "Kernel support lz4 compression, but I don't know how to enable it .-."
 		;;
 	xz)
-		info "Kernel support xz compression, but I don't know how to enable it .-."
+		loginfo "Kernel support xz compression, but I don't know how to enable it .-."
 		;;
 esac
 
 # omni_device.mk
-printf "Generating omni_$DEVICE_CODENAME.mk..."
+logstep "Generating omni_$DEVICE_CODENAME.mk..."
 echo "# Specify phone tech before including full_phone
 \$(call inherit-product, vendor/omni/config/gsm.mk)
 
@@ -640,13 +663,13 @@ PRODUCT_BRAND := $DEVICE_MANUFACTURER
 PRODUCT_MODEL := $DEVICE_FULL_NAME
 PRODUCT_MANUFACTURER := $DEVICE_MANUFACTURER
 PRODUCT_RELEASE_NAME := $DEVICE_FULL_NAME" >> "omni_$DEVICE_CODENAME.mk"
-echo " done"
+logdone
 
 # vendorsetup.sh
-printf "Generating vendorsetup.sh..."
+logstep "Generating vendorsetup.sh..."
 echo "add_lunch_combo omni_$DEVICE_CODENAME-userdebug
 add_lunch_combo omni_$DEVICE_CODENAME-eng" >> vendorsetup.sh
-echo " done"
+logdone
 
 # Add system-as-root declaration
 if [ $DEVICE_IS_SAR = 1 ]; then
@@ -656,7 +679,7 @@ fi
 
 # If this is a Samsung device, add support to SEAndroid status and make an Odin-flashable tar
 if [ "$DEVICE_MANUFACTURER" = "samsung" ]; then
-	info "This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg"
+	logstep "This is a Samsung device, appending SEANDROIDENFORCE to recovery image with custom mkbootimg..."
 	echo "LOCAL_PATH := \$(call my-dir)
 
 \$(INSTALLED_BOOTIMAGE_TARGET): \$(MKBOOTIMG) \$(INTERNAL_BOOTIMAGE_FILES)
@@ -674,10 +697,11 @@ if [ "$DEVICE_MANUFACTURER" = "samsung" ]; then
 	\$(hide) echo -n \"SEANDROIDENFORCE\" >> \$(INSTALLED_RECOVERYIMAGE_TARGET)
 	\$(hide) \$(call assert-max-image-size,\$@,\$(BOARD_RECOVERYIMAGE_PARTITION_SIZE),raw)
 " >> mkbootimg.mk
+	logdone
 fi
 
 # Automatically create a ready-to-push repo
-printf "Creating ready-to-push git repo..."
+logstep "Creating ready-to-push git repo..."
 git init -q
 git add -A
 # Please don't be an ass and keep authorship
@@ -691,15 +715,14 @@ Script version: $VERSION
 Last script commit: $LAST_COMMIT
 
 Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>" --author "Sebastiano Barezzi <barezzisebastiano@gmail.com>" -q
-echo " done"
+logdone
 
-echo ""
-success "Device tree successfully made, you can find it in $DEVICE_TREE_PATH
-"
-info "Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
-If this is the case, then see if OEM provide kernel sources and build the kernel by yourself"
-if [ "$DEVICE_IS_AB" = 1 ]; then
-	error "A/B support is experimental.
-You need to fix TARGET_BOARD_PLATFORM and TARGET_BOARD_PLATFORM_GPU values in BoardConfig.mk + fstab, these are needed for A/B"
-fi
+echo "Device tree successfully made, you can find it in $DEVICE_TREE_PATH
 
+Note: This device tree should already work, but there can be something that prevent booting the recovery, for example a kernel with OEM modifications that doesn't let boot a custom recovery, or that disable touch on recovery
+If this is the case, then see if OEM provide kernel sources and build the kernel by yourself
+Here below there is the generation log
+
+$(cat $SCRIPT_PWD/$DEVICE_CODENAME.log)" > exit_message.txt
+success "exit_message.txt"
+rm "exit_message.txt"

@@ -1,27 +1,30 @@
 #!/bin/bash
 adb_check_device() {
 	if [ "$(command -v adb)" != "" ]; then
-		echo "ADB is installed"
-		echo ""
-		echo "Connect your device with USB debugging enabled"
-		echo "If asked, on your device grant USB ADB request"
-		echo "Waiting for device..."
+		echo "ADB is installed
+
+Connect your device with USB debugging enabled
+If asked, on your device grant USB ADB request
+Waiting for device..."
 		ADB_TIMEOUT=0
 		while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "$ADB_TIMEOUT" != 30 ]; do
 			sleep 1
 			ADB_TIMEOUT=$(( ADB_TIMEOUT + 1 ))
 		done
 		if [ "$ADB_TIMEOUT" = 30 ]; then
-			echo "$red Error: Timeout, ADB will not be used $reset"
-			sleep 3
+			info "Timeout, ADB will not be used"
+			loginfo "Timeout, ADB will not be used"
+			sleep 1
 			return 1
 			break
 		else
-			echo "$green Device is connected $reset"
+			info "Device is connected"
+			loginfo "Device is connected"
 			return 0
 		fi
 	else
-		echo "$red Error: ADB is not installed, skipping... $reset"
+		error "ADB is not installed, skipping..."
+		logerror "ADB is not installed, skipping..."
 		return 0
 	fi
 }
