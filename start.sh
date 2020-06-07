@@ -21,6 +21,8 @@ clear
 
 VERSION="1.2"
 
+SCRIPT_PWD=$(pwd)
+
 # Source additional tools
 if [ ! -f ./tools/adb.sh ]; then
 	echo "Please fully clone the script"
