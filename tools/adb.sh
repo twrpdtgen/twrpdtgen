@@ -7,11 +7,11 @@ adb_check_device() {
 		echo "If asked, on your device grant USB ADB request"
 		echo "Waiting for device..."
 		ADB_TIMEOUT=0
-		while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "ADB_TIMEOUT" != 30 ]; do
+		while [ $(adb get-state 1>/dev/null 2>&1; echo $?) != "0" ] && [ "$ADB_TIMEOUT" != 30 ]; do
 			sleep 1
 			ADB_TIMEOUT=$(( ADB_TIMEOUT + 1 ))
 		done
-		if [ "$ADB_COUNTER" = 30 ]; then
+		if [ "$ADB_TIMEOUT" = 30 ]; then
 			echo "$red Error: Timeout, ADB will not be used $reset"
 			sleep 3
 			return 1
