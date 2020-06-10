@@ -350,6 +350,14 @@ for i in $(ls $RAMDISK_DIR | grep ".rc"); do
 done
 logdone
 
+# Copying vendor from ramdisk
+if [ -d "$RAMDISK_DIR/vendor" ]; then
+	loginfo "Vendor folder available"
+	logstep "Copying vendor folder..."
+	cp -r "$RAMDISK_DIR/vendor" "$DEVICE_TREE_PATH/recovery/root/vendor"
+	logdone
+fi
+
 # Cleanup
 rm "extract/$DEVICE_CODENAME.img"
 rm -rf $SPLITIMG_DIR
