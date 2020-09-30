@@ -10,12 +10,7 @@ import shutil
 import stat
 import subprocess
 from sys import argv
-from twrpdtgen.misc import append_license
-from twrpdtgen.misc import error
-from twrpdtgen.misc import get_device_arch
-from twrpdtgen.misc import make_twrp_fstab
-from twrpdtgen.misc import open_file_and_read
-from twrpdtgen.misc import printhelp
+from twrpdtgen.misc import append_license, error, get_device_arch, make_twrp_fstab, open_file_and_read, printhelp
 
 version_major = "1"
 version_minor = "0"
