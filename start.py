@@ -372,7 +372,7 @@ with open(device_tree_path / ("omni_" + device_codename + ".mk"), "a") as file:
 	file.write("# Inherit from those products. Most specific first." + "\n")
 	if device_have_64bit_arch:
 		file.write("$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)" + "\n")
-	file.write("$(call inherit-product, $(SRC_TARGET_DIR)/product/embedded.mk)" + "\n")
+	file.write("$(call inherit-product-if-exists, $(SRC_TARGET_DIR)/product/embedded.mk)" + "\n")
 	file.write("$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)" + "\n")
 	file.write("$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)" + "\n")
 	file.write("\n")
