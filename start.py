@@ -121,7 +121,17 @@ elif platform.system() == "Windows":
 	subprocess.call([aik_path / "unpackimg.bat", new_recovery_image])
 
 print("Getting device infos...")
-device_arch = get_device_arch(aik_ramdisk_path / "sbin" / "recovery")
+if os.path.isfile(aik_ramdisk_path / "sbin" / "recovery"):
+	arch_binary = aik_ramdisk_path / "sbin" / "recovery"
+elif os.path.isfile(aik_ramdisk_path / "sbin" / "setlockstate"):
+	arch_binary = aik_ramdisk_path / "sbin" / "setlockstate"
+elif os.path.isfile(aik_ramdisk_path / "init"):
+	arch_binary = aik_ramdisk_path / "init"
+else:
+	error("No expected binary has been found")
+	exit()
+
+device_arch = get_device_arch(arch_binary)
 device_have_kernel = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "zImage"))
 device_have_dt_image = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "dt"))
 device_have_dtb_image = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "dtb"))
