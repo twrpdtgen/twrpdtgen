@@ -141,6 +141,7 @@ def open_file_and_read(target):
 	file = open(target)
 	result = file.read()
 	file.close()
+	result = result.split('\n', 1)[0]
 	return result
 
 def printhelp():
