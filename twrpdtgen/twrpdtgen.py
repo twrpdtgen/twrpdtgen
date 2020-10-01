@@ -1,24 +1,21 @@
 #!/usr/bin/python3
 
-import git
-from git.exc import InvalidGitRepositoryError
 import os
-import platform
-import shutil
-import stat
-import subprocess
+from platform import system
+from shutil import copyfile, rmtree
+from stat import S_IWRITE
+from subprocess import call, Popen, PIPE
 from sys import argv
-from twrpdtgen import current_path, aik_path, aik_images_path, aik_ramdisk_path, working_path
+
+from git import Repo
+from git.exc import InvalidGitRepositoryError
+
 from twrpdtgen import __version__ as version
+from twrpdtgen import current_path, aik_path, aik_images_path, aik_ramdisk_path, working_path
 from twrpdtgen.misc import append_license, error, get_device_arch, make_twrp_fstab, open_file_and_read, printhelp
 
-version_major = "1"
-version_minor = "0"
-version_quickfix = "0"
-version = version_major + "." + version_minor + "." + version_quickfix
-
 try:
-    twrpdtgen_repo = git.Repo(current_path)
+    twrpdtgen_repo = Repo(current_path)
 except InvalidGitRepositoryError:
     error("Please clone the script with Git instead of downloading it as a zip")
     exit()
@@ -47,27 +44,25 @@ def main():
     print("Cloning AIK...")
 
     def handleRemoveReadonly(func, path, exc):
-        os.chmod(path, stat.S_IWRITE)
+        os.chmod(path, S_IWRITE)
         func(path)
 
     if os.path.isdir(aik_path):
-        shutil.rmtree(aik_path, ignore_errors=False, onerror=handleRemoveReadonly)
-    if platform.system() == "Linux":
-        git.Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", aik_path)
-    elif platform.system() == "Windows":
-        git.Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", aik_path)
+        rmtree(aik_path, ignore_errors=False, onerror=handleRemoveReadonly)
+    if system() == "Linux":
+        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", aik_path)
+    elif system() == "Windows":
+        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", aik_path)
 
     print("Extracting recovery image...")
     new_recovery_image = aik_path / "recovery.img"
-    shutil.copyfile(recovery_image, new_recovery_image)
-    if platform.system() == "Linux":
-        aik_process = subprocess.Popen([aik_path / "unpackimg.sh", "--nosudo", new_recovery_image],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       universal_newlines=True)
-        aik_stdout, aik_stderr = aik_process.communicate()
-    elif platform.system() == "Windows":
-        subprocess.call([aik_path / "unpackimg.bat", new_recovery_image])
+    copyfile(recovery_image, new_recovery_image)
+    if system() == "Linux":
+        aik_process = Popen([aik_path / "unpackimg.sh", "--nosudo", new_recovery_image],
+                            stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        _, _ = aik_process.communicate()
+    elif system() == "Windows":
+        call([aik_path / "unpackimg.bat", new_recovery_image])
 
     print("Getting device infos...")
     if os.path.isfile(aik_ramdisk_path / "sbin" / "recovery"):
@@ -150,7 +145,7 @@ def main():
 
     print("Creating device tree folders...")
     if os.path.isdir(device_tree_path):
-        shutil.rmtree(device_tree_path, ignore_errors=True)
+        rmtree(device_tree_path, ignore_errors=True)
     os.makedirs(device_tree_path)
     os.makedirs(device_tree_prebuilt_path)
     os.makedirs(device_tree_recovery_root_path)
@@ -168,13 +163,13 @@ def main():
         if (device_arch == "arm" or device_arch == "arm64") and (
                 not device_have_dt_image and not device_have_dtb_image):
             device_kernel_name += "-dtb"
-        shutil.copyfile(aik_images_path_base + "zImage", device_tree_prebuilt_path / device_kernel_name)
+        copyfile(aik_images_path_base + "zImage", device_tree_prebuilt_path / device_kernel_name)
     if device_have_dt_image:
-        shutil.copyfile(aik_images_path_base + "dt", device_tree_prebuilt_path / "dt.img")
+        copyfile(aik_images_path_base + "dt", device_tree_prebuilt_path / "dt.img")
     if device_have_dtb_image:
-        shutil.copyfile(aik_images_path_base + "dtb", device_tree_prebuilt_path / "dtb.img")
+        copyfile(aik_images_path_base + "dtb", device_tree_prebuilt_path / "dtb.img")
     if device_have_dtbo_image:
-        shutil.copyfile(aik_images_path_base + "dtbo", device_tree_prebuilt_path / "dtbo.img")
+        copyfile(aik_images_path_base + "dtbo", device_tree_prebuilt_path / "dtbo.img")
 
     print("Appending license headers to device tree files...")
     for file in device_tree_files:
@@ -182,14 +177,14 @@ def main():
 
     if os.path.isfile(aik_ramdisk_path / "etc" / "twrp.fstab"):
         print("Found a TWRP fstab, copying it...")
-        shutil.copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
+        copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
     else:
         print("Generating fstab...")
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab", device_tree_path / "recovery.fstab")
 
     for file in os.listdir(aik_ramdisk_path):
         if file.endswith(".rc") and file != "init.rc":
-            shutil.copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / file)
+            copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / file)
 
     print("Creating Android.mk...")
     with open(device_tree_path / "Android.mk", "a") as file:
@@ -399,7 +394,7 @@ def main():
         file.write("add_lunch_combo omni_" + device_codename + "-eng" + "\n")
         file.close()
 
-    dt_repo = git.Repo.init(device_tree_path)
+    dt_repo = Repo.init(device_tree_path)
     with dt_repo.config_writer() as git_config:
         git_config.set_value('user', 'email', 'barezzisebastiano@gmail.com')
         git_config.set_value('user', 'name', 'Sebastiano Barezzi')
