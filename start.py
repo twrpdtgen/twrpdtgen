@@ -42,41 +42,12 @@ if not os.path.isfile(recovery_image):
 	printhelp()
 	exit()
 
-device_codename = input("Enter the device codename: ")
-device_full_name = input("Enter the device full name: ")
-device_manufacturer = input("Enter the device manufacturer: ")
-device_is_ab = input("Is the device A/B? (y/N): ")
-
-if device_codename == "":
-	error("Device codename can't be empty")
-	exit()
-if device_full_name == "":
-	error("Device full name can't be empty")
-	exit()
-if device_manufacturer == "":
-	error("Device manufacturer can't be empty")
-	exit()
-
-device_manufacturer = device_manufacturer.lower()
-
-if device_is_ab == "y" or device_is_ab == "Y":
-	device_is_ab = True
-elif device_is_ab == "" or device_is_ab == "n" or device_is_ab == "N":
-	device_is_ab = False
-
-print("")
-
 # Define paths
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 aik_path = current_path / "extract"
-working_path = current_path / "working"
 aik_images_path = aik_path / "split_img"
-aik_images_path_base = str(aik_images_path / (device_codename + ".img-"))
 aik_ramdisk_path = aik_path / "ramdisk"
-device_tree_path = working_path / device_manufacturer / device_codename
-device_tree_prebuilt_path = device_tree_path / "prebuilt"
-device_tree_recovery_root_path = device_tree_path / "recovery" / "root"
-device_tree_files = ["Android.mk", "AndroidProducts.mk", "BoardConfig.mk", "device.mk", "omni_" + device_codename + ".mk", "vendorsetup.sh"]
+working_path = current_path / "working"
 
 print("Cloning AIK...")
 def handleRemoveReadonly(func, path, exc):
@@ -89,19 +60,8 @@ if platform.system() == "Linux":
 elif platform.system() == "Windows":
 	git.Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", aik_path)
 
-print("Creating device tree folders...")
-if os.path.isdir(device_tree_path):
-	shutil.rmtree(device_tree_path, ignore_errors=True)
-os.makedirs(device_tree_path)
-os.makedirs(device_tree_prebuilt_path)
-os.makedirs(device_tree_recovery_root_path)
-
-print("Appending license headers to device tree files...")
-for file in device_tree_files:
-	append_license(device_tree_path / file, "#")
-
 print("Extracting recovery image...")
-new_recovery_image = aik_path / (device_codename + ".img")
+new_recovery_image = aik_path / "recovery.img"
 shutil.copyfile(recovery_image, new_recovery_image)
 if platform.system() == "Linux":
 	aik_process = subprocess.Popen([aik_path / "unpackimg.sh", "--nosudo", new_recovery_image],
@@ -123,11 +83,47 @@ else:
 	error("No expected binary has been found")
 	exit()
 
+device_codename = ""
+device_manufacturer = ""
+device_platform = ""
+device_brand = ""
+device_model = ""
+device_is_ab = False
+with open(aik_ramdisk_path / "prop.default", "r") as props:
+	lines = props.read()
+	for line in lines.splitlines():
+		if line.startswith("ro.product.device=") or line.startswith("ro.product.system.device=") or line.startswith("ro.product.vendor.device="):
+			device_codename = line.rpartition('=')[2]
+		elif line.startswith("ro.product.manufacturer=") or line.startswith("ro.product.system.manufacturer=") or line.startswith("ro.product.vendor.manufacturer="):
+			device_manufacturer = line.rpartition('=')[2]
+			device_manufacturer = device_manufacturer.lower()
+		elif line.startswith("ro.board.platform=") or line.startswith("ro.hardware.keystore="):
+			device_platform = line.rpartition('=')[2]
+		elif line.startswith("ro.product.brand=") or line.startswith("ro.product.system.brand=") or line.startswith("ro.product.vendor.brand="):
+			device_brand = line.rpartition('=')[2]
+		elif line.startswith("ro.product.model=") or line.startswith("ro.product.system.model=") or line.startswith("ro.product.vendor.model="):
+			device_model = line.rpartition('=')[2]
+		elif line == "ro.build.ab_update=true":
+			device_is_ab = True
+	props.close()
+
+if device_codename == "": error("Device codename not found on build.prop"); exit()
+if device_manufacturer == "": error("Device manufacturer not found on build.prop"); exit()
+if device_platform == "": error("Device platform not found on build.prop"); exit()
+if device_brand == "": error("Device brand not found on build.prop"); exit()
+if device_model == "": error("Device model not found on build.prop"); exit()
+
+aik_images_path_base = str(aik_images_path / "recovery.img-")
+device_tree_path = working_path / device_manufacturer / device_codename
+device_tree_prebuilt_path = device_tree_path / "prebuilt"
+device_tree_recovery_root_path = device_tree_path / "recovery" / "root"
+device_tree_files = ["Android.mk", "AndroidProducts.mk", "BoardConfig.mk", "device.mk", "omni_" + device_codename + ".mk", "vendorsetup.sh"]
+
 device_arch = get_device_arch(arch_binary)
-device_have_kernel = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "zImage"))
-device_have_dt_image = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "dt"))
-device_have_dtb_image = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "dtb"))
-device_have_dtbo_image = os.path.isfile(aik_images_path / (device_codename + ".img" + "-" + "dtbo"))
+device_have_kernel = os.path.isfile(aik_images_path_base + "zImage")
+device_have_dt_image = os.path.isfile(aik_images_path_base + "dt")
+device_have_dtb_image = os.path.isfile(aik_images_path_base + "dtb")
+device_have_dtbo_image = os.path.isfile(aik_images_path_base + "dtbo")
 device_base_address = open_file_and_read(aik_images_path_base + "base")
 device_board_name = open_file_and_read(aik_images_path_base + "board")
 device_cmdline = open_file_and_read(aik_images_path_base + "cmdline")
@@ -150,6 +146,14 @@ if device_arch == False:
 
 device_have_64bit_arch = (device_arch == "arm64" or device_arch == "x86_64")
 
+print("Creating device tree folders...")
+if os.path.isdir(device_tree_path):
+	shutil.rmtree(device_tree_path, ignore_errors=True)
+os.makedirs(device_tree_path)
+os.makedirs(device_tree_prebuilt_path)
+os.makedirs(device_tree_recovery_root_path)
+
+print("Copying kernel...")
 if device_have_kernel:
 	if device_arch == "arm":
 		device_kernel_name = "zImage"
@@ -161,13 +165,17 @@ if device_have_kernel:
 		device_kernel_name = "zImage"
 	if (device_arch == "arm" or device_arch == "arm64") and (not device_have_dt_image and not device_have_dtb_image):
 		device_kernel_name += "-dtb"
-	shutil.copyfile(aik_images_path / (device_codename + ".img" + "-" + "zImage"), device_tree_prebuilt_path / device_kernel_name)
+	shutil.copyfile(aik_images_path_base + "zImage", device_tree_prebuilt_path / device_kernel_name)
 if device_have_dt_image:
-	shutil.copyfile(aik_images_path / (device_codename + ".img" + "-" + "dt"), device_tree_prebuilt_path / "dt.img")
+	shutil.copyfile(aik_images_path_base + "dt", device_tree_prebuilt_path / "dt.img")
 if device_have_dtb_image:
-	shutil.copyfile(aik_images_path / (device_codename + ".img" + "-" + "dtb"), device_tree_prebuilt_path / "dtb.img")
+	shutil.copyfile(aik_images_path_base + "dtb", device_tree_prebuilt_path / "dtb.img")
 if device_have_dtbo_image:
-	shutil.copyfile(aik_images_path / (device_codename + ".img" + "-" + "dtbo"), device_tree_prebuilt_path / "dtbo.img")
+	shutil.copyfile(aik_images_path_base + "dtbo", device_tree_prebuilt_path / "dtbo.img")
+
+print("Appending license headers to device tree files...")
+for file in device_tree_files:
+	append_license(device_tree_path / file, "#")
 
 if os.path.isfile(aik_ramdisk_path / "etc" / "twrp.fstab"):
 	print("Found a TWRP fstab, copying it...")
@@ -178,10 +186,7 @@ else:
 
 for file in os.listdir(aik_ramdisk_path):
 	if file.endswith(".rc") and file != "init.rc":
-		if file == "ueventd.rc":
-			shutil.copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / ("ueventd." + device_codename + ".rc"))
-		else:
-			shutil.copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / file)
+		shutil.copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / file)
 
 print("Creating Android.mk...")
 with open(device_tree_path / "Android.mk", "a") as file:
@@ -305,8 +310,7 @@ with open(device_tree_path / "BoardConfig.mk", "a") as file:
 		file.write("LZMA_RAMDISK_TARGETS := recovery" + "\n")
 		file.write("\n")
 	file.write("# Platform" + "\n")
-	file.write("#TARGET_BOARD_PLATFORM := " + "\n")
-	file.write("#TARGET_BOARD_PLATFORM_GPU := " + "\n")
+	file.write("TARGET_BOARD_PLATFORM := " + device_platform + "\n")
 	file.write("\n")
 	file.write("# Hack: prevent anti rollback" + "\n")
 	file.write("PLATFORM_SECURITY_PATCH := 2099-12-31" + "\n")
@@ -342,10 +346,10 @@ with open(device_tree_path / "device.mk", "a") as file:
 		file.write("	android.hardware.boot@1.0-service" + "\n")
 		file.write("\n")
 		file.write("PRODUCT_PACKAGES += \\" + "\n")
-		file.write("	bootctrl.$(TARGET_BOARD_PLATFORM)" + "\n")
+		file.write("	bootctrl." + device_platform + "\n")
 		file.write("\n")
 		file.write("PRODUCT_STATIC_BOOT_CONTROL_HAL := \\" + "\n")
-		file.write("	bootctrl.$(TARGET_BOARD_PLATFORM) \\" + "\n")
+		file.write("	bootctrl." + device_platform + " \\" + "\n")
 		file.write("	libgptutils \\" + "\n")
 		file.write("	libz \\" + "\n")
 		file.write("	libcutils" + "\n")
@@ -377,10 +381,10 @@ with open(device_tree_path / ("omni_" + device_codename + ".mk"), "a") as file:
 	file.write("# Device identifier. This must come after all inclusions" + "\n")
 	file.write("PRODUCT_DEVICE := " + device_codename + "\n")
 	file.write("PRODUCT_NAME := omni_" + device_codename + "\n")
-	file.write("PRODUCT_BRAND := " + device_manufacturer + "\n")
-	file.write("PRODUCT_MODEL := " + device_full_name + "\n")
+	file.write("PRODUCT_BRAND := " + device_brand + "\n")
+	file.write("PRODUCT_MODEL := " + device_model + "\n")
 	file.write("PRODUCT_MANUFACTURER := " + device_manufacturer + "\n")
-	file.write("PRODUCT_RELEASE_NAME := " + device_full_name + "\n")
+	file.write("PRODUCT_RELEASE_NAME := " + device_brand + " " + device_model + "\n")
 	file.close()
 
 print("Creating vendorsetup.sh...")
@@ -398,7 +402,7 @@ commit_message = device_codename + ": Initial TWRP device tree" + "\n"
 commit_message += "Made with SebaUbuntu's TWRP device tree generator" + "\n"
 commit_message += "Arch: " + device_arch + "\n"
 commit_message += "Manufacturer: " + device_manufacturer + "\n"
-commit_message += "Device full name: " + device_full_name + "\n"
+commit_message += "Device full name: " + device_brand + " " + device_model + "\n"
 commit_message += "Script version: " + version + "\n"
 commit_message += "Last script commit: " + last_commit + "\n"
 commit_message += "Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>"
@@ -406,4 +410,3 @@ dt_repo.index.commit(commit_message)
 
 print("")
 print("Done! You can find the device tree in " + str(device_tree_path))
-print("Note: You should open BoardConfig.mk and fix TARGET_BOARD_PLATFORM, TARGET_BOARD_PLATFORM_GPU and BOARD_RECOVERYIMAGE_PARTITION_SIZE")
