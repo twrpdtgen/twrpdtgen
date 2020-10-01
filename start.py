@@ -18,7 +18,7 @@ version_quickfix = "0"
 version = version_major + "." + version_minor + "." + version_quickfix
 
 try:
-	twrpdtgen_repo = git.Repo(os.getcwd())
+	twrpdtgen_repo = git.Repo(os.path.dirname(os.path.realpath(__file__)))
 except InvalidGitRepositoryError:
 	error("Please clone the script with Git instead of downloading it as a zip")
 	exit()
@@ -71,7 +71,7 @@ elif device_is_ab == "" or device_is_ab == "n" or device_is_ab == "N":
 print("")
 
 # Define paths
-current_path = Path(os.getcwd())
+current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 aik_path = current_path / "extract"
 working_path = current_path / "working"
 aik_images_path = aik_path / "split_img"
