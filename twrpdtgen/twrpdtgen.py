@@ -1,25 +1,29 @@
 #!/usr/bin/python3
 
+# pylint: disable=too-many-locals, too-many-statements, too-many-branches
+
 from pathlib import Path
 from platform import system
 from shutil import copyfile, rmtree
 from stat import S_IWRITE
 from subprocess import call, Popen, PIPE
-from sys import argv
+from sys import argv, exit as sys_exit
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 
 from twrpdtgen import __version__ as version
 from twrpdtgen import current_path, aik_path, aik_images_path, aik_ramdisk_path, working_path
-from twrpdtgen.misc import append_license, error, get_device_arch, make_twrp_fstab, open_file_and_read, printhelp
+from twrpdtgen.misc import append_license, error, get_device_arch, \
+    make_twrp_fstab, open_file_and_read, printhelp
 
+TWRPDTGEN_REPO = None
 try:
-    twrpdtgen_repo = Repo(current_path)
+    TWRPDTGEN_REPO = Repo(current_path)
 except InvalidGitRepositoryError:
     error("Please clone the script with Git instead of downloading it as a zip")
-    exit()
-last_commit = twrpdtgen_repo.head.object.hexsha[:7]
+    sys_exit()
+last_commit = TWRPDTGEN_REPO.head.object.hexsha[:7]
 
 
 def main():
@@ -32,12 +36,12 @@ def main():
     except IndexError:
         error("Recovery image not provided")
         printhelp()
-        exit()
+        sys_exit()
 
     if not recovery_image.is_file():
         error("Recovery image doesn't exist")
         printhelp()
-        exit()
+        sys_exit()
 
     print("Cloning AIK...")
 
@@ -63,6 +67,7 @@ def main():
         call([aik_path / "unpackimg.bat", new_recovery_image])
 
     print("Getting device infos...")
+    arch_binary = None
     if Path(aik_ramdisk_path / "sbin" / "recovery").is_file():
         arch_binary = aik_ramdisk_path / "sbin" / "recovery"
     elif Path(aik_ramdisk_path / "sbin" / "setlockstate").is_file():
@@ -71,7 +76,7 @@ def main():
         arch_binary = aik_ramdisk_path / "init"
     else:
         error("No expected binary has been found")
-        exit()
+        sys_exit()
 
     device_codename = ""
     device_manufacturer = ""
@@ -82,30 +87,44 @@ def main():
     with open(aik_ramdisk_path / "prop.default", "r") as props:
         lines = props.read()
         for line in lines.splitlines():
-            if line.startswith("ro.product.device=") or line.startswith("ro.product.system.device=") or line.startswith(
-                    "ro.product.vendor.device="):
+            if line.startswith("ro.product.device=") \
+                    or line.startswith("ro.product.system.device=") \
+                    or line.startswith("ro.product.vendor.device="):
                 device_codename = line.rpartition('=')[2]
             elif line.startswith("ro.product.manufacturer=") or line.startswith(
-                    "ro.product.system.manufacturer=") or line.startswith("ro.product.vendor.manufacturer="):
+                    "ro.product.system.manufacturer=") \
+                    or line.startswith("ro.product.vendor.manufacturer="):
                 device_manufacturer = line.rpartition('=')[2]
                 device_manufacturer = device_manufacturer.lower()
             elif line.startswith("ro.board.platform=") or line.startswith("ro.hardware.keystore="):
                 device_platform = line.rpartition('=')[2]
-            elif line.startswith("ro.product.brand=") or line.startswith("ro.product.system.brand=") or line.startswith(
-                    "ro.product.vendor.brand="):
+            elif line.startswith("ro.product.brand=") \
+                    or line.startswith("ro.product.system.brand=") \
+                    or line.startswith("ro.product.vendor.brand="):
                 device_brand = line.rpartition('=')[2]
-            elif line.startswith("ro.product.model=") or line.startswith("ro.product.system.model=") or line.startswith(
-                    "ro.product.vendor.model="):
+            elif line.startswith("ro.product.model=") \
+                    or line.startswith("ro.product.system.model=") \
+                    or line.startswith("ro.product.vendor.model="):
                 device_model = line.rpartition('=')[2]
             elif line == "ro.build.ab_update=true":
                 device_is_ab = True
         props.close()
 
-    if device_codename == "": error("Device codename not found on build.prop"); exit()
-    if device_manufacturer == "": error("Device manufacturer not found on build.prop"); exit()
-    if device_platform == "": error("Device platform not found on build.prop"); exit()
-    if device_brand == "": error("Device brand not found on build.prop"); exit()
-    if device_model == "": error("Device model not found on build.prop"); exit()
+    if device_codename == "":
+        error("Device codename not found on build.prop")
+        sys_exit()
+    if device_manufacturer == "":
+        error("Device manufacturer not found on build.prop")
+        sys_exit()
+    if device_platform == "":
+        error("Device platform not found on build.prop")
+        sys_exit()
+    if device_brand == "":
+        error("Device brand not found on build.prop")
+        sys_exit()
+    if device_model == "":
+        error("Device model not found on build.prop")
+        sys_exit()
 
     aik_images_path_base = str(aik_images_path / "recovery.img-")
     device_tree_path = working_path / device_manufacturer / device_codename
@@ -122,24 +141,24 @@ def main():
     device_base_address = open_file_and_read(aik_images_path_base + "base")
     device_board_name = open_file_and_read(aik_images_path_base + "board")
     device_cmdline = open_file_and_read(aik_images_path_base + "cmdline")
-    device_hash_type = open_file_and_read(aik_images_path_base + "hashtype")
+    # device_hash_type = open_file_and_read(aik_images_path_base + "hashtype")
     device_header_version = open_file_and_read(aik_images_path_base + "header_version")
-    device_image_type = open_file_and_read(aik_images_path_base + "imgtype")
-    device_kernel_offset = open_file_and_read(aik_images_path_base + "kernel_offset")
+    # device_image_type = open_file_and_read(aik_images_path_base + "imgtype")
+    # device_kernel_offset = open_file_and_read(aik_images_path_base + "kernel_offset")
     device_recovery_size = open_file_and_read(aik_images_path_base + "origsize")
-    device_recovery_sp = open_file_and_read(aik_images_path_base + "os_patch_level")
-    device_recovery_version = open_file_and_read(aik_images_path_base + "os_version")
+    # device_recovery_sp = open_file_and_read(aik_images_path_base + "os_patch_level")
+    # device_recovery_version = open_file_and_read(aik_images_path_base + "os_version")
     device_pagesize = open_file_and_read(aik_images_path_base + "pagesize")
     device_ramdisk_compression = open_file_and_read(aik_images_path_base + "ramdiskcomp")
     device_ramdisk_offset = open_file_and_read(aik_images_path_base + "ramdisk_offset")
-    device_second_offset = open_file_and_read(aik_images_path_base + "second_offset")
+    # device_second_offset = open_file_and_read(aik_images_path_base + "second_offset")
     device_tags_offset = open_file_and_read(aik_images_path_base + "tags_offset")
 
     if not device_arch:
         error("Device architecture not supported")
-        exit()
+        sys_exit()
 
-    device_have_64bit_arch = (device_arch == "arm64" or device_arch == "x86_64")
+    device_have_64bit_arch = device_arch in ("arm64", "x86_64")
 
     print("Creating device tree folders...")
     if device_tree_path.is_dir():
@@ -149,16 +168,17 @@ def main():
     device_tree_recovery_root_path.mkdir(parents=True)
 
     print("Copying kernel...")
+    device_kernel_name = ""
     if device_have_kernel:
         if device_arch == "arm":
             device_kernel_name = "zImage"
         elif device_arch == "arm64":
             device_kernel_name = "Image.gz"
-        elif device_arch == "x86" or device_arch == "x86_64":
+        elif device_arch in ("x86", "x86_64"):
             device_kernel_name = "bzImage"
         else:
             device_kernel_name = "zImage"
-        if (device_arch == "arm" or device_arch == "arm64") and (
+        if device_arch in ("arm", "arm64") and (
                 not device_have_dt_image and not device_have_dtb_image):
             device_kernel_name += "-dtb"
         copyfile(aik_images_path_base + "zImage", device_tree_prebuilt_path / device_kernel_name)
@@ -178,7 +198,8 @@ def main():
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
     else:
         print("Generating fstab...")
-        make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab", device_tree_path / "recovery.fstab")
+        make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
+                        device_tree_path / "recovery.fstab")
 
     for file in aik_ramdisk_path.iterdir():
         if file.name.endswith(".rc") and file != "init.rc":
@@ -249,7 +270,8 @@ def main():
         file.write(f"# File systems\n"
                    "BOARD_HAS_LARGE_FILESYSTEM := true\n"
                    f"#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {device_recovery_size} "
-                   "# This is the maximum known partition size, but it can be higher, so we just omit it\n"
+                   "# This is the maximum known partition size, "
+                   "but it can be higher, so we just omit it\n"
                    "BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4\n"
                    "BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4\n"
                    "BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4\n"
@@ -277,7 +299,8 @@ def main():
                    f"BOARD_KERNEL_PAGESIZE := {device_pagesize}\n"
                    f"BOARD_RAMDISK_OFFSET := {device_ramdisk_offset}\n"
                    f"BOARD_KERNEL_TAGS_OFFSET := {device_tags_offset}\n"
-                   f"BOARD_FLASH_BLOCK_SIZE := {str(int(device_pagesize) * 64)} # (BOARD_KERNEL_PAGESIZE * 64)\n"
+                   f"BOARD_FLASH_BLOCK_SIZE := {str(int(device_pagesize) * 64)} "
+                   f"# (BOARD_KERNEL_PAGESIZE * 64)\n"
                    f"BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)\n"
                    "BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)\n")
         if device_have_dt_image:
@@ -307,7 +330,7 @@ def main():
 
     print("Creating device.mk...")
     with open(device_tree_path / "device.mk", "a") as file:
-        file.write("LOCAL_PATH := device" + "/" + device_manufacturer + "/" + device_codename + "\n")
+        file.write(f"LOCAL_PATH := device/{device_manufacturer}/{device_codename}\n")
         if device_is_ab:
             file.write(f"# A/B\n"
                        "AB_OTA_PARTITIONS += \\\n"
@@ -346,8 +369,9 @@ def main():
                    "$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)\n"
                    "$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)\n\n"
                    f"# Inherit from {device_codename} device\n"
-                   f"$(call inherit-product, device/{device_manufacturer}/{device_codename}/device.mk)\n\n"
-                   "# Inherit some common Omni stuff.\n"
+                   f"$(call inherit-product, device/"
+                   f"{device_manufacturer}/{device_codename}/device.mk)"
+                   "\n\n# Inherit some common Omni stuff.\n"
                    "$(call inherit-product, vendor/omni/config/common.mk)\n"
                    "$(call inherit-product, vendor/omni/config/gsm.mk)\n\n"
                    "# Device identifier. This must come after all inclusions\n"
