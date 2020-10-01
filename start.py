@@ -45,7 +45,6 @@ if not os.path.isfile(recovery_image):
 device_codename = input("Enter the device codename: ")
 device_full_name = input("Enter the device full name: ")
 device_manufacturer = input("Enter the device manufacturer: ")
-device_release_year = input("Enter the device release year: ")
 device_is_ab = input("Is the device A/B? (y/N): ")
 
 if device_codename == "":
@@ -56,9 +55,6 @@ if device_full_name == "":
 	exit()
 if device_manufacturer == "":
 	error("Device manufacturer can't be empty")
-	exit()
-if device_release_year == "":
-	error("Device release year can't be empty")
 	exit()
 
 device_manufacturer = device_manufacturer.lower()
@@ -102,7 +98,7 @@ os.makedirs(device_tree_recovery_root_path)
 
 print("Appending license headers to device tree files...")
 for file in device_tree_files:
-	append_license(device_tree_path / file, device_release_year, "#")
+	append_license(device_tree_path / file, "#")
 
 print("Extracting recovery image...")
 new_recovery_image = aik_path / (device_codename + ".img")

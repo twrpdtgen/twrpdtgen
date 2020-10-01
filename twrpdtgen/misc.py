@@ -4,12 +4,12 @@ import datetime
 import itertools
 import magic
 
-def append_license(target, year, comment):
+def append_license(target, comment):
 	current_year = str(datetime.datetime.now().year)
 	file = open(target, "w")
 	file.write(comment + "\n")
-	file.write(comment + " " + 'Copyright (C)' + " " + year + " " + 'The Android Open Source Project' + "\n")
-	file.write(comment + " " + 'Copyright (C)' + " " + year + " " + 'The TWRP Open Source Project' + "\n")
+	file.write(comment + " " + 'Copyright (C)' + " " + current_year + " " + 'The Android Open Source Project' + "\n")
+	file.write(comment + " " + 'Copyright (C)' + " " + current_year + " " + 'The TWRP Open Source Project' + "\n")
 	file.write(comment + " " + 'Copyright (C)' + " " + current_year + " " + "SebaUbuntu's TWRP device tree generator" + "\n")
 	file.write(comment + "\n")
 	file.write(comment + " " + 'Licensed under the Apache License, Version 2.0 (the "License");' + "\n")
