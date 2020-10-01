@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os
+from pathlib import Path
 from platform import system
 from shutil import copyfile, rmtree
 from stat import S_IWRITE
@@ -28,15 +28,15 @@ def main():
     print("Python edition")
     print("Version " + version)
     print("")
-
+    recovery_image = Path()
     try:
-        recovery_image = argv[1]
+        recovery_image = Path(argv[1])
     except IndexError:
         error("Recovery image not provided")
         printhelp()
         exit()
 
-    if not os.path.isfile(recovery_image):
+    if not recovery_image.is_file():
         error("Recovery image doesn't exist")
         printhelp()
         exit()
@@ -44,10 +44,10 @@ def main():
     print("Cloning AIK...")
 
     def handleRemoveReadonly(func, path, exc):
-        os.chmod(path, S_IWRITE)
+        Path(path).chmod(S_IWRITE)
         func(path)
 
-    if os.path.isdir(aik_path):
+    if aik_path.is_dir():
         rmtree(aik_path, ignore_errors=False, onerror=handleRemoveReadonly)
     if system() == "Linux":
         Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", aik_path)
@@ -65,11 +65,11 @@ def main():
         call([aik_path / "unpackimg.bat", new_recovery_image])
 
     print("Getting device infos...")
-    if os.path.isfile(aik_ramdisk_path / "sbin" / "recovery"):
+    if Path(aik_ramdisk_path / "sbin" / "recovery").is_file():
         arch_binary = aik_ramdisk_path / "sbin" / "recovery"
-    elif os.path.isfile(aik_ramdisk_path / "sbin" / "setlockstate"):
+    elif Path(aik_ramdisk_path / "sbin" / "setlockstate").is_file():
         arch_binary = aik_ramdisk_path / "sbin" / "setlockstate"
-    elif os.path.isfile(aik_ramdisk_path / "init"):
+    elif Path(aik_ramdisk_path / "init").is_file():
         arch_binary = aik_ramdisk_path / "init"
     else:
         error("No expected binary has been found")
@@ -117,10 +117,10 @@ def main():
                          "omni_" + device_codename + ".mk", "vendorsetup.sh"]
 
     device_arch = get_device_arch(arch_binary)
-    device_have_kernel = os.path.isfile(aik_images_path_base + "zImage")
-    device_have_dt_image = os.path.isfile(aik_images_path_base + "dt")
-    device_have_dtb_image = os.path.isfile(aik_images_path_base + "dtb")
-    device_have_dtbo_image = os.path.isfile(aik_images_path_base + "dtbo")
+    device_have_kernel = Path(aik_images_path_base + "zImage").is_file()
+    device_have_dt_image = Path(aik_images_path_base + "dt").is_file()
+    device_have_dtb_image = Path(aik_images_path_base + "dtb").is_file()
+    device_have_dtbo_image = Path(aik_images_path_base + "dtbo").is_file()
     device_base_address = open_file_and_read(aik_images_path_base + "base")
     device_board_name = open_file_and_read(aik_images_path_base + "board")
     device_cmdline = open_file_and_read(aik_images_path_base + "cmdline")
@@ -144,11 +144,11 @@ def main():
     device_have_64bit_arch = (device_arch == "arm64" or device_arch == "x86_64")
 
     print("Creating device tree folders...")
-    if os.path.isdir(device_tree_path):
+    if device_tree_path.is_dir():
         rmtree(device_tree_path, ignore_errors=True)
-    os.makedirs(device_tree_path)
-    os.makedirs(device_tree_prebuilt_path)
-    os.makedirs(device_tree_recovery_root_path)
+    device_tree_path.mkdir(parents=True)
+    device_tree_prebuilt_path.mkdir(parents=True)
+    device_tree_recovery_root_path.mkdir(parents=True)
 
     print("Copying kernel...")
     if device_have_kernel:
@@ -175,15 +175,15 @@ def main():
     for file in device_tree_files:
         append_license(device_tree_path / file, "#")
 
-    if os.path.isfile(aik_ramdisk_path / "etc" / "twrp.fstab"):
+    if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
         print("Found a TWRP fstab, copying it...")
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
     else:
         print("Generating fstab...")
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab", device_tree_path / "recovery.fstab")
 
-    for file in os.listdir(aik_ramdisk_path):
-        if file.endswith(".rc") and file != "init.rc":
+    for file in aik_ramdisk_path.iterdir():
+        if file.name.endswith(".rc") and file != "init.rc":
             copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / file)
 
     print("Creating Android.mk...")
