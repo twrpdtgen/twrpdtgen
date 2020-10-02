@@ -26,6 +26,14 @@ except InvalidGitRepositoryError:
 last_commit = TWRPDTGEN_REPO.head.object.hexsha[:7]
 
 
+def clone_aik():
+    print("Cloning AIK...")
+    if system() == "Linux":
+        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", aik_path)
+    elif system() == "Windows":
+        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", aik_path)
+
+
 def main():
     print(f"TWRP device tree generator\n"
           "Python Edition\n"
@@ -43,18 +51,22 @@ def main():
         printhelp()
         sys_exit()
 
-    print("Cloning AIK...")
-
     def handle_remove_readonly(func, path, _):
         Path(path).chmod(S_IWRITE)
         func(path)
 
-    if aik_path.is_dir():
-        rmtree(aik_path, ignore_errors=False, onerror=handle_remove_readonly)
-    if system() == "Linux":
-        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", aik_path)
-    elif system() == "Windows":
-        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", aik_path)
+    if aik_path.exists() and aik_path.is_dir():
+        aik = Repo(aik_path)
+        current_commit = aik.remote().fetch()[0].commit.hexsha
+        last_upstream_commit = aik.remote().fetch()[0].commit.hexsha
+        if current_commit != last_upstream_commit:
+            print(f"Updating AIK to {last_upstream_commit[:7]}")
+            rmtree(aik_path, ignore_errors=False, onerror=handle_remove_readonly)
+            clone_aik()
+        else:
+            print("AIK is up-to-date")
+    else:
+        clone_aik()
 
     print("Extracting recovery image...")
     new_recovery_image = aik_path / "recovery.img"
