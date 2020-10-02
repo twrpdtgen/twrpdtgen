@@ -14,8 +14,8 @@ from git.exc import InvalidGitRepositoryError
 
 from twrpdtgen import __version__ as version
 from twrpdtgen import current_path, aik_path, aik_images_path, aik_ramdisk_path, working_path
-from twrpdtgen.misc import append_license, error, get_device_arch, \
-    make_twrp_fstab, open_file_and_read, printhelp
+from twrpdtgen.misc import error, get_device_arch, \
+    make_twrp_fstab, open_file_and_read, print_help, render_template
 
 TWRPDTGEN_REPO = None
 try:
@@ -43,12 +43,12 @@ def main():
         recovery_image = Path(argv[1])
     except IndexError:
         error("Recovery image not provided")
-        printhelp()
+        print_help()
         sys_exit()
 
     if not recovery_image.is_file():
         error("Recovery image doesn't exist")
-        printhelp()
+        print_help()
         sys_exit()
 
     def handle_remove_readonly(func, path, _):
@@ -142,8 +142,8 @@ def main():
     device_tree_path = working_path / device_manufacturer / device_codename
     device_tree_prebuilt_path = device_tree_path / "prebuilt"
     device_tree_recovery_root_path = device_tree_path / "recovery" / "root"
-    device_tree_files = ["Android.mk", "AndroidProducts.mk", "BoardConfig.mk", "device.mk",
-                         "omni_" + device_codename + ".mk", "vendorsetup.sh"]
+    # device_tree_files = ["Android.mk", "AndroidProducts.mk", "BoardConfig.mk", "device.mk",
+    #                      "omni_" + device_codename + ".mk", "vendorsetup.sh"]
 
     device_arch = get_device_arch(arch_binary)
     device_have_kernel = Path(aik_images_path_base + "zImage").is_file()
@@ -201,10 +201,6 @@ def main():
     if device_have_dtbo_image:
         copyfile(aik_images_path_base + "dtbo", device_tree_prebuilt_path / "dtbo.img")
 
-    print("Appending license headers to device tree files...")
-    for file in device_tree_files:
-        append_license(device_tree_path / file, "#")
-
     if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
         print("Found a TWRP fstab, copying it...")
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
@@ -215,202 +211,69 @@ def main():
 
     for file in aik_ramdisk_path.iterdir():
         if file.name.endswith(".rc") and file != "init.rc":
-            copyfile(aik_ramdisk_path / file, device_tree_recovery_root_path / file)
+            copyfile(aik_ramdisk_path / file,
+                     device_tree_recovery_root_path / file.name, follow_symlinks=True)
 
     print("Creating Android.mk...")
-    with open(device_tree_path / "Android.mk", "w") as file:
-        file.write(f"LOCAL_PATH := $(call my-dir)\n\n"
-                   f"ifeq ($(TARGET_DEVICE), {device_codename})\n"
-                   "include $(call all-subdir-makefiles,$(LOCAL_PATH))\n"
-                   "endif\n")
+    render_template(device_tree_path, "Android.mk.jinja2", device_codename=device_codename)
 
     print("Creating AndroidProducts.mk...")
-    with open(device_tree_path / "AndroidProducts.mk", "a") as file:
-        file.write(f"PRODUCT_MAKEFILES := \\\n"
-                   f"    $(LOCAL_DIR)/omni_{device_codename}.mk\n")
+    render_template(device_tree_path, "AndroidProducts.mk.jinja2", device_codename=device_codename)
 
     print("Creating BoardConfig.mk...")
-    with open(device_tree_path / "BoardConfig.mk", "a") as file:
-        file.write(f"DEVICE_PATH := device/{device_manufacturer}/{device_codename}\n\n"
-                   "# For building with minimal manifest\n"
-                   "ALLOW_MISSING_DEPENDENCIES := true\n\n"
-                   "# Architecture\n")
-        if device_arch == "arm64":
-            file.write("TARGET_ARCH := arm64\n"
-                       "TARGET_ARCH_VARIANT := armv8-a\n"
-                       "TARGET_CPU_ABI := arm64-v8a\n"
-                       "TARGET_CPU_ABI2 := \n"
-                       "TARGET_CPU_VARIANT := generic\n\n"
-                       "TARGET_2ND_ARCH := arm\n"
-                       "TARGET_2ND_ARCH_VARIANT := armv7-a-neon\n"
-                       "TARGET_2ND_CPU_ABI := armeabi-v7a\n"
-                       "TARGET_2ND_CPU_ABI2 := armeabi\n"
-                       "TARGET_2ND_CPU_VARIANT := generic\n"
-                       "TARGET_BOARD_SUFFIX := _64\n"
-                       "TARGET_USES_64_BIT_BINDER := true\n")
-        elif device_arch == "arm":
-            file.write("TARGET_ARCH := arm\n"
-                       "TARGET_ARCH_VARIANT := armv7-a-neon\n"
-                       "TARGET_CPU_ABI := armeabi-v7a\n"
-                       "TARGET_CPU_ABI2 := armeabi\n"
-                       "TARGET_CPU_VARIANT := generic\n")
-        elif device_arch == "x86":
-            file.write("TARGET_ARCH := x86\n"
-                       "TARGET_ARCH_VARIANT := generic\n"
-                       "TARGET_CPU_ABI := x86\n"
-                       "TARGET_CPU_ABI2 := armeabi-v7a\n"
-                       "TARGET_CPU_ABI_LIST := x86,armeabi-v7a,armeabi\n"
-                       "TARGET_CPU_ABI_LIST_32_BIT := x86,armeabi-v7a,armeabi\n"
-                       "TARGET_CPU_VARIANT := generic\n")
-        elif device_arch == "x86_64":
-            file.write("TARGET_ARCH := x86_64\n"
-                       "TARGET_ARCH_VARIANT := x86_64\n"
-                       "TARGET_CPU_ABI := x86_64\n"
-                       "TARGET_CPU_ABI2 := \n"
-                       "TARGET_CPU_VARIANT := generic\n\n"
-                       "TARGET_2ND_ARCH := x86\n"
-                       "TARGET_2ND_ARCH_VARIANT := x86\n"
-                       "TARGET_2ND_CPU_ABI := x86\n"
-                       "TARGET_2ND_CPU_VARIANT := generic\n"
-                       "TARGET_BOARD_SUFFIX := _64\n"
-                       "TARGET_USES_64_BIT_BINDER := true\n")
-        file.write(f"\n# Assert\n"
-                   f"TARGET_OTA_ASSERT_DEVICE := {device_codename}\n\n")
-        if device_board_name != "":
-            file.write(f"# Bootloader\n"
-                       f"TARGET_BOOTLOADER_BOARD_NAME := {device_board_name}\n\n")
-        file.write(f"# File systems\n"
-                   "BOARD_HAS_LARGE_FILESYSTEM := true\n"
-                   f"#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {device_recovery_size} "
-                   "# This is the maximum known partition size, "
-                   "but it can be higher, so we just omit it\n"
-                   "BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4\n"
-                   "BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4\n"
-                   "BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4\n"
-                   "TARGET_USERIMAGES_USE_EXT4 := true\n"
-                   "TARGET_USERIMAGES_USE_F2FS := true\n"
-                   "TARGET_COPY_OUT_VENDOR := vendor\n\n")
-        if device_is_ab:
-            file.write("# A/B\n"
-                       "AB_OTA_UPDATER := true\n"
-                       "TW_INCLUDE_REPACKTOOLS := true\n")
-        file.write(f"# Kernel\n"
-                   f"BOARD_KERNEL_CMDLINE := {device_cmdline}\n")
-        if device_have_kernel:
-            file.write(f"TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/{device_kernel_name}\n")
-        if device_have_dt_image:
-            file.write("TARGET_PREBUILT_DT := $(DEVICE_PATH)/prebuilt/dt.img\n")
-        if device_have_dtb_image:
-            file.write("TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img\n")
-        if device_have_dtbo_image:
-            file.write("BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img\n"
-                       "BOARD_INCLUDE_RECOVERY_DTBO := true\n")
-        if device_header_version != "0":
-            file.write("BOARD_BOOTIMG_HEADER_VERSION := " + device_header_version + "\n")
-        file.write(f"BOARD_KERNEL_BASE := {device_base_address}\n"
-                   f"BOARD_KERNEL_PAGESIZE := {device_pagesize}\n"
-                   f"BOARD_RAMDISK_OFFSET := {device_ramdisk_offset}\n"
-                   f"BOARD_KERNEL_TAGS_OFFSET := {device_tags_offset}\n"
-                   f"BOARD_FLASH_BLOCK_SIZE := {str(int(device_pagesize) * 64)} "
-                   f"# (BOARD_KERNEL_PAGESIZE * 64)\n"
-                   f"BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)\n"
-                   "BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)\n")
-        if device_have_dt_image:
-            file.write("BOARD_MKBOOTIMG_ARGS += --dt $(TARGET_PREBUILT_DT)\n")
-        if device_have_dtb_image:
-            file.write("BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)\n")
-        if device_header_version != "0":
-            file.write("BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)\n")
-        file.write(f"TARGET_KERNEL_ARCH := {device_arch}\n"
-                   f"TARGET_KERNEL_HEADER_ARCH := {device_arch}\n"
-                   f"TARGET_KERNEL_SOURCE := kernel/{device_manufacturer}/{device_codename}\n"
-                   f"TARGET_KERNEL_CONFIG := {device_codename}_defconfig\n\n")
-        if device_ramdisk_compression == "lzma":
-            file.write("# Ramdisk compression\n"
-                       "LZMA_RAMDISK_TARGETS := recovery\n\n")
-        file.write(f"# Platform\n"
-                   f"TARGET_BOARD_PLATFORM := {device_platform}\n\n"
-                   f"# Hack: prevent anti rollback\n"
-                   "PLATFORM_SECURITY_PATCH := 2099-12-31\n"
-                   "PLATFORM_VERSION := 16.1.0\n\n"
-                   "# TWRP Configuration\n"
-                   "TW_THEME := portrait_hdpi\n"
-                   "TW_EXTRA_LANGUAGES := true\n"
-                   "TW_SCREEN_BLANK_ON_BOOT := true\n"
-                   "TW_INPUT_BLACKLIST := \"hbtp_vm\"\n"
-                   "TW_USE_TOOLBOX := true\n")
+    render_template(device_tree_path, "BoardConfig.mk.jinja2",
+                    device_manufacturer=device_manufacturer,
+                    device_codename=device_codename,
+                    device_arch=device_arch,
+                    device_board_name=device_board_name,
+                    device_recovery_size=device_recovery_size,
+                    device_is_ab=device_is_ab,
+                    device_cmdline=device_cmdline,
+                    device_have_kernel=device_have_kernel,
+                    device_kernel_name=device_kernel_name,
+                    device_have_dt_image=device_have_dt_image,
+                    device_have_dtb_image=device_have_dtb_image,
+                    device_have_dtbo_image=device_have_dtbo_image,
+                    device_header_version=device_header_version,
+                    device_base_address=device_base_address,
+                    device_pagesize=device_pagesize,
+                    device_ramdisk_offset=device_ramdisk_offset,
+                    device_tags_offset=device_tags_offset,
+                    device_ramdisk_compression=device_ramdisk_compression,
+                    device_platform=device_platform,
+                    flash_block_size=str(int(device_pagesize) * 64)
+                    )
 
     print("Creating device.mk...")
-    with open(device_tree_path / "device.mk", "a") as file:
-        file.write(f"LOCAL_PATH := device/{device_manufacturer}/{device_codename}\n")
-        if device_is_ab:
-            file.write(f"# A/B\n"
-                       "AB_OTA_PARTITIONS += \\\n"
-                       "	boot \\\n"
-                       "	system \\\n"
-                       "	vendor\n\n"
-                       "AB_OTA_POSTINSTALL_CONFIG += \\\n"
-                       "	RUN_POSTINSTALL_system=true \\\n"
-                       "	POSTINSTALL_PATH_system=system/bin/otapreopt_script \\\n"
-                       "	FILESYSTEM_TYPE_system=ext4 \\\n"
-                       "	POSTINSTALL_OPTIONAL_system=true\n\n"
-                       "# Boot control HAL\n"
-                       "PRODUCT_PACKAGES += \\\n"
-                       "	android.hardware.boot@1.0-impl \\\n"
-                       "	android.hardware.boot@1.0-service\n\n"
-                       "PRODUCT_PACKAGES += \\\n"
-                       f"	bootctrl.{device_platform}\n\n"
-                       "PRODUCT_STATIC_BOOT_CONTROL_HAL := \\\n"
-                       f"	bootctrl.{device_platform}\\\n"
-                       "	libgptutils \\\n"
-                       "	libz \\\n"
-                       "	libcutils\n\n"
-                       "PRODUCT_PACKAGES += \\\n"
-                       "	otapreopt_script \\\n"
-                       "	cppreopts.sh \\\n"
-                       "	update_engine \\\n"
-                       "	update_verifier \\\n"
-                       "	update_engine_sideload\n")
+    render_template(device_tree_path, "device.mk.jinja2",
+                    device_codename=device_codename,
+                    device_manufacturer=device_manufacturer,
+                    device_platform=device_platform,
+                    device_is_ab=device_is_ab)
 
     print("Creating omni_" + device_codename + ".mk...")
-    with open(device_tree_path / ("omni_" + device_codename + ".mk"), "a") as file:
-        file.write("# Inherit from those products. Most specific first.\n")
-        if device_have_64bit_arch:
-            file.write("$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)\n")
-        file.write(f"$(call inherit-product-if-exists, $(SRC_TARGET_DIR)/product/embedded.mk)\n"
-                   "$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)\n"
-                   "$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)\n\n"
-                   f"# Inherit from {device_codename} device\n"
-                   f"$(call inherit-product, device/"
-                   f"{device_manufacturer}/{device_codename}/device.mk)"
-                   "\n\n# Inherit some common Omni stuff.\n"
-                   "$(call inherit-product, vendor/omni/config/common.mk)\n"
-                   "$(call inherit-product, vendor/omni/config/gsm.mk)\n\n"
-                   "# Device identifier. This must come after all inclusions\n"
-                   f"PRODUCT_DEVICE := {device_codename}\n"
-                   f"PRODUCT_NAME := omni_{device_codename}\n"
-                   f"PRODUCT_BRAND := {device_brand}\n"
-                   f"PRODUCT_MODEL := {device_model}\n"
-                   f"PRODUCT_MANUFACTURER := {device_manufacturer}\n"
-                   f"PRODUCT_RELEASE_NAME := {device_brand} {device_model}\n")
+    render_template(device_tree_path, "omni.mk.jinja2", out_file=f"omni_{device_codename}.mk",
+                    device_codename=device_codename,
+                    device_manufacturer=device_manufacturer,
+                    device_brand=device_brand,
+                    device_model=device_model,
+                    device_have_64bit_arch=device_have_64bit_arch
+                    )
 
     print("Creating vendorsetup.sh...")
-    with open(device_tree_path / "vendorsetup.sh", "a") as file:
-        file.write(f"add_lunch_combo omni_{device_codename}-userdebug\n"
-                   f"add_lunch_combo omni_{device_codename}-eng\n")
+    render_template(device_tree_path, "vendorsetup.sh.jinja2", device_codename=device_codename)
 
     dt_repo = Repo.init(device_tree_path)
     with dt_repo.config_writer() as git_config:
         git_config.set_value('user', 'email', 'barezzisebastiano@gmail.com')
         git_config.set_value('user', 'name', 'Sebastiano Barezzi')
     dt_repo.index.add(["*"])
-    commit_message = f"{device_codename}: Initial TWRP device tree\n" \
-                     "Made with SebaUbuntu's TWRP device tree generator\n" \
-                     f"Arch: {device_arch}\n" \
-                     f"Manufacturer: {device_manufacturer}\n" \
-                     f"Device full name: {device_brand} {device_model}\n" \
-                     f"Script version: {version}\n" \
-                     f"Last script commit: {last_commit}\n" \
-                     "Signed-off-by: Sebastiano Barezzi <barezzisebastiano@gmail.com>"
+    commit_message = render_template(None, "commit_message.jinja2", to_file=False,
+                                     device_codename=device_codename,
+                                     device_arch=device_arch,
+                                     device_manufacturer=device_manufacturer,
+                                     device_brand=device_brand,
+                                     device_model=device_model,
+                                     last_commit=last_commit)
     dt_repo.index.commit(commit_message)
     print(f"\nDone! You can find the device tree in {str(device_tree_path)}")

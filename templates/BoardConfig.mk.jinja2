@@ -1,0 +1,136 @@
+{% include 'LICENSE' %}
+
+DEVICE_PATH := device/{{ device_manufacturer }}/{{ device_codename }}
+
+# For building with minimal manifest
+ALLOW_MISSING_DEPENDENCIES := true
+
+# Architecture
+{% if device_arch == "arm64" %}
+    TARGET_ARCH := arm64
+    TARGET_ARCH_VARIANT := armv8-a
+    TARGET_CPU_ABI := arm64-v8a
+    TARGET_CPU_ABI2 :=
+    TARGET_CPU_VARIANT := generic
+
+    TARGET_2ND_ARCH := arm
+    TARGET_2ND_ARCH_VARIANT := armv7-a-neon
+    TARGET_2ND_CPU_ABI := armeabi-v7a
+    TARGET_2ND_CPU_ABI2 := armeabi
+    TARGET_2ND_CPU_VARIANT := generic
+    TARGET_BOARD_SUFFIX := _64
+    TARGET_USES_64_BIT_BINDER := true
+{% endif %}
+{% if device_arch == "arm" %}
+    TARGET_ARCH := arm
+    TARGET_ARCH_VARIANT := armv7-a-neon
+    TARGET_CPU_ABI := armeabi-v7a
+    TARGET_CPU_ABI2 := armeabi
+    TARGET_CPU_VARIANT := generic
+{% endif %}
+{% if device_arch == "x86" %}
+    "TARGET_ARCH := x86
+    TARGET_ARCH_VARIANT := generic
+    TARGET_CPU_ABI := x86
+    TARGET_CPU_ABI2 := armeabi-v7a
+    TARGET_CPU_ABI_LIST := x86,armeabi-v7a,armeabi
+    TARGET_CPU_ABI_LIST_32_BIT := x86,armeabi-v7a,armeabi
+    TARGET_CPU_VARIANT := generic
+{% endif %}
+{% if device_arch == "x86_64" %}
+    TARGET_ARCH := x86_64
+    TARGET_ARCH_VARIANT := x86_64
+    TARGET_CPU_ABI := x86_64
+    TARGET_CPU_ABI2 :=
+    TARGET_CPU_VARIANT := generic
+
+    TARGET_2ND_ARCH := x86
+    TARGET_2ND_ARCH_VARIANT := x86
+    TARGET_2ND_CPU_ABI := x86
+    TARGET_2ND_CPU_VARIANT := generic
+    TARGET_BOARD_SUFFIX := _64
+    TARGET_USES_64_BIT_BINDER := true
+{% endif %}
+
+# Assert
+TARGET_OTA_ASSERT_DEVICE := {{ device_codename }}
+
+{% if device_board_name %}
+    # Bootloader"
+    TARGET_BOOTLOADER_BOARD_NAME := {{ device_board_name }}
+{% endif %}
+
+# File systems
+BOARD_HAS_LARGE_FILESYSTEM := true
+#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {{ device_recovery_size }} # This is the maximum known partition size, but it can be higher, so we just omit it
+BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4
+BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
+BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
+TARGET_COPY_OUT_VENDOR := vendor
+
+{% if device_is_ab %}
+    # A/B
+    AB_OTA_UPDATER := true
+    TW_INCLUDE_REPACKTOOLS := true
+{% endif %}
+
+# Kernel
+BOARD_KERNEL_CMDLINE := {{ device_cmdline }}
+{% if device_have_kernel %}
+    TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/{{ device_kernel_name }}
+{% endif %}
+{% if device_have_dt_image %}
+    TARGET_PREBUILT_DT := $(DEVICE_PATH)/prebuilt/dt.img
+{% endif %}
+{% if device_have_dtb_image %}
+    TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
+{% endif %}
+{% if device_have_dtbo_image %}
+    BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
+    BOARD_INCLUDE_RECOVERY_DTBO := true
+{% endif %}
+{% if device_header_version != "0" %}
+    BOARD_BOOTIMG_HEADER_VERSION := {{ device_header_version }}
+{% endif %}
+BOARD_KERNEL_BASE := {{ device_base_address }}
+BOARD_KERNEL_PAGESIZE := {{ device_pagesize }}
+BOARD_RAMDISK_OFFSET := {{ device_ramdisk_offset }}
+BOARD_KERNEL_TAGS_OFFSET := {{ device_tags_offset }}
+BOARD_FLASH_BLOCK_SIZE := {{ flash_block_size }} # (BOARD_KERNEL_PAGESIZE * 64)
+BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
+
+{% if device_have_dt_image %}
+    BOARD_MKBOOTIMG_ARGS += --dt $(TARGET_PREBUILT_DT)
+{% endif %}
+{% if device_have_dtb_image %}
+    BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
+{% endif %}
+{% if device_header_version != "0" %}
+    BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)
+{% endif %}
+TARGET_KERNEL_ARCH := {{ device_arch }}
+TARGET_KERNEL_HEADER_ARCH := {{ device_arch }}
+TARGET_KERNEL_SOURCE := kernel/{{ device_manufacturer }}/{{ device_codename }}
+TARGET_KERNEL_CONFIG := {{ device_codename }}_defconfig
+
+{% if device_ramdisk_compression %}
+    # Ramdisk compression
+    LZMA_RAMDISK_TARGETS := recovery
+{% endif %}
+
+# Platform
+TARGET_BOARD_PLATFORM := {{ device_platform }}
+
+# Hack: prevent anti rollback
+PLATFORM_SECURITY_PATCH := 2099-12-31
+PLATFORM_VERSION := 16.1.0
+
+# TWRP Configuration
+TW_THEME := portrait_hdpi
+TW_EXTRA_LANGUAGES := true
+TW_SCREEN_BLANK_ON_BOOT := true
+TW_INPUT_BLACKLIST := "hbtp_vm"
+TW_USE_TOOLBOX := true

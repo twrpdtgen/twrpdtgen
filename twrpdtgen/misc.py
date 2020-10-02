@@ -1,54 +1,39 @@
 #!/usr/bin/python
 
-from datetime import datetime
 from itertools import repeat
+from pathlib import Path
+from typing import Optional
 
 import magic
 
-
-def append_license(target, comment):
-    current_year = str(datetime.now().year)
-    file = open(target, "w")
-    file.write(comment + "\n")
-    file.write(comment + " " + 'Copyright (C)' + " " + current_year + " " + 'The Android Open Source Project' + "\n")
-    file.write(comment + " " + 'Copyright (C)' + " " + current_year + " " + 'The TWRP Open Source Project' + "\n")
-    file.write(
-        comment + " " + 'Copyright (C)' + " " + current_year + " " + "SebaUbuntu's TWRP device tree generator" + "\n")
-    file.write(comment + "\n")
-    file.write(comment + " " + 'Licensed under the Apache License, Version 2.0 (the "License");' + "\n")
-    file.write(comment + " " + 'you may not use this file except in compliance with the License.' + "\n")
-    file.write(comment + " " + 'You may obtain a copy of the License at' + "\n")
-    file.write(comment + "\n")
-    file.write(comment + " " + '    http://www.apache.org/licenses/LICENSE-2.0' + "\n")
-    file.write(comment + "\n")
-    file.write(comment + " " + 'Unless required by applicable law or agreed to in writing, software' + "\n")
-    file.write(comment + " " + 'distributed under the License is distributed on an "AS IS" BASIS,' + "\n")
-    file.write(comment + " " + 'WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.' + "\n")
-    file.write(comment + " " + 'See the License for the specific language governing permissions and' + "\n")
-    file.write(comment + " " + 'limitations under the License.' + "\n")
-    file.write(comment + "\n")
-    file.write("\n")
-    file.close()
+from twrpdtgen import jinja_env
 
 
-def error(error):
-    print("Error:", error)
+def render_template(device_tree_path: Optional[Path], template_file: str,
+                    out_file: str = '', to_file=True, **kwargs):
+    template = jinja_env.get_template(template_file)
+    rendered_template = template.render(**kwargs)
+    if to_file:
+        if not out_file:
+            out_file = template_file.replace('.jinja2', '')
+        with open(f"{device_tree_path}/{out_file}", 'w', encoding="utf-8") as out:
+            out.write(rendered_template)
+        return True
+    else:
+        return rendered_template
+
+
+def error(err):
+    print("Error:", err)
 
 
 def get_device_arch(binary):
     bin_magic = magic.from_file(str(binary))
     if "ARM" in bin_magic:
-        if "aarch64" in bin_magic:
-            return "arm64"
-        else:
-            return "arm"
-    elif "x86" in bin_magic:
-        if "aarch64" in bin_magic:
-            return "x86_64"
-        else:
-            return "x86"
-    else:
-        return False
+        return "arm64" if "aarch64" in bin_magic else "arm"
+    if "x86" in bin_magic:
+        return "x86_64" if "aarch64" in bin_magic else "x86"
+    return False
 
 
 def make_twrp_fstab(old_fstab, new_fstab):
@@ -150,12 +135,9 @@ def make_twrp_fstab(old_fstab, new_fstab):
 
 
 def open_file_and_read(target):
-    file = open(target)
-    result = file.read()
-    file.close()
-    result = result.split('\n', 1)[0]
-    return result
+    with open(target) as file:
+        return file.read().split('\n', 1)[0]
 
 
-def printhelp():
+def print_help():
     print("Usage: start.py <recovery image path>")
