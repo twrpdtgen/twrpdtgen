@@ -96,7 +96,7 @@ def main():
     device_brand = ""
     device_model = ""
     device_is_ab = False
-    with open(aik_ramdisk_path / "prop.default", "r") as props:
+    with open(aik_ramdisk_path / "default.prop", "r") as props:
         lines = props.read()
         for line in lines.splitlines():
             if line.startswith("ro.product.device=") \
