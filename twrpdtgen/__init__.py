@@ -9,4 +9,4 @@ aik_images_path = aik_path / "split_img"
 aik_ramdisk_path = aik_path / "ramdisk"
 working_path = current_path / "working"
 
-jinja_env = Environment(loader=FileSystemLoader(current_path / 'templates'), autoescape=True)
+jinja_env = Environment(loader=FileSystemLoader(current_path / 'templates'), autoescape=True, trim_blocks=True, lstrip_blocks=True)
