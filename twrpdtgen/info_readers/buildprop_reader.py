@@ -36,7 +36,7 @@ class BuildPropReader:
 
     def __init__(self, file):
         """
-        Build.prop reader class instructor
+        Build.prop reader class constructor.
         :param file: build.prop file path as a string or Path object
         """
         self._filename = Path(file).absolute()

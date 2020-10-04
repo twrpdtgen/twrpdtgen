@@ -3,18 +3,16 @@
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
 from pathlib import Path
-from platform import system
 from shutil import copyfile, rmtree
-from stat import S_IWRITE
-from subprocess import call, Popen, PIPE
 from sys import argv, exit as sys_exit
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 
-from buildprop_reader.buildprop_reader import BuildPropReader
-from twrpdtgen import __version__ as version
-from twrpdtgen import current_path, aik_path, aik_images_path, aik_ramdisk_path, working_path
+from twrpdtgen import __version__ as version, aik_path
+from twrpdtgen import current_path, working_path
+from twrpdtgen.aik_manager import AIKManager
+from twrpdtgen.info_readers.buildprop_reader import BuildPropReader
 from twrpdtgen.misc import error, get_device_arch, \
     make_twrp_fstab, open_file_and_read, print_help, render_template
 
@@ -25,14 +23,6 @@ except InvalidGitRepositoryError:
     error("Please clone the script with Git instead of downloading it as a zip")
     sys_exit()
 last_commit = TWRPDTGEN_REPO.head.object.hexsha[:7]
-
-
-def clone_aik():
-    print("Cloning AIK...")
-    if system() == "Linux":
-        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", aik_path)
-    elif system() == "Windows":
-        Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", aik_path)
 
 
 def main():
@@ -52,32 +42,8 @@ def main():
         print_help()
         sys_exit()
 
-    def handle_remove_readonly(func, path, _):
-        Path(path).chmod(S_IWRITE)
-        func(path)
-
-    if aik_path.exists() and aik_path.is_dir():
-        aik = Repo(aik_path)
-        current_commit = aik.head.commit.hexsha
-        last_upstream_commit = aik.remote().fetch()[0].commit.hexsha
-        if current_commit != last_upstream_commit:
-            print(f"Updating AIK to {last_upstream_commit[:7]}")
-            rmtree(aik_path, ignore_errors=False, onerror=handle_remove_readonly)
-            clone_aik()
-        else:
-            print("AIK is up-to-date")
-    else:
-        clone_aik()
-
-    print("Extracting recovery image...")
-    new_recovery_image = aik_path / "recovery.img"
-    copyfile(recovery_image, new_recovery_image)
-    if system() == "Linux":
-        aik_process = Popen([aik_path / "unpackimg.sh", "--nosudo", new_recovery_image],
-                            stdout=PIPE, stderr=PIPE, universal_newlines=True)
-        _, _ = aik_process.communicate()
-    elif system() == "Windows":
-        call([aik_path / "unpackimg.bat", new_recovery_image])
+    aik = AIKManager(aik_path)
+    aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
 
     print("Getting device infos...")
     arch_binary = None

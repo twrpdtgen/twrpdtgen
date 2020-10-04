@@ -2,6 +2,7 @@
 
 from itertools import repeat
 from pathlib import Path
+from stat import S_IWRITE
 from typing import Optional
 
 import magic
@@ -141,3 +142,8 @@ def open_file_and_read(target):
 
 def print_help():
     print("Usage: start.py <recovery image path>")
+
+
+def handle_remove_readonly(func, path, _):
+    Path(path).chmod(S_IWRITE)
+    func(path)
