@@ -58,7 +58,7 @@ def main():
 
     if aik_path.exists() and aik_path.is_dir():
         aik = Repo(aik_path)
-        current_commit = aik.remote().fetch()[0].commit.hexsha
+        current_commit = aik.head.commit.hexsha
         last_upstream_commit = aik.remote().fetch()[0].commit.hexsha
         if current_commit != last_upstream_commit:
             print(f"Updating AIK to {last_upstream_commit[:7]}")
