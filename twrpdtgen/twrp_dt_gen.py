@@ -12,6 +12,7 @@ from sys import argv, exit as sys_exit
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 
+from buildprop_reader.buildprop_reader import BuildPropReader
 from twrpdtgen import __version__ as version
 from twrpdtgen import current_path, aik_path, aik_images_path, aik_ramdisk_path, working_path
 from twrpdtgen.misc import error, get_device_arch, \
@@ -90,56 +91,10 @@ def main():
         error("No expected binary has been found")
         sys_exit()
 
-    device_codename = ""
-    device_manufacturer = ""
-    device_platform = ""
-    device_brand = ""
-    device_model = ""
-    device_is_ab = False
-    with open(aik_ramdisk_path / "default.prop", "r") as props:
-        lines = props.read()
-        for line in lines.splitlines():
-            if line.startswith("ro.product.device=") \
-                    or line.startswith("ro.product.system.device=") \
-                    or line.startswith("ro.product.vendor.device="):
-                device_codename = line.rpartition('=')[2]
-            elif line.startswith("ro.product.manufacturer=") or line.startswith(
-                    "ro.product.system.manufacturer=") \
-                    or line.startswith("ro.product.vendor.manufacturer="):
-                device_manufacturer = line.rpartition('=')[2]
-                device_manufacturer = device_manufacturer.lower()
-            elif line.startswith("ro.board.platform=") or line.startswith("ro.hardware.keystore="):
-                device_platform = line.rpartition('=')[2]
-            elif line.startswith("ro.product.brand=") \
-                    or line.startswith("ro.product.system.brand=") \
-                    or line.startswith("ro.product.vendor.brand="):
-                device_brand = line.rpartition('=')[2]
-            elif line.startswith("ro.product.model=") \
-                    or line.startswith("ro.product.system.model=") \
-                    or line.startswith("ro.product.vendor.model="):
-                device_model = line.rpartition('=')[2]
-            elif line == "ro.build.ab_update=true":
-                device_is_ab = True
-        props.close()
-
-    if device_codename == "":
-        error("Device codename not found on build.prop")
-        sys_exit()
-    if device_manufacturer == "":
-        error("Device manufacturer not found on build.prop")
-        sys_exit()
-    if device_platform == "":
-        error("Device platform not found on build.prop")
-        sys_exit()
-    if device_brand == "":
-        error("Device brand not found on build.prop")
-        sys_exit()
-    if device_model == "":
-        error("Device model not found on build.prop")
-        sys_exit()
+    build_prop = BuildPropReader(aik_ramdisk_path / "default.prop")
 
     aik_images_path_base = str(aik_images_path / "recovery.img-")
-    device_tree_path = working_path / device_manufacturer / device_codename
+    device_tree_path = working_path / build_prop.manufacturer / build_prop.codename
     device_tree_prebuilt_path = device_tree_path / "prebuilt"
     device_tree_recovery_root_path = device_tree_path / "recovery" / "root"
     # device_tree_files = ["Android.mk", "AndroidProducts.mk", "BoardConfig.mk", "device.mk",
@@ -215,19 +170,20 @@ def main():
                      device_tree_recovery_root_path / file.name, follow_symlinks=True)
 
     print("Creating Android.mk...")
-    render_template(device_tree_path, "Android.mk.jinja2", device_codename=device_codename)
+    render_template(device_tree_path, "Android.mk.jinja2", device_codename=build_prop.codename)
 
     print("Creating AndroidProducts.mk...")
-    render_template(device_tree_path, "AndroidProducts.mk.jinja2", device_codename=device_codename)
+    render_template(device_tree_path, "AndroidProducts.mk.jinja2", device_codename=build_prop.codename)
 
     print("Creating BoardConfig.mk...")
     render_template(device_tree_path, "BoardConfig.mk.jinja2",
-                    device_manufacturer=device_manufacturer,
-                    device_codename=device_codename,
+                    device_manufacturer=build_prop.manufacturer,
+                    device_codename=build_prop.codename,
+                    device_is_ab=build_prop.device_is_ab,
+                    device_platform=build_prop.platform,
                     device_arch=device_arch,
                     device_board_name=device_board_name,
                     device_recovery_size=device_recovery_size,
-                    device_is_ab=device_is_ab,
                     device_cmdline=device_cmdline,
                     device_have_kernel=device_have_kernel,
                     device_kernel_name=device_kernel_name,
@@ -240,28 +196,27 @@ def main():
                     device_ramdisk_offset=device_ramdisk_offset,
                     device_tags_offset=device_tags_offset,
                     device_ramdisk_compression=device_ramdisk_compression,
-                    device_platform=device_platform,
                     flash_block_size=str(int(device_pagesize) * 64)
                     )
 
     print("Creating device.mk...")
     render_template(device_tree_path, "device.mk.jinja2",
-                    device_codename=device_codename,
-                    device_manufacturer=device_manufacturer,
-                    device_platform=device_platform,
-                    device_is_ab=device_is_ab)
+                    device_codename=build_prop.codename,
+                    device_manufacturer=build_prop.manufacturer,
+                    device_platform=build_prop.platform,
+                    device_is_ab=build_prop.device_is_ab)
 
-    print("Creating omni_" + device_codename + ".mk...")
-    render_template(device_tree_path, "omni.mk.jinja2", out_file=f"omni_{device_codename}.mk",
-                    device_codename=device_codename,
-                    device_manufacturer=device_manufacturer,
-                    device_brand=device_brand,
-                    device_model=device_model,
+    print(f"Creating omni_{build_prop.codename}.mk...")
+    render_template(device_tree_path, "omni.mk.jinja2", out_file=f"omni_{build_prop.codename}.mk",
+                    device_codename=build_prop.codename,
+                    device_manufacturer=build_prop.manufacturer,
+                    device_brand=build_prop.brand,
+                    device_model=build_prop.model,
                     device_have_64bit_arch=device_have_64bit_arch
                     )
 
     print("Creating vendorsetup.sh...")
-    render_template(device_tree_path, "vendorsetup.sh.jinja2", device_codename=device_codename)
+    render_template(device_tree_path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)
 
     dt_repo = Repo.init(device_tree_path)
     with dt_repo.config_writer() as git_config:
@@ -269,11 +224,11 @@ def main():
         git_config.set_value('user', 'name', 'Sebastiano Barezzi')
     dt_repo.index.add(["*"])
     commit_message = render_template(None, "commit_message.jinja2", to_file=False,
-                                     device_codename=device_codename,
+                                     device_codename=build_prop.codename,
                                      device_arch=device_arch,
-                                     device_manufacturer=device_manufacturer,
-                                     device_brand=device_brand,
-                                     device_model=device_model,
+                                     device_manufacturer=build_prop.manufacturer,
+                                     device_brand=build_prop.brand,
+                                     device_model=build_prop.model,
                                      last_commit=last_commit)
     dt_repo.index.commit(commit_message)
     print(f"\nDone! You can find the device tree in {str(device_tree_path)}")
