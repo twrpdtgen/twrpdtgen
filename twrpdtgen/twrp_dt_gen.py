@@ -75,8 +75,6 @@ def main():
     # device_second_offset = open_file_and_read(aik_images_path_base + "second_offset")
     device_tags_offset = open_file_and_read(aik_images_path_base + "tags_offset")
 
-    device_have_64bit_arch = build_prop.arch in ("arm64", "x86_64")
-
     print("Creating device tree folders...")
     if device_tree_path.is_dir():
         rmtree(device_tree_path, ignore_errors=True)
@@ -162,7 +160,7 @@ def main():
                     device_manufacturer=build_prop.manufacturer,
                     device_brand=build_prop.brand,
                     device_model=build_prop.model,
-                    device_have_64bit_arch=device_have_64bit_arch
+                    device_has_64bit_arch=build_prop.device_has_64bit_arch
                     )
 
     print("Creating vendorsetup.sh...")

@@ -35,6 +35,7 @@ class BuildPropReader:
     model: str
     arch: str
     device_is_ab: bool
+    device_has_64bit_arch: bool
 
     def __init__(self, file):
         """
@@ -82,6 +83,7 @@ class BuildPropReader:
         # device is AB
         _match = DEVICE_IS_AB_RE.search(self._content)
         self.device_is_ab = bool(_match)
+        self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
 
     @staticmethod
     def parse_arch(arch: str) -> str:
