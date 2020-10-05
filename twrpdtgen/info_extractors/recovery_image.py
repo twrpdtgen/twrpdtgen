@@ -80,5 +80,6 @@ class RecoveryImageInfoReader:
             if arch in ("arm", "arm64") and (
                     not self.has_dt_image and not self.has_dtb_image):
                 kernel_name += "-dtb"
+            self.kernel_name = kernel_name
             return kernel_name
         return ""

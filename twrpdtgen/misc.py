@@ -93,9 +93,12 @@ def make_twrp_fstab(old_fstab, new_fstab):
         "# mount point       fstype    device                                                                flags" + "\n")
     for entry in fstab_entries:
         if not entry.startswith("#") and entry != "":
-            partition_path = entry.split()[0]
-            partition_name = entry.split()[1]
-            partition_fs = entry.split()[2]
+            split_entry = entry.split()
+            if not split_entry:
+                continue
+            partition_path = split_entry[0]
+            partition_name = split_entry[1]
+            partition_fs = split_entry[2]
             if allowed_partitions.get(partition_name, False):
                 name_fs_space_int = default_name_fs_space - len(partition_name)
                 fs_path_space_int = default_fs_path_space - len(partition_fs)

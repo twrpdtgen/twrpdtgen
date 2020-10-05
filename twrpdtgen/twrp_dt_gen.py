@@ -69,6 +69,7 @@ def main():
     device_tree_recovery_root_path.mkdir(parents=True)
 
     print("Copying kernel...")
+    recovery_image_info.get_kernel_name(build_prop.arch)
     if recovery_image_info.kernel_name:
         copyfile(recovery_image_info.aik_images_path_base + "zImage",
                  device_tree_prebuilt_path / recovery_image_info.kernel_name)
