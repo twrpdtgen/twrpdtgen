@@ -28,8 +28,8 @@ class RecoveryImageInfoReader:
         self.board_name = self.read_recovery_file(Path(self.aik_images_path_base + "board"))
         self.cmdline = self.read_recovery_file(Path(self.aik_images_path_base + "cmdline"))
         # self.device_hash_type = self.read_from_file(Path(aik_images_path_base + "hashtype"))
-        self.header_version = self.read_recovery_file(
-            Path(self.aik_images_path_base + "header_version"))
+        header_version = Path(self.aik_images_path_base + "header_version")
+        self.header_version = self.read_recovery_file(header_version) if header_version.exists() else "0"
         # self.device_image_type = self.read_from_file(
         # Path(aik_images_path_base + "imgtype"))
         # self.device_kernel_offset = self.read_from_file(
