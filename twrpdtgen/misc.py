@@ -34,6 +34,9 @@ def make_twrp_fstab(old_fstab, new_fstab):
     default_name_fs_space = 19
     default_fs_path_space = 9
     default_path_flags_space = 69
+    partition_path_location = 0
+    partition_name_location = 1
+    partition_fs_location = 2
     allowed_partitions = {
         # Boot partitions
         "/boot": True,
@@ -94,9 +97,13 @@ def make_twrp_fstab(old_fstab, new_fstab):
     for entry in fstab_entries:
         split_entry = entry.split()
         if not entry.startswith("#") and len(split_entry) >= 2:
-            partition_path = split_entry[0]
-            partition_name = split_entry[1]
-            partition_fs = split_entry[2]
+            if split_entry[1] in ["emmc", "ext4", "f2fs", "vfat", "auto"]:
+                partition_name_location = 0
+                partition_fs_location = 1
+                partition_path_location = 2
+            partition_path = split_entry[partition_path_location]
+            partition_name = split_entry[partition_name_location]
+            partition_fs = split_entry[partition_fs_location]
             if allowed_partitions.get(partition_name, False):
                 name_fs_space_int = default_name_fs_space - len(partition_name)
                 fs_path_space_int = default_fs_path_space - len(partition_fs)
