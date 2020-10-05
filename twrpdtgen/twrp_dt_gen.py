@@ -13,8 +13,8 @@ from twrpdtgen import __version__ as version, aik_path
 from twrpdtgen import current_path, working_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_readers.buildprop_reader import BuildPropReader
-from twrpdtgen.misc import error, get_device_arch, \
-    make_twrp_fstab, open_file_and_read, print_help, render_template
+from twrpdtgen.misc import error, make_twrp_fstab, open_file_and_read, \
+    print_help, render_template
 
 TWRPDTGEN_REPO = None
 try:
@@ -46,17 +46,6 @@ def main():
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
 
     print("Getting device infos...")
-    arch_binary = None
-    if Path(aik_ramdisk_path / "sbin" / "recovery").is_file():
-        arch_binary = aik_ramdisk_path / "sbin" / "recovery"
-    elif Path(aik_ramdisk_path / "sbin" / "setlockstate").is_file():
-        arch_binary = aik_ramdisk_path / "sbin" / "setlockstate"
-    elif Path(aik_ramdisk_path / "init").is_file():
-        arch_binary = aik_ramdisk_path / "init"
-    else:
-        error("No expected binary has been found")
-        sys_exit()
-
     build_prop = BuildPropReader(aik_ramdisk_path / "default.prop")
 
     aik_images_path_base = str(aik_images_path / "recovery.img-")
@@ -66,7 +55,6 @@ def main():
     # device_tree_files = ["Android.mk", "AndroidProducts.mk", "BoardConfig.mk", "device.mk",
     #                      "omni_" + device_codename + ".mk", "vendorsetup.sh"]
 
-    device_arch = get_device_arch(arch_binary)
     device_have_kernel = Path(aik_images_path_base + "zImage").is_file()
     device_have_dt_image = Path(aik_images_path_base + "dt").is_file()
     device_have_dtb_image = Path(aik_images_path_base + "dtb").is_file()
@@ -87,11 +75,7 @@ def main():
     # device_second_offset = open_file_and_read(aik_images_path_base + "second_offset")
     device_tags_offset = open_file_and_read(aik_images_path_base + "tags_offset")
 
-    if not device_arch:
-        error("Device architecture not supported")
-        sys_exit()
-
-    device_have_64bit_arch = device_arch in ("arm64", "x86_64")
+    device_have_64bit_arch = build_prop.arch in ("arm64", "x86_64")
 
     print("Creating device tree folders...")
     if device_tree_path.is_dir():
@@ -103,15 +87,15 @@ def main():
     print("Copying kernel...")
     device_kernel_name = ""
     if device_have_kernel:
-        if device_arch == "arm":
+        if build_prop.arch == "arm":
             device_kernel_name = "zImage"
-        elif device_arch == "arm64":
+        elif build_prop.arch == "arm64":
             device_kernel_name = "Image.gz"
-        elif device_arch in ("x86", "x86_64"):
+        elif build_prop.arch in ("x86", "x86_64"):
             device_kernel_name = "bzImage"
         else:
             device_kernel_name = "zImage"
-        if device_arch in ("arm", "arm64") and (
+        if build_prop.arch in ("arm", "arm64") and (
                 not device_have_dt_image and not device_have_dtb_image):
             device_kernel_name += "-dtb"
         copyfile(aik_images_path_base + "zImage", device_tree_prebuilt_path / device_kernel_name)
@@ -147,7 +131,7 @@ def main():
                     device_codename=build_prop.codename,
                     device_is_ab=build_prop.device_is_ab,
                     device_platform=build_prop.platform,
-                    device_arch=device_arch,
+                    device_arch=build_prop.arch,
                     device_board_name=device_board_name,
                     device_recovery_size=device_recovery_size,
                     device_cmdline=device_cmdline,
@@ -191,7 +175,7 @@ def main():
     dt_repo.index.add(["*"])
     commit_message = render_template(None, "commit_message.jinja2", to_file=False,
                                      device_codename=build_prop.codename,
-                                     device_arch=device_arch,
+                                     device_arch=build_prop.arch,
                                      device_manufacturer=build_prop.manufacturer,
                                      device_brand=build_prop.brand,
                                      device_model=build_prop.model,

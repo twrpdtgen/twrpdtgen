@@ -5,8 +5,6 @@ from pathlib import Path
 from stat import S_IWRITE
 from typing import Optional
 
-import magic
-
 from twrpdtgen import jinja_env
 
 
@@ -26,15 +24,6 @@ def render_template(device_tree_path: Optional[Path], template_file: str,
 
 def error(err):
     print("Error:", err)
-
-
-def get_device_arch(binary):
-    bin_magic = magic.from_file(str(binary))
-    if "ARM" in bin_magic:
-        return "arm64" if "aarch64" in bin_magic else "arm"
-    if "x86" in bin_magic:
-        return "x86_64" if "aarch64" in bin_magic else "x86"
-    return False
 
 
 def make_twrp_fstab(old_fstab, new_fstab):
