@@ -124,11 +124,6 @@ def make_twrp_fstab(old_fstab, new_fstab):
     dest_fstab.close()
 
 
-def open_file_and_read(target):
-    with open(target) as file:
-        return file.read().split('\n', 1)[0]
-
-
 def print_help():
     print("Usage: start.py <recovery image path>")
 
