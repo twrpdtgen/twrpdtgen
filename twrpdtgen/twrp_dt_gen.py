@@ -31,6 +31,7 @@ def self_repo_check() -> str:
 
 
 def main():
+    # TODO switch to ArgsParser for dealing with args
     print(f"TWRP device tree generator\n"
           "Python Edition\n"
           f"Version {version}\n")
@@ -60,6 +61,7 @@ def main():
     device_tree_recovery_root_path = device_tree_path / "recovery" / "root"
 
     print("Creating device tree folders...")
+    # TODO refactor to Device Tree Manager class
     if device_tree_path.is_dir():
         rmtree(device_tree_path, ignore_errors=True)
     device_tree_path.mkdir(parents=True)
@@ -85,6 +87,7 @@ def main():
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
     else:
         print("Generating fstab...")
+        # TODO refactor to better fstab generator
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
                         device_tree_path / "recovery.fstab")
 
@@ -143,6 +146,7 @@ def main():
     print("Creating vendorsetup.sh...")
     render_template(device_tree_path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)
 
+    # TODO move to Device Tree Manager
     dt_repo = Repo.init(device_tree_path)
     with dt_repo.config_writer() as git_config:
         git_config.set_value('user', 'email', 'barezzisebastiano@gmail.com')

@@ -5,3 +5,9 @@
 Create a TWRP-compatible device tree only from a recovery.img
 
 To see how to use this, go to [the wiki](https://github.com/SebaUbuntu/TWRP-device-tree-generator/wiki)
+
+### TODO
+- Add support for extracting information from device tree using ADB.
+- Maybe a simple GUI?
+- Provide binary files using pyinstaller CI pipeline.
+- Write unit tests.
