@@ -92,10 +92,8 @@ def make_twrp_fstab(old_fstab, new_fstab):
     dest_fstab.write(
         "# mount point       fstype    device                                                                flags" + "\n")
     for entry in fstab_entries:
-        if not entry.startswith("#") and entry != "":
-            split_entry = entry.split()
-            if not split_entry:
-                continue
+        split_entry = entry.split()
+        if not entry.startswith("#") and len(split_entry) >= 2:
             partition_path = split_entry[0]
             partition_name = split_entry[1]
             partition_fs = split_entry[2]
