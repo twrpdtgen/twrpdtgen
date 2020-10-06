@@ -88,6 +88,10 @@ def make_twrp_fstab(old_fstab, new_fstab):
         "/vendor_image": 'flags=display="Vendor image";backup=1;flashimg=1',
         "/persist_image": 'flags=display="Persist image";backup=1;flashimg=1'
     }
+    partition_alternative_name = {
+        "/": "/system",
+        "/system_root": "/system"
+    }
     dest_fstab.write("# Android fstab file." + "\n")
     dest_fstab.write("# The filesystem that contains the filesystem checker binary (typically /system) cannot" + "\n")
     dest_fstab.write("# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK" + "\n")
@@ -104,6 +108,7 @@ def make_twrp_fstab(old_fstab, new_fstab):
             partition_path = split_entry[partition_path_location]
             partition_name = split_entry[partition_name_location]
             partition_fs = split_entry[partition_fs_location]
+            partition_name = partition_alternative_name.get(partition_name, partition_name)
             if allowed_partitions.get(partition_name, False):
                 name_fs_space_int = default_name_fs_space - len(partition_name)
                 fs_path_space_int = default_fs_path_space - len(partition_fs)
