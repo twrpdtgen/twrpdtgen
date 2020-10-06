@@ -86,11 +86,19 @@ def main():
     if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
         print("Found a TWRP fstab, copying it...")
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
-    else:
+    elif Path(aik_ramdisk_path / "etc" / "recovery.fstab").is_file():
         print("Generating fstab...")
         # TODO refactor to better fstab generator
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
                         device_tree_path / "recovery.fstab")
+    elif Path(aik_ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
+        print("Generating fstab...")
+        # TODO refactor to better fstab generator
+        make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
+                        device_tree_path / "recovery.fstab")
+    else:
+        error("fstab not found")
+        exit()
 
     for file in aik_ramdisk_path.iterdir():
         if file.name.endswith(".rc") and file != "init.rc":
