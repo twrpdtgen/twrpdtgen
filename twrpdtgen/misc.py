@@ -45,6 +45,7 @@ def make_twrp_fstab(old_fstab, new_fstab):
 
         # Standard partitions
         "/cache": True,
+        "/data": True,
         "/odm": True,
         "/product": True,
         "/system": True,
