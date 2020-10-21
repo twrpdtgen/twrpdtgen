@@ -110,6 +110,7 @@ BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
 {% if header_version != "0" %}
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)
 {% endif %}
+BOARD_KERNEL_IMAGE_NAME := {{ kernel_name }}
 TARGET_KERNEL_ARCH := {{ device_arch }}
 TARGET_KERNEL_HEADER_ARCH := {{ device_arch }}
 TARGET_KERNEL_SOURCE := kernel/{{ device_manufacturer }}/{{ device_codename }}
