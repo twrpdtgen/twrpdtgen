@@ -93,10 +93,6 @@ def make_twrp_fstab(old_fstab, new_fstab):
         "/": "/system",
         "/system_root": "/system"
     }
-    dest_fstab.write("# Android fstab file." + "\n")
-    dest_fstab.write("# The filesystem that contains the filesystem checker binary (typically /system) cannot" + "\n")
-    dest_fstab.write("# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK" + "\n")
-    dest_fstab.write("\n")
     dest_fstab.write(
         "# mount point       fstype    device                                                                flags" + "\n")
     for entry in fstab_entries:
