@@ -157,9 +157,11 @@ def main():
 
     # TODO move to Device Tree Manager
     dt_repo = Repo.init(device_tree_path)
-    with dt_repo.config_writer() as git_config:
-        git_config.set_value('user', 'email', 'barezzisebastiano@gmail.com')
-        git_config.set_value('user', 'name', 'Sebastiano Barezzi')
+    git_config_reader = dt_repo.config_reader()
+    git_config_writer = dt_repo.config_writer()
+    if git_config_reader.get_value('user', 'email') is None or git_config_reader.get_value('user', 'name') is None:
+        git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
+        git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
     dt_repo.index.add(["*"])
     commit_message = render_template(None, "commit_message.jinja2", to_file=False,
                                      device_codename=build_prop.codename,
