@@ -1,9 +1,8 @@
-"""AIK Manager class"""
 from pathlib import Path
 from platform import system
 from shutil import rmtree, copyfile
 from subprocess import Popen, PIPE, call
-from typing import Union
+from typing import Tuple, Union
 
 from git import Repo
 
@@ -13,7 +12,7 @@ from twrpdtgen.misc import handle_remove_readonly
 class AIKManager:
     """
     This class is responsible for dealing with AIK tasks
-     such as cloning, updating, and extracting recovery images.
+    such as cloning, updating, and extracting recovery images.
     """
 
     def __init__(self, aik_path: Path):
@@ -30,7 +29,9 @@ class AIKManager:
             self.clone_aik()
 
     def update_aik(self):
-        """Update AIK using git if newer version is available."""
+        """
+        Update AIK using git if newer version is available.
+        """
         aik = Repo(self._path)
         current_commit = aik.head.commit.hexsha
         last_upstream_commit = aik.remote().fetch()[0].commit.hexsha
@@ -42,14 +43,16 @@ class AIKManager:
             print("AIK is up-to-date")
 
     def clone_aik(self):
-        """Clone AIK using git clone command."""
+        """
+        Clone AIK using git clone command.
+        """
         print("Cloning AIK...")
         if system() == "Linux":
             Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self._path)
         elif system() == "Windows":
             Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", self._path)
 
-    def extract_recovery(self, recovery_image: Union[Path, str]) -> (Path, Path):
+    def extract_recovery(self, recovery_image: Union[Path, str]) -> Tuple[Path, Path]:
         """
         Extract a custom recovery image using AIK.
         :param recovery_image: recovery image string or path object

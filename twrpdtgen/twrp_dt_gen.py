@@ -3,13 +3,11 @@
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
 from argparse import ArgumentParser
+from git import Repo
+from git.exc import InvalidGitRepositoryError
 from pathlib import Path
 from shutil import copyfile
 from sys import exit as sys_exit
-
-from git import Repo
-from git.exc import InvalidGitRepositoryError
-
 from twrpdtgen import __version__ as version, aik_path
 from twrpdtgen import current_path, working_path
 from twrpdtgen.aik_manager import AIKManager
@@ -123,8 +121,7 @@ def main():
                     ramdisk_offset=recovery_image_info.ramdisk_offset,
                     tags_offset=recovery_image_info.tags_offset,
                     ramdisk_compression=recovery_image_info.ramdisk_compression,
-                    flash_block_size=str(int(recovery_image_info.pagesize) * 64)
-                    )
+                    flash_block_size=str(int(recovery_image_info.pagesize) * 64))
 
     print("Creating device.mk...")
     render_template(device_tree.path, "device.mk.jinja2",
@@ -139,8 +136,7 @@ def main():
                     device_manufacturer=build_prop.manufacturer,
                     device_brand=build_prop.brand,
                     device_model=build_prop.model,
-                    device_has_64bit_arch=build_prop.device_has_64bit_arch
-                    )
+                    device_has_64bit_arch=build_prop.device_has_64bit_arch)
 
     print("Creating vendorsetup.sh...")
     render_template(device_tree.path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)

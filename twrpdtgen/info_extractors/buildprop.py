@@ -1,7 +1,7 @@
 """Build.prop reader class implementation"""
 import re
 from pathlib import Path
-from typing import Union
+from typing import Pattern
 
 DEVICE_CODENAME_RE = re.compile(r'(?:ro.product.device=|ro.system.device='
                                 r'|ro.vendor.device=|ro.product.system.device=)(.*)$', re.MULTILINE)
@@ -24,66 +24,34 @@ DEVICE_IS_AB_RE = re.compile(r'(?:ro.build.ab_update=true)(.*)$', re.MULTILINE)
 class BuildPropReader:
     """
     This class is responsible for reading build.prop files
-     and extracting required information from it"""
+    and extracting required information from it
+    """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
-    _filename: Union[Path, str]
-    _content: str
-    codename: str
-    manufacturer: str
-    platform: str
-    brand: str
-    model: str
-    arch: str
-    device_is_ab: bool
-    device_has_64bit_arch: bool
 
-    def __init__(self, file):
+    def __init__(self, file: Path):
         """
         Build.prop reader class constructor.
-        :param file: build.prop file path as a string or Path object
+        :param file: build.prop file path as a Path object
         """
-        self._filename = Path(file).absolute()
+        self._filename = file.absolute()
         self._content = self._filename.read_text()
-        # codename
-        _match = DEVICE_CODENAME_RE.search(self._content)
-        if _match:
-            self.codename = _match.group(1)
-        else:
-            self._error("codename")
-        # manufacturer
-        _match = DEVICE_MANUFACTURER_RE.search(self._content)
-        if _match:
-            self.manufacturer = _match.group(1).lower()
-        else:
-            self._error("manufacturer")
-        # platform
-        _match = DEVICE_PLATFORM_RE.search(self._content)
-        if _match:
-            self.platform = _match.group(1)
-        else:
-            self._error("platform")
-        # brand
-        _match = DEVICE_BRAND_RE.search(self._content)
-        if _match:
-            self.brand = _match.group(1)
-        else:
-            self._error("brand")
-        # model
-        _match = DEVICE_MODEL_RE.search(self._content)
-        if _match:
-            self.model = _match.group(1)
-        else:
-            self._error("model")
-        # arch
-        _match = DEVICE_ARCH_RE.search(self._content)
-        if _match:
-            self.arch = self.parse_arch(_match.group(1))
-        else:
-            self._error("architecture")
-        # device is AB
-        _match = DEVICE_IS_AB_RE.search(self._content)
-        self.device_is_ab = bool(_match)
+
+        # Parse props
+        self.codename = self.get_prop(DEVICE_CODENAME_RE, "codename")
+        self.manufacturer = self.get_prop(DEVICE_MANUFACTURER_RE, "manufacturer").lower()
+        self.platform = self.get_prop(DEVICE_PLATFORM_RE, "platform")
+        self.brand = self.get_prop(DEVICE_BRAND_RE, "brand")
+        self.model = self.get_prop(DEVICE_MODEL_RE, "model")
+        self.arch = self.parse_arch(self.get_prop(DEVICE_ARCH_RE, "arch"))
+        self.device_is_ab = bool(DEVICE_IS_AB_RE.search(self._content))
         self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
+
+    def get_prop(self, regex: Pattern, error: str) -> str:
+        match = regex.search(self._content)
+        if match:
+            return match.group(1)
+        else:
+            self._error(error)
 
     @staticmethod
     def parse_arch(arch: str) -> str:
@@ -106,5 +74,7 @@ class BuildPropReader:
 
     @staticmethod
     def _error(prop):
-        """Raise and AssertionError if information couldn't be extracted."""
+        """
+        Raise and AssertionError if information couldn't be extracted.
+        """
         raise AssertionError(f"Device {prop} could not be found in build.prop")

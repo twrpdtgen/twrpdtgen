@@ -5,17 +5,16 @@ from typing import Union
 
 
 class RecoveryImageInfoReader:
-    """This class is responsible for reading device information from ramdisk"""
+    """
+    This class is responsible for reading device information from ramdisk
+    """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
-    aik_ramdisk_path: Union[Path, str]
-    aik_images_path: Union[Path, str]
 
-    def __init__(self, aik_ramdisk_path: Union[Path, str],
-                 aik_images_path: Union[Path, str]):
+    def __init__(self, aik_ramdisk_path: Path, aik_images_path: Path):
         """
         Device info reader class constructor
-        :param aik_ramdisk_path: Extracted ramdisk path as a string or path object
-        :param aik_images_path: Extracted images path as a string or path object
+        :param aik_ramdisk_path: Extracted ramdisk path as a Path object
+        :param aik_images_path: Extracted images path as Path object
         """
         self.aik_ramdisk_path = aik_ramdisk_path
         self.aik_images_path = aik_images_path
@@ -27,26 +26,15 @@ class RecoveryImageInfoReader:
         self.base_address = self.read_recovery_file(Path(self.aik_images_path_base + "base"))
         self.board_name = self.read_recovery_file(Path(self.aik_images_path_base + "board"))
         self.cmdline = self.read_recovery_file(Path(self.aik_images_path_base + "cmdline"))
-        # self.device_hash_type = self.read_from_file(Path(aik_images_path_base + "hashtype"))
         header_version = Path(self.aik_images_path_base + "header_version")
         self.header_version = self.read_recovery_file(header_version) if header_version.exists() else "0"
-        # self.device_image_type = self.read_from_file(
-        # Path(aik_images_path_base + "imgtype"))
-        # self.device_kernel_offset = self.read_from_file(
-        # Path(aik_images_path_base + "kernel_offset"))
         self.recovery_size = self.read_recovery_file(
             Path(self.aik_images_path_base + "origsize"))
-        # self.device_recovery_sp = self.read_from_file(
-        # Path(aik_images_path_base + "os_patch_level"))
-        # self.device_recovery_version = self.read_from_file(
-        # Path(aik_images_path_base + "os_version"))
         self.pagesize = self.read_recovery_file(Path(self.aik_images_path_base + "pagesize"))
         self.ramdisk_compression = self.read_recovery_file(
             Path(self.aik_images_path_base + "ramdiskcomp"))
         self.ramdisk_offset = self.read_recovery_file(
             Path(self.aik_images_path_base + "ramdisk_offset"))
-        # self.device_second_offset = self.read_from_file(
-        # Path(aik_images_path_base + "second_offset"))
         self.tags_offset = self.read_recovery_file(
             Path(self.aik_images_path_base + "tags_offset"))
         self.kernel_name = ''
