@@ -14,7 +14,8 @@ from twrpdtgen import current_path, working_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
-from twrpdtgen.misc import error, make_twrp_fstab, print_help, render_template
+from twrpdtgen.misc import error, print_help, render_template
+from twrpdtgen.utils.fstab import make_twrp_fstab
 
 
 def self_repo_check() -> str:
@@ -88,12 +89,10 @@ def main():
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
     elif Path(aik_ramdisk_path / "etc" / "recovery.fstab").is_file():
         print("Generating fstab...")
-        # TODO refactor to better fstab generator
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
                         device_tree_path / "recovery.fstab")
     elif Path(aik_ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
         print("Generating fstab...")
-        # TODO refactor to better fstab generator
         make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
                         device_tree_path / "recovery.fstab")
     else:
