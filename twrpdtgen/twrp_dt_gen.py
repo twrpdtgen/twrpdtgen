@@ -2,9 +2,10 @@
 
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
+from argparse import ArgumentParser
 from pathlib import Path
 from shutil import copyfile, rmtree
-from sys import argv, exit as sys_exit
+from sys import exit as sys_exit
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
@@ -14,9 +15,13 @@ from twrpdtgen import current_path, working_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
-from twrpdtgen.misc import error, print_help, render_template
+from twrpdtgen.misc import error, render_template
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
+parser = ArgumentParser(prog='python3 -m twrpdtgen')
+parser.add_argument("recovery_image", type=Path,
+                    help="path to a recovery image (or boot image if the device is A/B)")
+args = parser.parse_args()
 
 def self_repo_check() -> str:
     """
@@ -32,22 +37,18 @@ def self_repo_check() -> str:
 
 
 def main():
-    # TODO switch to ArgsParser for dealing with args
     print(f"TWRP device tree generator\n"
           "Python Edition\n"
           f"Version {version}\n")
     last_commit = self_repo_check()
-    recovery_image = Path()
     try:
-        recovery_image = Path(argv[1])
+        recovery_image = args.recovery_image
     except IndexError:
         error("Recovery image not provided")
-        print_help()
         sys_exit()
 
     if not recovery_image.is_file():
         error("Recovery image doesn't exist")
-        print_help()
         sys_exit()
 
     aik = AIKManager(aik_path)

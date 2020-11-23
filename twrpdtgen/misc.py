@@ -24,10 +24,6 @@ def render_template(device_tree_path: Optional[Path], template_file: str,
 def error(err):
     print("Error:", err)
 
-def print_help():
-    print("Usage: start.py <recovery image path>")
-
-
 def handle_remove_readonly(func, path, _):
     Path(path).chmod(S_IWRITE)
     func(path)
