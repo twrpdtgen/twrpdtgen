@@ -4,7 +4,7 @@
 
 from argparse import ArgumentParser
 from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import copyfile
 from sys import exit as sys_exit
 
 from git import Repo
@@ -16,6 +16,7 @@ from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
 from twrpdtgen.misc import error, render_template
+from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
 parser = ArgumentParser(prog='python3 -m twrpdtgen')
@@ -57,45 +58,34 @@ def main():
     print("Getting device infos...")
     build_prop = BuildPropReader(aik_ramdisk_path / "default.prop")
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
-
-    device_tree_path = working_path / build_prop.manufacturer / build_prop.codename
-    device_tree_prebuilt_path = device_tree_path / "prebuilt"
-    device_tree_recovery_root_path = device_tree_path / "recovery" / "root"
-
-    print("Creating device tree folders...")
-    # TODO refactor to Device Tree Manager class
-    if device_tree_path.is_dir():
-        rmtree(device_tree_path, ignore_errors=True)
-    device_tree_path.mkdir(parents=True)
-    device_tree_prebuilt_path.mkdir(parents=True)
-    device_tree_recovery_root_path.mkdir(parents=True)
+    device_tree = DeviceTree(working_path / build_prop.manufacturer / build_prop.codename)
 
     print("Copying kernel...")
     recovery_image_info.get_kernel_name(build_prop.arch)
     if recovery_image_info.kernel_name:
         copyfile(recovery_image_info.aik_images_path_base + "zImage",
-                 device_tree_prebuilt_path / recovery_image_info.kernel_name)
+                 device_tree.prebuilt_path / recovery_image_info.kernel_name)
     if recovery_image_info.has_dt_image:
         copyfile(recovery_image_info.aik_images_path_base + "dt",
-                 device_tree_prebuilt_path / "dt.img")
+                 device_tree.prebuilt_path / "dt.img")
     if recovery_image_info.has_dtb_image:
         copyfile(recovery_image_info.aik_images_path_base + "dtb",
-                 device_tree_prebuilt_path / "dtb.img")
+                 device_tree.prebuilt_path / "dtb.img")
     if recovery_image_info.has_dtbo_image:
         copyfile(recovery_image_info.aik_images_path_base + "dtbo",
-                 device_tree_prebuilt_path / "dtbo.img")
+                 device_tree.prebuilt_path / "dtbo.img")
 
     if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
         print("Found a TWRP fstab, copying it...")
-        copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree_path / "recovery.fstab")
+        copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree.fstab)
     elif Path(aik_ramdisk_path / "etc" / "recovery.fstab").is_file():
         print("Generating fstab...")
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
-                        device_tree_path / "recovery.fstab")
+                        device_tree.fstab)
     elif Path(aik_ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
         print("Generating fstab...")
         make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
-                        device_tree_path / "recovery.fstab")
+                        device_tree.fstab)
     else:
         error("fstab not found")
         exit()
@@ -103,17 +93,17 @@ def main():
     for file in aik_ramdisk_path.iterdir():
         if file.name.endswith(".rc") and file != "init.rc":
             copyfile(aik_ramdisk_path / file,
-                     device_tree_recovery_root_path / file.name, follow_symlinks=True)
+                     device_tree.recovery_root_path / file.name, follow_symlinks=True)
 
     print("Creating Android.mk...")
-    render_template(device_tree_path, "Android.mk.jinja2", device_codename=build_prop.codename)
+    render_template(device_tree.path, "Android.mk.jinja2", device_codename=build_prop.codename)
 
     print("Creating AndroidProducts.mk...")
-    render_template(device_tree_path, "AndroidProducts.mk.jinja2",
+    render_template(device_tree.path, "AndroidProducts.mk.jinja2",
                     device_codename=build_prop.codename)
 
     print("Creating BoardConfig.mk...")
-    render_template(device_tree_path, "BoardConfig.mk.jinja2",
+    render_template(device_tree.path, "BoardConfig.mk.jinja2",
                     device_manufacturer=build_prop.manufacturer,
                     device_codename=build_prop.codename,
                     device_is_ab=build_prop.device_is_ab,
@@ -137,14 +127,14 @@ def main():
                     )
 
     print("Creating device.mk...")
-    render_template(device_tree_path, "device.mk.jinja2",
+    render_template(device_tree.path, "device.mk.jinja2",
                     device_codename=build_prop.codename,
                     device_manufacturer=build_prop.manufacturer,
                     device_platform=build_prop.platform,
                     device_is_ab=build_prop.device_is_ab)
 
     print(f"Creating omni_{build_prop.codename}.mk...")
-    render_template(device_tree_path, "omni.mk.jinja2", out_file=f"omni_{build_prop.codename}.mk",
+    render_template(device_tree.path, "omni.mk.jinja2", out_file=f"omni_{build_prop.codename}.mk",
                     device_codename=build_prop.codename,
                     device_manufacturer=build_prop.manufacturer,
                     device_brand=build_prop.brand,
@@ -153,16 +143,14 @@ def main():
                     )
 
     print("Creating vendorsetup.sh...")
-    render_template(device_tree_path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)
+    render_template(device_tree.path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)
 
-    # TODO move to Device Tree Manager
-    dt_repo = Repo.init(device_tree_path)
-    git_config_reader = dt_repo.config_reader()
-    git_config_writer = dt_repo.config_writer()
+    git_config_reader = device_tree.git_repo.config_reader()
+    git_config_writer = device_tree.git_repo.config_writer()
     if git_config_reader.get_value('user', 'email') is None or git_config_reader.get_value('user', 'name') is None:
         git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
         git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
-    dt_repo.index.add(["*"])
+    device_tree.git_repo.index.add(["*"])
     commit_message = render_template(None, "commit_message.jinja2", to_file=False,
                                      device_codename=build_prop.codename,
                                      device_arch=build_prop.arch,
@@ -170,5 +158,5 @@ def main():
                                      device_brand=build_prop.brand,
                                      device_model=build_prop.model,
                                      last_commit=last_commit)
-    dt_repo.index.commit(commit_message)
-    print(f"\nDone! You can find the device tree in {str(device_tree_path)}")
+    device_tree.git_repo.index.commit(commit_message)
+    print(f"\nDone! You can find the device tree in {str(device_tree.path)}")
