@@ -54,8 +54,8 @@ def main():
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
 
     print("Getting device infos...")
-    build_prop = BuildPropReader(aik_ramdisk_path / "default.prop")
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
+    build_prop = BuildPropReader(recovery_image_info.buildprop)
     device_tree = DeviceTree(working_path / build_prop.manufacturer / build_prop.codename)
 
     print("Copying kernel...")

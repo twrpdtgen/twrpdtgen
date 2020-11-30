@@ -42,6 +42,19 @@ class RecoveryImageInfoReader:
         self.tags_offset = self.read_recovery_file(self.get_extracted_info("tags_offset"))
         self.kernel_name = ''
 
+        # Get a usable build.prop to parse
+        self.buildprop = None
+        buildprop_locations = [self.aik_ramdisk_path / "default.prop",
+                               self.aik_ramdisk_path / "vendor" / "build.prop",
+                               self.aik_ramdisk_path / "system" / "build.prop",
+                               self.aik_ramdisk_path / "system" / "etc" / "build.prop"]
+        for folder in buildprop_locations:
+            if folder.is_file():
+                self.buildprop = folder
+                break
+        if self.buildprop is None:
+            AssertionError("Couldn't find any build.prop")
+
     @staticmethod
     def read_recovery_file(file: Path) -> str:
         """
