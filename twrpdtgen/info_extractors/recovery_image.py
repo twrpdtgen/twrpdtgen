@@ -25,8 +25,11 @@ class RecoveryImageInfoReader:
         self.dt_image = dt_image if dt_image.is_file() else None
         dtb_image = self.get_extracted_info("dtb")
         self.dtb_image = dtb_image if dtb_image.is_file() else None
-        dtbo_image = self.get_extracted_info("dtbo")
-        self.dtbo_image = dtbo_image if dtbo_image.is_file() else None
+        self.dtbo_image = None
+        for name in ["dtbo", "recovery_dtbo"]:
+            dtbo_image = self.get_extracted_info(name)
+            if dtbo_image.is_file():
+                self.dtbo_image = dtbo_image
         self.base_address = self.read_recovery_file(self.get_extracted_info("base"))
         self.board_name = self.read_recovery_file(self.get_extracted_info("board"))
         self.cmdline = self.read_recovery_file(self.get_extracted_info("cmdline"))
