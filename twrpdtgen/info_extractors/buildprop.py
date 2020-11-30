@@ -3,23 +3,13 @@ import re
 from pathlib import Path
 from typing import Pattern
 
-DEVICE_CODENAME_RE = re.compile(r'(?:ro.product.device=|ro.system.device='
-                                r'|ro.vendor.device=|ro.product.system.device=)(.*)$', re.MULTILINE)
-DEVICE_MANUFACTURER_RE = re.compile(
-    r'(?:ro.product.manufacturer=|ro.product.system.manufacturer='
-    r'|ro.product.vendor.manufacturer=)(.*)$',
-    re.MULTILINE)
-DEVICE_PLATFORM_RE = re.compile(r'(?:ro.board.platform='
-                                r'|ro.hardware.keystore=)(.*)$', re.MULTILINE)
-DEVICE_BRAND_RE = re.compile(
-    r'(?:ro.product.brand=|ro.product.system.brand='
-    r'|ro.product.vendor.brand=)(.*)$', re.MULTILINE)
-DEVICE_MODEL_RE = re.compile(
-    r'(?:ro.product.model=|ro.product.system.model='
-    r'|ro.product.vendor.model=)(.*)$', re.MULTILINE)
+DEVICE_CODENAME_RE = re.compile(r'(?:ro.product[.|.system.|.vendor.]device=)(.*)$', re.MULTILINE)
+DEVICE_MANUFACTURER_RE = re.compile(r'(?:ro.product[.|.system.|.vendor.]manufacturer=)(.*)$', re.MULTILINE)
+DEVICE_PLATFORM_RE = re.compile(r'(?:ro.board.platform=|ro.hardware.keystore=)(.*)$', re.MULTILINE)
+DEVICE_BRAND_RE = re.compile(r'(?:ro.product[.|.system.|.vendor.]brand=)(.*)$', re.MULTILINE)
+DEVICE_MODEL_RE = re.compile(r'(?:ro.product[.|.system.|.vendor.]model=)(.*)$', re.MULTILINE)
 DEVICE_ARCH_RE = re.compile(r'(?:ro.product.cpu.abi=|ro.product.cpu.abilist=)(.*)$', re.MULTILINE)
 DEVICE_IS_AB_RE = re.compile(r'(?:ro.build.ab_update=true)(.*)$', re.MULTILINE)
-
 
 class BuildPropReader:
     """
