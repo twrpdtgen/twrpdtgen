@@ -1,8 +1,6 @@
 """Device info reader class implementation"""
 
 from pathlib import Path
-from typing import Union
-
 
 class RecoveryImageInfoReader:
     """
