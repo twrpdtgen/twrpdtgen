@@ -1,4 +1,6 @@
-"""Device info reader class implementation"""
+"""
+Device info reader class implementation.
+"""
 
 from pathlib import Path
 
