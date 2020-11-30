@@ -78,16 +78,16 @@ TW_INCLUDE_REPACKTOOLS := true
 {% endif %}
 # Kernel
 BOARD_KERNEL_CMDLINE := {{ cmdline }}
-{% if has_kernel %}
+{% if kernel != None %}
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/{{ kernel_name }}
 {% endif %}
-{% if has_dt_image %}
+{% if dt_image != None %}
 TARGET_PREBUILT_DT := $(DEVICE_PATH)/prebuilt/dt.img
 {% endif %}
-{% if has_dtb_image %}
+{% if dtb_image != None %}
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
 {% endif %}
-{% if has_dtbo_image %}
+{% if dtbo_image != None %}
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
 BOARD_INCLUDE_RECOVERY_DTBO := true
 {% endif %}

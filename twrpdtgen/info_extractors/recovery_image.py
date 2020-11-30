@@ -19,10 +19,14 @@ class RecoveryImageInfoReader:
         self.aik_ramdisk_path = aik_ramdisk_path
         self.aik_images_path = aik_images_path
         self.aik_images_path_base = str(aik_images_path / "recovery.img-")
-        self.has_kernel = self.get_extracted_info("zImage").is_file()
-        self.has_dt_image = self.get_extracted_info("dt").is_file()
-        self.has_dtb_image = self.get_extracted_info("dtb").is_file()
-        self.has_dtbo_image = self.get_extracted_info("dtbo").is_file()
+        kernel = self.get_extracted_info("zImage")
+        self.kernel = kernel if kernel.is_file() else None
+        dt_image = self.get_extracted_info("dt")
+        self.dt_image = dt_image if dt_image.is_file() else None
+        dtb_image = self.get_extracted_info("dtb")
+        self.dtb_image = dtb_image if dtb_image.is_file() else None
+        dtbo_image = self.get_extracted_info("dtbo")
+        self.dtbo_image = dtbo_image if dtbo_image.is_file() else None
         self.base_address = self.read_recovery_file(self.get_extracted_info("base"))
         self.board_name = self.read_recovery_file(self.get_extracted_info("board"))
         self.cmdline = self.read_recovery_file(self.get_extracted_info("cmdline"))
@@ -59,13 +63,13 @@ class RecoveryImageInfoReader:
             "x86": "bzImage",
             "x86_64": "bzImage"
         }
-        if self.has_kernel:
+        if self.kernel is not None:
             try:
                 kernel_name = kernel_names[arch]
             except KeyError:
                 kernel_name = "zImage"
             if arch in ("arm", "arm64") and (
-                    not self.has_dt_image and not self.has_dtb_image):
+                    self.dt_image is None and self.dtb_image is None):
                 kernel_name += "-dtb"
             self.kernel_name = kernel_name
             return kernel_name

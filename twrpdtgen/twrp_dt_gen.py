@@ -60,18 +60,15 @@ def main():
 
     print("Copying kernel...")
     recovery_image_info.get_kernel_name(build_prop.arch)
-    if recovery_image_info.kernel_name:
-        copyfile(recovery_image_info.aik_images_path_base + "zImage",
+    if recovery_image_info.kernel is not None:
+        copyfile(recovery_image_info.kernel,
                  device_tree.prebuilt_path / recovery_image_info.kernel_name)
-    if recovery_image_info.has_dt_image:
-        copyfile(recovery_image_info.aik_images_path_base + "dt",
-                 device_tree.prebuilt_path / "dt.img")
-    if recovery_image_info.has_dtb_image:
-        copyfile(recovery_image_info.aik_images_path_base + "dtb",
-                 device_tree.prebuilt_path / "dtb.img")
-    if recovery_image_info.has_dtbo_image:
-        copyfile(recovery_image_info.aik_images_path_base + "dtbo",
-                 device_tree.prebuilt_path / "dtbo.img")
+    if recovery_image_info.dt_image is not None:
+        copyfile(recovery_image_info.dt_image, device_tree.dt_image)
+    if recovery_image_info.dtb_image is not None:
+        copyfile(recovery_image_info.dtb_image, device_tree.dtb_image)
+    if recovery_image_info.dtbo_image is not None:
+        copyfile(recovery_image_info.dtbo_image, device_tree.dtbo_image)
 
     if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
         print("Found a TWRP fstab, copying it...")
@@ -110,11 +107,11 @@ def main():
                     board_name=recovery_image_info.board_name,
                     recovery_size=recovery_image_info.recovery_size,
                     cmdline=recovery_image_info.cmdline,
-                    has_kernel=recovery_image_info.has_kernel,
+                    kernel=recovery_image_info.kernel,
                     kernel_name=recovery_image_info.kernel_name,
-                    has_dt_image=recovery_image_info.has_dt_image,
-                    has_dtb_image=recovery_image_info.has_dtb_image,
-                    has_dtbo_image=recovery_image_info.has_dtbo_image,
+                    dt_image=recovery_image_info.dt_image,
+                    dtb_image=recovery_image_info.dtb_image,
+                    dtbo_image=recovery_image_info.dtbo_image,
                     header_version=recovery_image_info.header_version,
                     base_address=recovery_image_info.base_address,
                     pagesize=recovery_image_info.pagesize,

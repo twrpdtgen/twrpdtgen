@@ -37,11 +37,14 @@ class BuildPropReader:
         self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
 
     def get_prop(self, regex: Pattern, error: str) -> str:
+        """
+        Get a prop value from a regular expression pattern
+        """
         match = regex.search(self._content)
         if match:
             return match.group(1)
         else:
-            self._error(error)
+            raise AssertionError(f"Device {error} could not be found in build.prop")
 
     @staticmethod
     def parse_arch(arch: str) -> str:
@@ -61,10 +64,3 @@ class BuildPropReader:
         if arch.startswith("mips"):
             return "mips"
         return "unknown"
-
-    @staticmethod
-    def _error(prop):
-        """
-        Raise and AssertionError if information couldn't be extracted.
-        """
-        raise AssertionError(f"Device {prop} could not be found in build.prop")
