@@ -19,24 +19,20 @@ class RecoveryImageInfoReader:
         self.aik_ramdisk_path = aik_ramdisk_path
         self.aik_images_path = aik_images_path
         self.aik_images_path_base = str(aik_images_path / "recovery.img-")
-        self.has_kernel = Path(self.aik_images_path_base + "zImage").is_file()
-        self.has_dt_image = Path(self.aik_images_path_base + "dt").is_file()
-        self.has_dtb_image = Path(self.aik_images_path_base + "dtb").is_file()
-        self.has_dtbo_image = Path(self.aik_images_path_base + "dtbo").is_file()
-        self.base_address = self.read_recovery_file(Path(self.aik_images_path_base + "base"))
-        self.board_name = self.read_recovery_file(Path(self.aik_images_path_base + "board"))
-        self.cmdline = self.read_recovery_file(Path(self.aik_images_path_base + "cmdline"))
-        header_version = Path(self.aik_images_path_base + "header_version")
+        self.has_kernel = self.get_extracted_info("zImage").is_file()
+        self.has_dt_image = self.get_extracted_info("dt").is_file()
+        self.has_dtb_image = self.get_extracted_info("dtb").is_file()
+        self.has_dtbo_image = self.get_extracted_info("dtbo").is_file()
+        self.base_address = self.read_recovery_file(self.get_extracted_info("base"))
+        self.board_name = self.read_recovery_file(self.get_extracted_info("board"))
+        self.cmdline = self.read_recovery_file(self.get_extracted_info("cmdline"))
+        header_version = self.get_extracted_info("header_version")
         self.header_version = self.read_recovery_file(header_version) if header_version.exists() else "0"
-        self.recovery_size = self.read_recovery_file(
-            Path(self.aik_images_path_base + "origsize"))
-        self.pagesize = self.read_recovery_file(Path(self.aik_images_path_base + "pagesize"))
-        self.ramdisk_compression = self.read_recovery_file(
-            Path(self.aik_images_path_base + "ramdiskcomp"))
-        self.ramdisk_offset = self.read_recovery_file(
-            Path(self.aik_images_path_base + "ramdisk_offset"))
-        self.tags_offset = self.read_recovery_file(
-            Path(self.aik_images_path_base + "tags_offset"))
+        self.recovery_size = self.read_recovery_file(self.get_extracted_info("origsize"))
+        self.pagesize = self.read_recovery_file(self.get_extracted_info("pagesize"))
+        self.ramdisk_compression = self.read_recovery_file(self.get_extracted_info("ramdiskcomp"))
+        self.ramdisk_offset = self.read_recovery_file(self.get_extracted_info("ramdisk_offset"))
+        self.tags_offset = self.read_recovery_file(self.get_extracted_info("tags_offset"))
         self.kernel_name = ''
 
     @staticmethod
@@ -47,6 +43,9 @@ class RecoveryImageInfoReader:
         :return: string of the first line of the file contents
         """
         return file.read_text().splitlines()[0]
+
+    def get_extracted_info(self, file: str) -> Path:
+        return Path(str(self.aik_images_path / "recovery.img-") + file)
 
     def get_kernel_name(self, arch: str) -> str:
         """
