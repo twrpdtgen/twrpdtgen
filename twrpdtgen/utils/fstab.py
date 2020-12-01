@@ -20,7 +20,8 @@ partition_device_location = 2
 bootloader_partitions = [
     "/boot",
     "/recovery",
-    "/dtbo" 
+    "/dtbo",
+    "/misc"
 ]
 
 # Partitions containing Android userspace libs and apps
