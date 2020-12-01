@@ -19,6 +19,7 @@ partition_device_location = 2
 # Partitions used during the boot process
 bootloader_partitions = [
     "/boot",
+    "/vendor_boot",
     "/recovery",
     "/dtbo",
     "/misc"
