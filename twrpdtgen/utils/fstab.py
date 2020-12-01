@@ -24,14 +24,12 @@ bootloader_partitions = [
 ]
 
 # Partitions containing Android userspace libs and apps
-standard_system_partitions = [
+system_partitions = [
     "/system",
     "/vendor",
     "/product",
     "/odm"
 ]
-logical_system_partitions = [partition[1:] for partition in standard_system_partitions]
-system_partitions = standard_system_partitions + logical_system_partitions
 
 # Partitions containing user data
 android_user_partitions = [
@@ -98,9 +96,6 @@ class FstabEntry:
         self.human_name = self.name
         if self.name.startswith("/"):
             self.human_name = self.human_name[1:]
-            is_logical = False
-        else:
-            is_logical = True
         self.human_name = self.human_name.capitalize()
         is_image = True if (self.name.endswith("_image") or self.name in bootloader_partitions) else False
         if is_image and self.name not in bootloader_partitions:
@@ -115,7 +110,7 @@ class FstabEntry:
         else:
             if self.name in partition_backup_flag:
                 self.flags += ['backup=1']
-        if is_logical:
+        if not self.device.startswith("/"):
             self.flags += ['logical']
 
     def get_formatted_line(self) -> str:
