@@ -28,6 +28,7 @@ bootloader_partitions = [
 # Partitions containing Android userspace libs and apps
 system_partitions = [
     "/system",
+    "/system_ext",
     "/vendor",
     "/product",
     "/odm"
