@@ -141,7 +141,11 @@ def main():
 
     git_config_reader = device_tree.git_repo.config_reader()
     git_config_writer = device_tree.git_repo.config_writer()
-    if git_config_reader.get_value('user', 'email') is None or git_config_reader.get_value('user', 'name') is None:
+    try:
+        git_global_email, git_global_name = git_config_reader.get_value('user', 'email'), git_config_reader.get_value('user', 'name')
+    except:
+        git_global_email, git_global_name = None, None
+    if git_global_email is None or git_global_name is None:
         git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
         git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
     device_tree.git_repo.index.add(["*"])
