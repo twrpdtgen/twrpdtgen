@@ -6,7 +6,7 @@ from logging import basicConfig, debug, info, warning, error, INFO, DEBUG
 from pathlib import Path
 from shutil import copyfile
 from sys import exit as sys_exit
-from twrpdtgen import __version__ as version, aik_path
+from twrpdtgen import aik_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
@@ -14,11 +14,12 @@ from twrpdtgen.misc import render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
-def main(recovery_image: Path, output_path: Path):
-    print(f"TWRP device tree generator\n"
-          "Python Edition\n"
-          f"Version {version}\n")
+def main(recovery_image: Path, output_path: Path) -> Path:
+    """
+    Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
+    Returns the path of the device tree
+    """
     if not recovery_image.is_file():
         error("Recovery image doesn't exist")
         sys_exit()
@@ -129,4 +130,4 @@ def main(recovery_image: Path, output_path: Path):
                                      device_brand=build_prop.brand,
                                      device_model=build_prop.model)
     device_tree.git_repo.index.commit(commit_message)
-    print(f"\nDone! You can find the device tree in {str(device_tree.path)}")
+    return device_tree.path
