@@ -6,7 +6,6 @@ from pathlib import Path
 from shutil import copyfile
 from sys import exit as sys_exit
 from twrpdtgen import __version__ as version, aik_path
-from twrpdtgen import current_path, working_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
@@ -14,7 +13,7 @@ from twrpdtgen.misc import error, render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
-def main(recovery_image: Path):
+def main(recovery_image: Path, output_path: Path):
     print(f"TWRP device tree generator\n"
           "Python Edition\n"
           f"Version {version}\n")
@@ -30,7 +29,7 @@ def main(recovery_image: Path):
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
     print("Using", recovery_image_info.buildprop, "as build.prop")
     build_prop = BuildPropReader(recovery_image_info.buildprop)
-    device_tree = DeviceTree(working_path / build_prop.manufacturer / build_prop.codename)
+    device_tree = DeviceTree(output_path / build_prop.manufacturer / build_prop.codename)
 
     print("Copying kernel...")
     recovery_image_info.get_kernel_name(build_prop.arch)
