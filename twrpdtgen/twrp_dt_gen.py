@@ -2,7 +2,6 @@
 
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
-from argparse import ArgumentParser
 from pathlib import Path
 from shutil import copyfile
 from sys import exit as sys_exit
@@ -15,21 +14,10 @@ from twrpdtgen.misc import error, render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
-parser = ArgumentParser(prog='python3 -m twrpdtgen')
-parser.add_argument("recovery_image", type=Path,
-                    help="path to a recovery image (or boot image if the device is A/B)")
-args = parser.parse_args()
-
-def main():
+def main(recovery_image: Path):
     print(f"TWRP device tree generator\n"
           "Python Edition\n"
           f"Version {version}\n")
-
-    try:
-        recovery_image = args.recovery_image
-    except IndexError:
-        error("Recovery image not provided")
-        sys_exit()
 
     if not recovery_image.is_file():
         error("Recovery image doesn't exist")
