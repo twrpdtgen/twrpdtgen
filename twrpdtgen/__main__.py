@@ -4,11 +4,16 @@ from argparse import ArgumentParser
 from pathlib import Path
 from twrpdtgen import current_path
 from twrpdtgen.twrp_dt_gen import main
+from twrpdtgen.utils.logging import setup_logging
 
 if __name__ == '__main__':
     parser = ArgumentParser(prog='python3 -m twrpdtgen')
     parser.add_argument("recovery_image", type=Path,
                         help="path to a recovery image (or boot image if the device is A/B)")
+    parser.add_argument("-v", "--verbose", action='store_true',
+                        help="Enable debugging logging")
     args = parser.parse_args()
+
+    setup_logging(args.verbose)
 
     main(args.recovery_image, current_path / "working")

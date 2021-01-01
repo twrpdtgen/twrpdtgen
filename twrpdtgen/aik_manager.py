@@ -6,6 +6,7 @@ from typing import Tuple, Union
 
 from git import Repo
 
+from twrpdtgen.twrp_dt_gen import info
 from twrpdtgen.misc import handle_remove_readonly
 
 
@@ -36,17 +37,17 @@ class AIKManager:
         current_commit = aik.head.commit.hexsha
         last_upstream_commit = aik.remote().fetch()[0].commit.hexsha
         if current_commit != last_upstream_commit:
-            print(f"Updating AIK to {last_upstream_commit[:7]}")
+            info(f"Updating AIK to {last_upstream_commit[:7]}")
             rmtree(self._path, ignore_errors=False, onerror=handle_remove_readonly)
             self.clone_aik()
         else:
-            print("AIK is up-to-date")
+            info("AIK is up-to-date")
 
     def clone_aik(self):
         """
         Clone AIK using git clone command.
         """
-        print("Cloning AIK...")
+        info("Cloning AIK...")
         if system() == "Linux":
             Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self._path)
         elif system() == "Windows":

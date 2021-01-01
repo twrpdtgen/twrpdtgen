@@ -2,6 +2,7 @@
 
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
+from logging import basicConfig, debug, info, warning, error, INFO, DEBUG
 from pathlib import Path
 from shutil import copyfile
 from sys import exit as sys_exit
@@ -19,19 +20,19 @@ def main(recovery_image: Path, output_path: Path):
           f"Version {version}\n")
 
     if not recovery_image.is_file():
-        print("Error: Recovery image doesn't exist")
+        error("Recovery image doesn't exist")
         sys_exit()
 
     aik = AIKManager(aik_path)
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
 
-    print("Getting device infos...")
+    debug("Getting device infos...")
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
-    print("Using", recovery_image_info.buildprop, "as build.prop")
+    debug("Using " + str(recovery_image_info.buildprop) + " as build.prop")
     build_prop = BuildPropReader(recovery_image_info.buildprop)
     device_tree = DeviceTree(output_path / build_prop.manufacturer / build_prop.codename)
 
-    print("Copying kernel...")
+    debug("Copying kernel...")
     recovery_image_info.get_kernel_name(build_prop.arch)
     if recovery_image_info.kernel is not None:
         copyfile(recovery_image_info.kernel,
@@ -44,18 +45,18 @@ def main(recovery_image: Path, output_path: Path):
         copyfile(recovery_image_info.dtbo_image, device_tree.dtbo_image)
 
     if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
-        print("Found a TWRP fstab, copying it...")
+        debug("Found a TWRP fstab, copying it...")
         copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree.fstab)
     elif Path(aik_ramdisk_path / "etc" / "recovery.fstab").is_file():
-        print("Generating fstab...")
+        debug("Generating fstab...")
         make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
                         device_tree.fstab)
     elif Path(aik_ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
-        print("Generating fstab...")
+        debug("Generating fstab...")
         make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
                         device_tree.fstab)
     else:
-        print("Error: fstab not found")
+        error("fstab not found")
         exit()
 
     for file in aik_ramdisk_path.iterdir():
@@ -63,14 +64,14 @@ def main(recovery_image: Path, output_path: Path):
             copyfile(aik_ramdisk_path / file,
                      device_tree.recovery_root_path / file.name, follow_symlinks=True)
 
-    print("Creating Android.mk...")
+    debug("Creating Android.mk...")
     render_template(device_tree.path, "Android.mk.jinja2", device_codename=build_prop.codename)
 
-    print("Creating AndroidProducts.mk...")
+    debug("Creating AndroidProducts.mk...")
     render_template(device_tree.path, "AndroidProducts.mk.jinja2",
                     device_codename=build_prop.codename)
 
-    print("Creating BoardConfig.mk...")
+    debug("Creating BoardConfig.mk...")
     render_template(device_tree.path, "BoardConfig.mk.jinja2",
                     device_manufacturer=build_prop.manufacturer,
                     device_codename=build_prop.codename,
@@ -93,14 +94,14 @@ def main(recovery_image: Path, output_path: Path):
                     ramdisk_compression=recovery_image_info.ramdisk_compression,
                     flash_block_size=str(int(recovery_image_info.pagesize) * 64))
 
-    print("Creating device.mk...")
+    debug("Creating device.mk...")
     render_template(device_tree.path, "device.mk.jinja2",
                     device_codename=build_prop.codename,
                     device_manufacturer=build_prop.manufacturer,
                     device_platform=build_prop.platform,
                     device_is_ab=build_prop.device_is_ab)
 
-    print(f"Creating omni_{build_prop.codename}.mk...")
+    debug(f"Creating omni_{build_prop.codename}.mk...")
     render_template(device_tree.path, "omni.mk.jinja2", out_file=f"omni_{build_prop.codename}.mk",
                     device_codename=build_prop.codename,
                     device_manufacturer=build_prop.manufacturer,
@@ -108,7 +109,7 @@ def main(recovery_image: Path, output_path: Path):
                     device_model=build_prop.model,
                     device_has_64bit_arch=build_prop.device_has_64bit_arch)
 
-    print("Creating vendorsetup.sh...")
+    debug("Creating vendorsetup.sh...")
     render_template(device_tree.path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)
 
     git_config_reader = device_tree.git_repo.config_reader()

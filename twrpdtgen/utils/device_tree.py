@@ -7,6 +7,7 @@
 from git import Repo
 from pathlib import Path
 from shutil import rmtree
+from twrpdtgen.twrp_dt_gen import debug
 
 class DeviceTree:
     """
@@ -17,7 +18,7 @@ class DeviceTree:
         self.prebuilt_path = self.path / "prebuilt"
         self.recovery_root_path = self.path / "recovery" / "root"
 
-        print("Creating device tree folders...")
+        debug("Creating device tree folders...")
         if self.path.is_dir():
             rmtree(self.path, ignore_errors=True)
         self.path.mkdir(parents=True)
