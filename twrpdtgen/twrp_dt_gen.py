@@ -9,7 +9,7 @@ from twrpdtgen import __version__ as version, aik_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
-from twrpdtgen.misc import error, render_template
+from twrpdtgen.misc import render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
@@ -19,7 +19,7 @@ def main(recovery_image: Path, output_path: Path):
           f"Version {version}\n")
 
     if not recovery_image.is_file():
-        error("Recovery image doesn't exist")
+        print("Error: Recovery image doesn't exist")
         sys_exit()
 
     aik = AIKManager(aik_path)
@@ -55,7 +55,7 @@ def main(recovery_image: Path, output_path: Path):
         make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
                         device_tree.fstab)
     else:
-        error("fstab not found")
+        print("Error: fstab not found")
         exit()
 
     for file in aik_ramdisk_path.iterdir():

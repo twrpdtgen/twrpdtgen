@@ -21,9 +21,6 @@ def render_template(device_tree_path: Optional[Path], template_file: str,
         return rendered_template
 
 
-def error(err):
-    print("Error:", err)
-
 def handle_remove_readonly(func, path, _):
     Path(path).chmod(S_IWRITE)
     func(path)
