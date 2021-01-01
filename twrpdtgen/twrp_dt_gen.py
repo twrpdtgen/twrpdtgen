@@ -3,8 +3,6 @@
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
 from argparse import ArgumentParser
-from git import Repo
-from git.exc import InvalidGitRepositoryError
 from pathlib import Path
 from shutil import copyfile
 from sys import exit as sys_exit
@@ -22,24 +20,11 @@ parser.add_argument("recovery_image", type=Path,
                     help="path to a recovery image (or boot image if the device is A/B)")
 args = parser.parse_args()
 
-def self_repo_check() -> str:
-    """
-    Check tool repository before starting
-    :return: last local commit
-    """
-    try:
-        twrpdtgen_repo = Repo(current_path)
-        return twrpdtgen_repo.head.object.hexsha[:7]
-    except InvalidGitRepositoryError:
-        error("Please clone the script with Git instead of downloading it as a zip")
-        sys_exit()
-
-
 def main():
     print(f"TWRP device tree generator\n"
           "Python Edition\n"
           f"Version {version}\n")
-    last_commit = self_repo_check()
+
     try:
         recovery_image = args.recovery_image
     except IndexError:
@@ -154,7 +139,6 @@ def main():
                                      device_arch=build_prop.arch,
                                      device_manufacturer=build_prop.manufacturer,
                                      device_brand=build_prop.brand,
-                                     device_model=build_prop.model,
-                                     last_commit=last_commit)
+                                     device_model=build_prop.model)
     device_tree.git_repo.index.commit(commit_message)
     print(f"\nDone! You can find the device tree in {str(device_tree.path)}")
