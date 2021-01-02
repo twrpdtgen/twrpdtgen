@@ -5,7 +5,6 @@
 from logging import basicConfig, debug, info, warning, error, INFO, DEBUG
 from pathlib import Path
 from shutil import copyfile
-from sys import exit as sys_exit
 from twrpdtgen import aik_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
@@ -13,16 +12,23 @@ from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
 from twrpdtgen.misc import render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
+from typing import Union
 
-def main(recovery_image: Path, output_path: Path) -> Path:
+# Error constants
+(
+    IMAGE_DOES_NOT_EXISTS,
+    FSTAB_NOT_FOUND
+) = range(2)
+
+def main(recovery_image: Path, output_path: Path) -> Union[Path, int]:
     """
     Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
-    Returns the path of the device tree
+    Returns the path of the device tree if the generation went fine, else an integer
     """
     if not recovery_image.is_file():
         error("Recovery image doesn't exist")
-        sys_exit()
+        return IMAGE_DOES_NOT_EXISTS
 
     aik = AIKManager(aik_path)
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
@@ -58,7 +64,7 @@ def main(recovery_image: Path, output_path: Path) -> Path:
                         device_tree.fstab)
     else:
         error("fstab not found")
-        exit()
+        return FSTAB_NOT_FOUND
 
     for file in aik_ramdisk_path.iterdir():
         if file.name.endswith(".rc") and file != "init.rc":
