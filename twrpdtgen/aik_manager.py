@@ -1,13 +1,13 @@
 from pathlib import Path
 from platform import system
-from shutil import rmtree, copyfile
+from shutil import copyfile
 from subprocess import Popen, PIPE, call
+from tempfile import TemporaryDirectory
 from typing import Tuple, Union
 
 from git import Repo
 
 from twrpdtgen.twrp_dt_gen import info
-from twrpdtgen.misc import handle_remove_readonly
 
 
 class AIKManager:
@@ -16,37 +16,15 @@ class AIKManager:
     such as cloning, updating, and extracting recovery images.
     """
 
-    def __init__(self, aik_path: Path):
+    def __init__(self):
         """
         AIKManager constructor method
         First, check if AIK path exists, if so, update AIK, else clone AIK.
 
         :param aik_path: Path object of AIK directory
         """
-        self._path = aik_path
-        if aik_path.exists() and aik_path.is_dir():
-            self.update_aik()
-        else:
-            self.clone_aik()
-
-    def update_aik(self):
-        """
-        Update AIK using git if newer version is available.
-        """
-        aik = Repo(self._path)
-        current_commit = aik.head.commit.hexsha
-        last_upstream_commit = aik.remote().fetch()[0].commit.hexsha
-        if current_commit != last_upstream_commit:
-            info(f"Updating AIK to {last_upstream_commit[:7]}")
-            rmtree(self._path, ignore_errors=False, onerror=handle_remove_readonly)
-            self.clone_aik()
-        else:
-            info("AIK is up-to-date")
-
-    def clone_aik(self):
-        """
-        Clone AIK using git clone command.
-        """
+        self.tempdir = TemporaryDirectory()
+        self._path = Path(self.tempdir.name)
         info("Cloning AIK...")
         if system() == "Linux":
             Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self._path)
@@ -71,3 +49,6 @@ class AIKManager:
         else:
             raise NotImplementedError(f"{system()} is not supported!")
         return self._path / "ramdisk", self._path / "split_img"
+
+    def cleanup(self):
+        self.tempdir.cleanup()

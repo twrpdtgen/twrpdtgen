@@ -5,7 +5,6 @@
 from logging import debug, info, warning, error
 from pathlib import Path
 from shutil import copyfile
-from twrpdtgen import aik_path
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
@@ -36,7 +35,7 @@ def main(recovery_image: Path, output_path: Path) -> Union[Path, int]:
         error("Recovery image doesn't exist")
         return IMAGE_DOES_NOT_EXISTS
 
-    aik = AIKManager(aik_path)
+    aik = AIKManager()
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
 
     debug("Getting device infos...")
@@ -142,4 +141,8 @@ def main(recovery_image: Path, output_path: Path) -> Union[Path, int]:
                                      device_brand=build_prop.brand,
                                      device_model=build_prop.model)
     device_tree.git_repo.index.commit(commit_message)
+
+    # Cleanup
+    aik.cleanup()
+
     return device_tree.path
