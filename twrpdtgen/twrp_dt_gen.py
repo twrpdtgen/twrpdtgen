@@ -42,7 +42,7 @@ def main(recovery_image: Path, output_path: Path) -> Union[DeviceTree, int]:
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
     debug("Using " + str(recovery_image_info.buildprop) + " as build.prop")
     build_prop = BuildPropReader(recovery_image_info.buildprop)
-    device_tree = DeviceTree(output_path / build_prop.manufacturer / build_prop.codename)
+    device_tree = DeviceTree(build_prop, output_path)
 
     debug("Copying kernel...")
     recovery_image_info.get_kernel_name(build_prop.arch)

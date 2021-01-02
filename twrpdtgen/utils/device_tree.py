@@ -7,6 +7,7 @@
 from git import Repo
 from pathlib import Path
 from shutil import rmtree
+from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.twrp_dt_gen import debug
 
 class DeviceTree:
@@ -16,9 +17,12 @@ class DeviceTree:
     It initialize a basic device tree structure
     and save the location of some important files
     """
-    def __init__(self, path: Path) -> None:
+    def __init__(self, build_prop: BuildPropReader, output_path: Path) -> None:
         """Initialize the device tree class."""
-        self.path = path
+        self.build_prop = build_prop
+        self.codename = self.build_prop.codename
+        self.manufacturer = self.build_prop.manufacturer
+        self.path = output_path / self.manufacturer / self.codename
         self.prebuilt_path = self.path / "prebuilt"
         self.recovery_root_path = self.path / "recovery" / "root"
 
