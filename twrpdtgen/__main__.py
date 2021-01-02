@@ -21,7 +21,4 @@ if __name__ == '__main__':
     setup_logging(args.verbose)
 
     dt = main(args.recovery_image, current_path / "working", args.verbose)
-    if type(dt) is not int:
-        print(f"\nDone! You can find the device tree in {str(dt.path)}")
-    else:
-        print("\nAn error has occurred")
+    print(f"\nDone! You can find the device tree in {str(dt.path)}")

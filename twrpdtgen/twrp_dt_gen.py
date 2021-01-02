@@ -11,7 +11,6 @@ from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
 from twrpdtgen.misc import render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
-from typing import Union
 
 # Makes the linter happy
 debug = debug
@@ -19,22 +18,14 @@ info = info
 warning = warning
 error = error
 
-# Error constants
-(
-    IMAGE_DOES_NOT_EXISTS,
-    BUILD_PROP_NOT_FOUND,
-    FSTAB_NOT_FOUND
-) = range(3)
-
-def main(recovery_image: Path, output_path: Path, is_debug=False) -> Union[DeviceTree, int]:
+def main(recovery_image: Path, output_path: Path, is_debug=False) -> DeviceTree:
     """
     Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
     Returns a DeviceTree object if the generation went fine, else an integer
     """
     if not recovery_image.is_file():
-        error("Recovery image doesn't exist")
-        return IMAGE_DOES_NOT_EXISTS
+        raise FileNotFoundError("Specified file doesn't exist")
 
     aik = AIKManager(is_debug)
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
@@ -42,8 +33,7 @@ def main(recovery_image: Path, output_path: Path, is_debug=False) -> Union[Devic
     debug("Getting device infos...")
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
     if recovery_image_info.buildprop is None:
-        error("Couldn't find any build.prop")
-        return BUILD_PROP_NOT_FOUND
+        raise AssertionError("Couldn't find any build.prop")
     debug("Using " + str(recovery_image_info.buildprop) + " as build.prop")
     build_prop = BuildPropReader(recovery_image_info.buildprop)
     device_tree = DeviceTree(build_prop, output_path)
@@ -72,8 +62,7 @@ def main(recovery_image: Path, output_path: Path, is_debug=False) -> Union[Devic
         make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
                         device_tree.fstab)
     else:
-        error("fstab not found")
-        return FSTAB_NOT_FOUND
+        raise AssertionError("fstab not found")
 
     for file in aik_ramdisk_path.iterdir():
         if file.name.endswith(".rc") and file != "init.rc":
