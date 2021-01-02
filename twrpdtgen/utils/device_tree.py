@@ -12,8 +12,12 @@ from twrpdtgen.twrp_dt_gen import debug
 class DeviceTree:
     """
     A class representing a device tree
+
+    It initialize a basic device tree structure
+    and save the location of some important files
     """
     def __init__(self, path: Path) -> None:
+        """Initialize the device tree class."""
         self.path = path
         self.prebuilt_path = self.path / "prebuilt"
         self.recovery_root_path = self.path / "recovery" / "root"
