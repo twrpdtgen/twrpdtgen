@@ -7,6 +7,7 @@ from typing import Tuple, Union
 
 from git import Repo
 
+from twrpdtgen import current_path
 from twrpdtgen.twrp_dt_gen import info
 
 
@@ -16,15 +17,19 @@ class AIKManager:
     such as cloning, updating, and extracting recovery images.
     """
 
-    def __init__(self):
+    def __init__(self, is_debug):
         """
         AIKManager constructor method
         First, check if AIK path exists, if so, update AIK, else clone AIK.
 
         :param aik_path: Path object of AIK directory
         """
-        self.tempdir = TemporaryDirectory()
-        self._path = Path(self.tempdir.name)
+        self.is_debug = is_debug
+        if not self.is_debug:
+            self.tempdir = TemporaryDirectory()
+            self._path = Path(self.tempdir.name)
+        else:
+            self._path = current_path / "extract"
         info("Cloning AIK...")
         if system() == "Linux":
             Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self._path)
@@ -51,4 +56,5 @@ class AIKManager:
         return self._path / "ramdisk", self._path / "split_img"
 
     def cleanup(self):
-        self.tempdir.cleanup()
+        if not self.is_debug:
+            self.tempdir.cleanup()

@@ -26,7 +26,7 @@ error = error
     FSTAB_NOT_FOUND
 ) = range(3)
 
-def main(recovery_image: Path, output_path: Path) -> Union[DeviceTree, int]:
+def main(recovery_image: Path, output_path: Path, is_debug=False) -> Union[DeviceTree, int]:
     """
     Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
@@ -36,7 +36,7 @@ def main(recovery_image: Path, output_path: Path) -> Union[DeviceTree, int]:
         error("Recovery image doesn't exist")
         return IMAGE_DOES_NOT_EXISTS
 
-    aik = AIKManager()
+    aik = AIKManager(is_debug)
     aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
 
     debug("Getting device infos...")
