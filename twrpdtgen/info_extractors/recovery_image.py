@@ -52,8 +52,6 @@ class RecoveryImageInfoReader:
             if folder.is_file():
                 self.buildprop = folder
                 break
-        if self.buildprop is None:
-            AssertionError("Couldn't find any build.prop")
 
     @staticmethod
     def read_recovery_file(file: Path) -> str:

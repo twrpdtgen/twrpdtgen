@@ -22,8 +22,9 @@ error = error
 # Error constants
 (
     IMAGE_DOES_NOT_EXISTS,
+    BUILD_PROP_NOT_FOUND,
     FSTAB_NOT_FOUND
-) = range(2)
+) = range(3)
 
 def main(recovery_image: Path, output_path: Path) -> Union[DeviceTree, int]:
     """
@@ -40,6 +41,9 @@ def main(recovery_image: Path, output_path: Path) -> Union[DeviceTree, int]:
 
     debug("Getting device infos...")
     recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
+    if recovery_image_info.buildprop is None:
+        error("Couldn't find any build.prop")
+        return BUILD_PROP_NOT_FOUND
     debug("Using " + str(recovery_image_info.buildprop) + " as build.prop")
     build_prop = BuildPropReader(recovery_image_info.buildprop)
     device_tree = DeviceTree(build_prop, output_path)
