@@ -2,7 +2,7 @@
 
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
-from logging import basicConfig, debug, info, warning, error, INFO, DEBUG
+from logging import debug, info, warning, error
 from pathlib import Path
 from shutil import copyfile
 from twrpdtgen import aik_path
@@ -13,6 +13,12 @@ from twrpdtgen.misc import render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 from typing import Union
+
+# Makes the linter happy
+debug = debug
+info = info
+warning = warning
+error = error
 
 # Error constants
 (
