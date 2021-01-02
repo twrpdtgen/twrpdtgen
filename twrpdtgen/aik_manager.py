@@ -1,6 +1,6 @@
 from pathlib import Path
 from platform import system
-from shutil import copyfile
+from shutil import copyfile, rmtree
 from subprocess import Popen, PIPE, call
 from tempfile import TemporaryDirectory
 from typing import Tuple, Union
@@ -9,6 +9,7 @@ from git import Repo
 
 from twrpdtgen import current_path
 from twrpdtgen.twrp_dt_gen import info
+from twrpdtgen.misc import handle_remove_readonly
 
 
 class AIKManager:
@@ -30,6 +31,9 @@ class AIKManager:
             self._path = Path(self.tempdir.name)
         else:
             self._path = current_path / "extract"
+        if self._path.is_dir():
+            rmtree(self._path, ignore_errors=False, onerror=handle_remove_readonly)
+
         info("Cloning AIK...")
         if system() == "Linux":
             Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self._path)
