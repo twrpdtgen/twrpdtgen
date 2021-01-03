@@ -1,0 +1,4 @@
+-   Add support for extracting information from device tree using ADB.
+-   Maybe a simple GUI?
+-   Provide binary files using pyinstaller CI pipeline.
+-   Write unit tests.
