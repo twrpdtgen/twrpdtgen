@@ -8,4 +8,4 @@ module_path = Path(__file__).parent
 current_path = Path(os.getcwd())
 
 jinja_env = Environment(loader=FileSystemLoader(module_path / 'templates'),
-                        autoescape=True, trim_blocks=True, lstrip_blocks=True)
+						autoescape=True, trim_blocks=True, lstrip_blocks=True)
