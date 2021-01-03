@@ -16,7 +16,7 @@ info = info
 warning = warning
 error = error
 
-def main(recovery_image: Path, output_path: Path, is_debug=False) -> DeviceTree:
+def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False) -> DeviceTree:
     """
     Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
