@@ -116,7 +116,7 @@ TARGET_KERNEL_HEADER_ARCH := {{ device_arch }}
 TARGET_KERNEL_SOURCE := kernel/{{ device_manufacturer }}/{{ device_codename }}
 TARGET_KERNEL_CONFIG := {{ device_codename }}_defconfig
 
-{% if ramdisk_compression %}
+{% if ramdisk_compression == "lzma" %}
 # Ramdisk compression
 LZMA_RAMDISK_TARGETS := recovery
 
