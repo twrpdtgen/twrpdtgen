@@ -28,7 +28,7 @@ class BuildPropReader:
 
 		# Parse props
 		self.codename = self.get_prop(DEVICE_CODENAME_RE, "codename")
-		self.manufacturer = self.get_prop(DEVICE_MANUFACTURER_RE, "manufacturer").lower()
+		self.manufacturer = self.get_prop(DEVICE_MANUFACTURER_RE, "manufacturer").split()[0].lower()
 		self.platform = self.get_prop(DEVICE_PLATFORM_RE, "platform")
 		self.brand = self.get_prop(DEVICE_BRAND_RE, "brand")
 		self.model = self.get_prop(DEVICE_MODEL_RE, "model")
