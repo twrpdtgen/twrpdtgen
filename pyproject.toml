@@ -2,6 +2,7 @@
 name = "twrpdtgen"
 version = "1.0.0"
 description = "TWRP Device Tree Generator. A script that generates a TWRP-compatible device tree."
+readme = "README.md"
 authors = ["Sebastiano Barezzi <barezzisebastiano@gmail.com>"]
 
 [tool.poetry.dependencies]
