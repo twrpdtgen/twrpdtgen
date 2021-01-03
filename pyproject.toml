@@ -2,7 +2,9 @@
 name = "twrpdtgen"
 version = "1.0.0"
 description = "TWRP Device Tree Generator. A script that generates a TWRP-compatible device tree."
+license = "Apache-2.0"
 readme = "README.md"
+repository = "https://github.com/SebaUbuntu/TWRP-device-tree-generator"
 authors = ["Sebastiano Barezzi <barezzisebastiano@gmail.com>"]
 
 [tool.poetry.dependencies]
