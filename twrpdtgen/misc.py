@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from pathlib import Path
 from stat import S_IWRITE
 from typing import Optional

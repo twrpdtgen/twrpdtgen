@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # pylint: disable=too-many-locals, too-many-statements, too-many-branches
 
 from logging import debug, info, warning, error
