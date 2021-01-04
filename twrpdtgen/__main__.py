@@ -15,9 +15,11 @@ if __name__ == '__main__':
 						help="path to a recovery image (or boot image if the device is A/B)")
 	parser.add_argument("-v", "--verbose", action='store_true',
 						help="Enable debugging logging")
+	parser.add_argument("-o", "--output", type=Path, default=current_path / "output",
+						help="custom output folder")
 	args = parser.parse_args()
 
 	setup_logging(args.verbose)
 
-	dt = generate_device_tree(args.recovery_image, current_path / "working", args.verbose)
+	dt = generate_device_tree(args.recovery_image, args.output, args.verbose)
 	print(f"\nDone! You can find the device tree in {str(dt.path)}")

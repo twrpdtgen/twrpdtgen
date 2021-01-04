@@ -1,6 +1,6 @@
 # script stuff
 extract/
-working/
+output/
 *.img
 
 # Byte-compiled / optimized / DLL files

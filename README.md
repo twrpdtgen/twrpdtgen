@@ -22,14 +22,16 @@ Linux only: Be sure to have cpio installed in your system (Install cpio using `s
 $ twrpdtgen -h
 TWRP device tree generator
 
-usage: twrpdtgen [-h] [-v] recovery_image
+usage: twrpdtgen [-h] [-v] [-o OUTPUT] recovery_image
 
 positional arguments:
-  recovery_image  path to a recovery image (or boot image if the device is A/B)
+  recovery_image        path to a recovery image (or boot image if the device is A/B)
 
 optional arguments:
-  -h, --help      show this help message and exit
-  -v, --verbose   Enable debugging logging
+  -h, --help            show this help message and exit
+  -v, --verbose         Enable debugging logging
+  -o OUTPUT, --output OUTPUT
+                        custom output folder
 ```
 
 When an image is provided, if everything goes well, there will be a device tree at `working/manufacturer/codename`
