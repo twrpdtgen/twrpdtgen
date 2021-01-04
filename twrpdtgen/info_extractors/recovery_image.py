@@ -4,6 +4,13 @@ Device info reader class implementation.
 
 from pathlib import Path
 
+kernel_names = {
+	"arm": "zImage",
+	"arm64": "Image.gz",
+	"x86": "bzImage",
+	"x86_64": "bzImage"
+}
+
 class RecoveryImageInfoReader:
 	"""
 	This class is responsible for reading device information from ramdisk
@@ -63,7 +70,7 @@ class RecoveryImageInfoReader:
 		return file.read_text().splitlines()[0]
 
 	def get_extracted_info(self, file: str) -> Path:
-		return Path(str(self.aik_images_path / "recovery.img-") + file)
+		return self.aik_images_path / ("recovery.img-" + file)
 
 	def get_kernel_name(self, arch: str) -> str:
 		"""
@@ -71,12 +78,6 @@ class RecoveryImageInfoReader:
 		:param arch: device architecture information from build.prop
 		:return: string of the kernel name
 		"""
-		kernel_names = {
-			"arm": "zImage",
-			"arm64": "Image.gz",
-			"x86": "bzImage",
-			"x86_64": "bzImage"
-		}
 		if self.kernel is not None:
 			try:
 				kernel_name = kernel_names[arch]
