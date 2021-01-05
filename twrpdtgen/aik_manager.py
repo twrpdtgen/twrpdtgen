@@ -3,7 +3,7 @@ from platform import system
 from shutil import copyfile, rmtree
 from subprocess import Popen, PIPE, call
 from tempfile import TemporaryDirectory
-from typing import Tuple, Union
+from typing import Union
 
 from git import Repo
 
@@ -34,17 +34,19 @@ class AIKManager:
 		if self.path.is_dir():
 			rmtree(self.path, ignore_errors=False, onerror=handle_remove_readonly)
 
+		self.images_path = self.path / "split_img"
+		self.ramdisk_path = self.path / "ramdisk"
+
 		info("Cloning AIK...")
 		if system() == "Linux":
 			Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self.path)
 		elif system() == "Windows":
 			Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", self.path)
 
-	def extract(self, recovery_image: Union[Path, str]) -> Tuple[Path, Path]:
+	def extract(self, recovery_image: Union[Path, str]) -> None:
 		"""
 		Extract an image using AIK.
 		:param recovery_image: recovery image string or path object
-		:return: extracted ramdisk and split image tuple of path objects
 		"""
 		new_recovery_image = self.path / "recovery.img"
 		copyfile(recovery_image, new_recovery_image)
@@ -57,7 +59,6 @@ class AIKManager:
 			call([self.path / "unpackimg.bat", new_recovery_image])
 		else:
 			raise NotImplementedError(f"{system()} is not supported!")
-		return self.path / "ramdisk", self.path / "split_img"
 
 	def cleanup(self):
 		if not self.is_debug:

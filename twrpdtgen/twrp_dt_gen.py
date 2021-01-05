@@ -27,10 +27,10 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 		raise FileNotFoundError("Specified file doesn't exist")
 
 	aik = AIKManager(is_debug)
-	aik_ramdisk_path, aik_images_path = aik.extract(recovery_image)
+	aik.extract(recovery_image)
 
 	debug("Getting device infos...")
-	recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
+	recovery_image_info = RecoveryImageInfoReader(aik.ramdisk_path, aik.images_path)
 	if recovery_image_info.buildprop is None:
 		raise AssertionError("Couldn't find any build.prop")
 	debug("Using " + str(recovery_image_info.buildprop) + " as build.prop")
@@ -49,23 +49,23 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 	if recovery_image_info.dtbo_image is not None:
 		copyfile(recovery_image_info.dtbo_image, device_tree.dtbo_image)
 
-	if Path(aik_ramdisk_path / "etc" / "twrp.fstab").is_file():
+	if Path(aik.ramdisk_path / "etc" / "twrp.fstab").is_file():
 		debug("Found a TWRP fstab, copying it...")
-		copyfile(aik_ramdisk_path / "etc" / "twrp.fstab", device_tree.fstab)
-	elif Path(aik_ramdisk_path / "etc" / "recovery.fstab").is_file():
+		copyfile(aik.ramdisk_path / "etc" / "twrp.fstab", device_tree.fstab)
+	elif Path(aik.ramdisk_path / "etc" / "recovery.fstab").is_file():
 		debug("Generating fstab...")
-		make_twrp_fstab(aik_ramdisk_path / "etc" / "recovery.fstab",
+		make_twrp_fstab(aik.ramdisk_path / "etc" / "recovery.fstab",
 						device_tree.fstab)
-	elif Path(aik_ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
+	elif Path(aik.ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
 		debug("Generating fstab...")
-		make_twrp_fstab(aik_ramdisk_path / "system" / "etc" / "recovery.fstab",
+		make_twrp_fstab(aik.ramdisk_path / "system" / "etc" / "recovery.fstab",
 						device_tree.fstab)
 	else:
 		raise AssertionError("fstab not found")
 
-	for file in aik_ramdisk_path.iterdir():
+	for file in aik.ramdisk_path.iterdir():
 		if file.name.endswith(".rc") and file != "init.rc":
-			copyfile(aik_ramdisk_path / file,
+			copyfile(aik.ramdisk_path / file,
 					 device_tree.recovery_root_path / file.name, follow_symlinks=True)
 
 	debug("Creating Android.mk...")
