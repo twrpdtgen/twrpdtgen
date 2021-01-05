@@ -6,7 +6,6 @@ from shutil import copyfile
 from twrpdtgen import __version__ as version
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
-from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
 from twrpdtgen.misc import render_template
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
@@ -30,24 +29,35 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 	aik.extract(recovery_image)
 
 	debug("Getting device infos...")
-	recovery_image_info = RecoveryImageInfoReader(aik.ramdisk_path, aik.images_path)
-	if recovery_image_info.buildprop is None:
+	if aik.buildprop is None:
 		raise AssertionError("Couldn't find any build.prop")
-	debug("Using " + str(recovery_image_info.buildprop) + " as build.prop")
-	build_prop = BuildPropReader(recovery_image_info.buildprop)
+	debug("Using " + str(aik.buildprop) + " as build.prop")
+	build_prop = BuildPropReader(aik.buildprop)
 	device_tree = DeviceTree(build_prop, output_path)
 
 	debug("Copying kernel...")
-	recovery_image_info.get_kernel_name(build_prop.arch)
-	if recovery_image_info.kernel is not None:
-		copyfile(recovery_image_info.kernel,
-				 device_tree.prebuilt_path / recovery_image_info.kernel_name)
-	if recovery_image_info.dt_image is not None:
-		copyfile(recovery_image_info.dt_image, device_tree.dt_image)
-	if recovery_image_info.dtb_image is not None:
-		copyfile(recovery_image_info.dtb_image, device_tree.dtb_image)
-	if recovery_image_info.dtbo_image is not None:
-		copyfile(recovery_image_info.dtbo_image, device_tree.dtbo_image)
+	# Create a new kernel name from arch
+	kernel_names = {
+		"arm": "zImage",
+		"arm64": "Image.gz",
+		"x86": "bzImage",
+		"x86_64": "bzImage"
+	}
+	try:
+		new_kernel_name = kernel_names[build_prop.arch]
+	except KeyError:
+		new_kernel_name = "zImage"
+	if build_prop.arch in ("arm", "arm64") and (aik.dt_image is None and aik.dtb_image is None):
+		new_kernel_name += "-dtb"
+
+	if aik.kernel is not None:
+		copyfile(aik.kernel, device_tree.prebuilt_path / new_kernel_name)
+	if aik.dt_image is not None:
+		copyfile(aik.dt_image, device_tree.dt_image)
+	if aik.dtb_image is not None:
+		copyfile(aik.dtb_image, device_tree.dtb_image)
+	if aik.dtbo_image is not None:
+		copyfile(aik.dtbo_image, device_tree.dtbo_image)
 
 	if Path(aik.ramdisk_path / "etc" / "twrp.fstab").is_file():
 		debug("Found a TWRP fstab, copying it...")
@@ -82,21 +92,21 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 					device_is_ab=build_prop.device_is_ab,
 					device_platform=build_prop.platform,
 					device_arch=build_prop.arch,
-					board_name=recovery_image_info.board_name,
-					recovery_size=recovery_image_info.recovery_size,
-					cmdline=recovery_image_info.cmdline,
-					kernel=recovery_image_info.kernel,
-					kernel_name=recovery_image_info.kernel_name,
-					dt_image=recovery_image_info.dt_image,
-					dtb_image=recovery_image_info.dtb_image,
-					dtbo_image=recovery_image_info.dtbo_image,
-					header_version=recovery_image_info.header_version,
-					base_address=recovery_image_info.base_address,
-					pagesize=recovery_image_info.pagesize,
-					ramdisk_offset=recovery_image_info.ramdisk_offset,
-					tags_offset=recovery_image_info.tags_offset,
-					ramdisk_compression=recovery_image_info.ramdisk_compression,
-					flash_block_size=str(int(recovery_image_info.pagesize) * 64))
+					board_name=aik.board_name,
+					recovery_size=aik.recovery_size,
+					cmdline=aik.cmdline,
+					kernel=aik.kernel,
+					kernel_name=new_kernel_name,
+					dt_image=aik.dt_image,
+					dtb_image=aik.dtb_image,
+					dtbo_image=aik.dtbo_image,
+					header_version=aik.header_version,
+					base_address=aik.base_address,
+					pagesize=aik.pagesize,
+					ramdisk_offset=aik.ramdisk_offset,
+					tags_offset=aik.tags_offset,
+					ramdisk_compression=aik.ramdisk_compression,
+					flash_block_size=str(int(aik.pagesize) * 64))
 
 	debug("Creating device.mk...")
 	render_template(device_tree.path, "device.mk.jinja2",
