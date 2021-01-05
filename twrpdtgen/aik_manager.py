@@ -40,9 +40,9 @@ class AIKManager:
 		elif system() == "Windows":
 			Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", self._path)
 
-	def extract_recovery(self, recovery_image: Union[Path, str]) -> Tuple[Path, Path]:
+	def extract(self, recovery_image: Union[Path, str]) -> Tuple[Path, Path]:
 		"""
-		Extract a custom recovery image using AIK.
+		Extract an image using AIK.
 		:param recovery_image: recovery image string or path object
 		:return: extracted ramdisk and split image tuple of path objects
 		"""

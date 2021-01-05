@@ -27,7 +27,7 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 		raise FileNotFoundError("Specified file doesn't exist")
 
 	aik = AIKManager(is_debug)
-	aik_ramdisk_path, aik_images_path = aik.extract_recovery(recovery_image)
+	aik_ramdisk_path, aik_images_path = aik.extract(recovery_image)
 
 	debug("Getting device infos...")
 	recovery_image_info = RecoveryImageInfoReader(aik_ramdisk_path, aik_images_path)
