@@ -3,6 +3,7 @@
 from logging import debug, info, warning, error
 from pathlib import Path
 from shutil import copyfile
+from twrpdtgen import __version__ as version
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.info_extractors.recovery_image import RecoveryImageInfoReader
@@ -130,7 +131,8 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 									 device_arch=build_prop.arch,
 									 device_manufacturer=build_prop.manufacturer,
 									 device_brand=build_prop.brand,
-									 device_model=build_prop.model)
+									 device_model=build_prop.model,
+									 version=version)
 	device_tree.git_repo.index.commit(commit_message)
 
 	# Cleanup
