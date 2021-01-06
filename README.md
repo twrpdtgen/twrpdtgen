@@ -22,16 +22,16 @@ Linux only: Be sure to have cpio installed in your system (Install cpio using `s
 $ twrpdtgen -h
 TWRP device tree generator
 
-usage: twrpdtgen [-h] [-o OUTPUT] [-v] [-k] recovery_image
+usage: twrpdtgen [-h] [-o OUTPUT] [--no-git] [-v] [-k] recovery_image
 
 positional arguments:
-  recovery_image        path to a recovery image (or boot image if the device
-                        is A/B)
+  recovery_image        path to a recovery image (or boot image if the device is A/B)
 
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
                         custom output folder
+  --no-git              don't create a git repo after the generation
   -v, --verbose         enable debugging logging
   -k, --keep-aik        keep AIK after the generation
 ```
