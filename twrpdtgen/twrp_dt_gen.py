@@ -35,7 +35,7 @@ def generate_device_tree(recovery_image: Path, output_path: Path, no_git=False, 
 	debug("Using " + str(aik.buildprop) + " as build.prop")
 	build_prop = BuildProp(aik.buildprop)
 	props = BuildPropReader(build_prop)
-	device_tree = DeviceTree(props, output_path)
+	device_tree = DeviceTree(props, output_path, no_git=no_git)
 
 	debug("Copying kernel...")
 	# Create a new kernel name from arch

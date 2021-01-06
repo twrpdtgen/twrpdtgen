@@ -17,7 +17,7 @@ class DeviceTree:
 	It initialize a basic device tree structure
 	and save the location of some important files
 	"""
-	def __init__(self, build_prop: BuildPropReader, output_path: Path) -> None:
+	def __init__(self, build_prop: BuildPropReader, output_path: Path, no_git=False) -> None:
 		"""Initialize the device tree class."""
 		self.build_prop = build_prop
 		self.codename = self.build_prop.codename
@@ -33,8 +33,10 @@ class DeviceTree:
 		self.prebuilt_path.mkdir(parents=True)
 		self.recovery_root_path.mkdir(parents=True)
 
-		self.git_repo = Repo.init(self.path)
 		self.fstab = self.path / "recovery.fstab"
 		self.dt_image = self.prebuilt_path / "dt.img"
 		self.dtb_image = self.prebuilt_path / "dtb.img"
 		self.dtbo_image = self.prebuilt_path / "dtbo.img"
+
+		if not no_git:
+			self.git_repo = Repo.init(self.path)
