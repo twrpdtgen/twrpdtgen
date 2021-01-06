@@ -34,7 +34,7 @@ optional arguments:
                         custom output folder
 ```
 
-When an image is provided, if everything goes well, there will be a device tree at `working/manufacturer/codename`
+When an image is provided, if everything goes well, there will be a device tree at `output/manufacturer/codename`
 
 You can also use the module in a script, with the following code:
 
