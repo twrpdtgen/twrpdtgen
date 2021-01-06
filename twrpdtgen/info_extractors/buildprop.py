@@ -1,50 +1,51 @@
-"""Build.prop reader class implementation"""
-import re
-from pathlib import Path
-from typing import Pattern
+from twrpdtgen.utils.build_prop import BuildProp
 
-DEVICE_CODENAME_RE = re.compile(r'(?:ro.product.*device=)(.*)$', re.MULTILINE)
-DEVICE_MANUFACTURER_RE = re.compile(r'(?:ro.product.*manufacturer=)(.*)$', re.MULTILINE)
-DEVICE_PLATFORM_RE = re.compile(r'(?:ro.board.platform=|ro.hardware.keystore=|ro.hardware.chipname=)(.*)$', re.MULTILINE)
-DEVICE_BRAND_RE = re.compile(r'(?:ro.product.*brand=)(.*)$', re.MULTILINE)
-DEVICE_MODEL_RE = re.compile(r'(?:ro.product.*model=)(.*)$', re.MULTILINE)
-DEVICE_ARCH_RE = re.compile(r'(?:ro.product.cpu.abi=|ro.product.cpu.abilist=)(.*)$', re.MULTILINE)
-DEVICE_IS_AB_RE = re.compile(r'(?:ro.build.ab_update=true)(.*)$', re.MULTILINE)
+PARTITIONS = ["odm", "product", "system", "system_ext", "vendor"]
+
+DEVICE_CODENAME = ["ro.product.device"] + [f"ro.product.{partition}.device" for partition in PARTITIONS]
+DEVICE_MANUFACTURER = ["ro.product.manufacturer"] + [f"ro.product{partition}.manufacturer" for partition in PARTITIONS]
+DEVICE_BRAND = ["ro.product.brand"] + [f"ro.product{partition}.brand" for partition in PARTITIONS]
+DEVICE_MODEL = ["ro.product.model"] + [f"ro.product{partition}.brand" for partition in PARTITIONS]
+DEVICE_ARCH = ["ro.product.cpu.abi", "ro.product.cpu.abilist"]
+DEVICE_IS_AB = ["ro.build.ab_update"]
+DEVICE_PLATFORM = ["ro.board.platform", "ro.hardware.keystore", "ro.hardware.chipname"]
 
 class BuildPropReader:
 	"""
-	This class is responsible for reading build.prop files
-	and extracting required information from it
+	This class is responsible for reading parse common build props needed for twrpdtgen
+	by using BuildProp class.
 	"""
-	# pylint: disable=too-many-instance-attributes, too-few-public-methods
 
-	def __init__(self, file: Path):
+	def __init__(self, build_prop: BuildProp):
 		"""
-		Build.prop reader class constructor.
-		:param file: build.prop file path as a Path object
+		Parse common build props needed for twrpdtgen.
 		"""
-		self._filename = file.absolute()
-		self._content = self._filename.read_text()
-
+		self.build_prop = build_prop
 		# Parse props
-		self.codename = self.get_prop(DEVICE_CODENAME_RE, "codename")
-		self.manufacturer = self.get_prop(DEVICE_MANUFACTURER_RE, "manufacturer").split()[0].lower()
-		self.platform = self.get_prop(DEVICE_PLATFORM_RE, "platform")
-		self.brand = self.get_prop(DEVICE_BRAND_RE, "brand")
-		self.model = self.get_prop(DEVICE_MODEL_RE, "model")
-		self.arch = self.parse_arch(self.get_prop(DEVICE_ARCH_RE, "arch"))
-		self.device_is_ab = bool(DEVICE_IS_AB_RE.search(self._content))
+		self.codename = self.get_prop(DEVICE_CODENAME, "codename")
+		self.manufacturer = self.get_prop(DEVICE_MANUFACTURER, "manufacturer").split()[0].lower()
+		self.platform = self.get_prop(DEVICE_PLATFORM, "platform")
+		self.brand = self.get_prop(DEVICE_BRAND, "brand")
+		self.model = self.get_prop(DEVICE_MODEL, "model")
+		self.arch = self.parse_arch(self.get_prop(DEVICE_ARCH, "arch"))
 		self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
 
-	def get_prop(self, regex: Pattern, error: str) -> str:
+		try:
+			self.device_is_ab = bool(self.get_prop(DEVICE_IS_AB, "A/B"))
+		except AssertionError:
+			self.device_is_ab = False
+
+	def get_prop(self, props: list, error: str):
 		"""
-		Get a prop value from a regular expression pattern
+		Parse multiple props names stored in arrays and return the first valid value.
+
+		Raises AssertionError if no value is found
 		"""
-		match = regex.search(self._content)
-		if match:
-			return match.group(1)
-		else:
-			raise AssertionError(f"Device {error} could not be found in build.prop")
+		for prop in props:
+			prop_value = self.build_prop.get_prop(prop)
+			if prop_value is not None:
+				return prop_value
+		raise AssertionError(f"Device {error} could not be found in build.prop")
 
 	@staticmethod
 	def parse_arch(arch: str) -> str:

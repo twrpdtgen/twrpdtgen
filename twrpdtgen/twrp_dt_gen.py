@@ -7,6 +7,7 @@ from twrpdtgen import __version__ as version
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.misc import render_template
+from twrpdtgen.utils.build_prop import BuildProp
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
 
@@ -32,8 +33,9 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 	if aik.buildprop is None:
 		raise AssertionError("Couldn't find any build.prop")
 	debug("Using " + str(aik.buildprop) + " as build.prop")
-	build_prop = BuildPropReader(aik.buildprop)
-	device_tree = DeviceTree(build_prop, output_path)
+	build_prop = BuildProp(aik.buildprop)
+	props = BuildPropReader(build_prop)
+	device_tree = DeviceTree(props, output_path)
 
 	debug("Copying kernel...")
 	# Create a new kernel name from arch
@@ -44,10 +46,10 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 		"x86_64": "bzImage"
 	}
 	try:
-		new_kernel_name = kernel_names[build_prop.arch]
+		new_kernel_name = kernel_names[props.arch]
 	except KeyError:
 		new_kernel_name = "zImage"
-	if build_prop.arch in ("arm", "arm64") and (aik.dt_image is None and aik.dtb_image is None):
+	if props.arch in ("arm", "arm64") and (aik.dt_image is None and aik.dtb_image is None):
 		new_kernel_name += "-dtb"
 
 	if aik.kernel is not None:
@@ -79,19 +81,19 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 					 device_tree.recovery_root_path / file.name, follow_symlinks=True)
 
 	debug("Creating Android.mk...")
-	render_template(device_tree.path, "Android.mk.jinja2", device_codename=build_prop.codename)
+	render_template(device_tree.path, "Android.mk.jinja2", device_codename=props.codename)
 
 	debug("Creating AndroidProducts.mk...")
 	render_template(device_tree.path, "AndroidProducts.mk.jinja2",
-					device_codename=build_prop.codename)
+					device_codename=props.codename)
 
 	debug("Creating BoardConfig.mk...")
 	render_template(device_tree.path, "BoardConfig.mk.jinja2",
-					device_manufacturer=build_prop.manufacturer,
-					device_codename=build_prop.codename,
-					device_is_ab=build_prop.device_is_ab,
-					device_platform=build_prop.platform,
-					device_arch=build_prop.arch,
+					device_manufacturer=props.manufacturer,
+					device_codename=props.codename,
+					device_is_ab=props.device_is_ab,
+					device_platform=props.platform,
+					device_arch=props.arch,
 					board_name=aik.board_name,
 					recovery_size=aik.recovery_size,
 					cmdline=aik.cmdline,
@@ -110,21 +112,21 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 
 	debug("Creating device.mk...")
 	render_template(device_tree.path, "device.mk.jinja2",
-					device_codename=build_prop.codename,
-					device_manufacturer=build_prop.manufacturer,
-					device_platform=build_prop.platform,
-					device_is_ab=build_prop.device_is_ab)
+					device_codename=props.codename,
+					device_manufacturer=props.manufacturer,
+					device_platform=props.platform,
+					device_is_ab=props.device_is_ab)
 
-	debug(f"Creating omni_{build_prop.codename}.mk...")
-	render_template(device_tree.path, "omni.mk.jinja2", out_file=f"omni_{build_prop.codename}.mk",
-					device_codename=build_prop.codename,
-					device_manufacturer=build_prop.manufacturer,
-					device_brand=build_prop.brand,
-					device_model=build_prop.model,
-					device_has_64bit_arch=build_prop.device_has_64bit_arch)
+	debug(f"Creating omni_{props.codename}.mk...")
+	render_template(device_tree.path, "omni.mk.jinja2", out_file=f"omni_{props.codename}.mk",
+					device_codename=props.codename,
+					device_manufacturer=props.manufacturer,
+					device_brand=props.brand,
+					device_model=props.model,
+					device_has_64bit_arch=props.device_has_64bit_arch)
 
 	debug("Creating vendorsetup.sh...")
-	render_template(device_tree.path, "vendorsetup.sh.jinja2", device_codename=build_prop.codename)
+	render_template(device_tree.path, "vendorsetup.sh.jinja2", device_codename=props.codename)
 
 	git_config_reader = device_tree.git_repo.config_reader()
 	git_config_writer = device_tree.git_repo.config_writer()
@@ -137,11 +139,11 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 		git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
 	device_tree.git_repo.index.add(["*"])
 	commit_message = render_template(None, "commit_message.jinja2", to_file=False,
-									 device_codename=build_prop.codename,
-									 device_arch=build_prop.arch,
-									 device_manufacturer=build_prop.manufacturer,
-									 device_brand=build_prop.brand,
-									 device_model=build_prop.model,
+									 device_codename=props.codename,
+									 device_arch=props.arch,
+									 device_manufacturer=props.manufacturer,
+									 device_brand=props.brand,
+									 device_model=props.model,
 									 version=version)
 	device_tree.git_repo.index.commit(commit_message)
 
