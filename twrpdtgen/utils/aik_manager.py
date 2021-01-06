@@ -1,15 +1,13 @@
+from git import Repo
 from pathlib import Path
 from platform import system
 from shutil import copyfile, rmtree
 from stat import S_IWRITE
 from subprocess import Popen, PIPE, call
 from tempfile import TemporaryDirectory
-from typing import Union
-
-from git import Repo
-
 from twrpdtgen import current_path
 from twrpdtgen.twrp_dt_gen import info
+from typing import Union
 
 def handle_remove_readonly(func, path, _):
 	Path(path).chmod(S_IWRITE)
