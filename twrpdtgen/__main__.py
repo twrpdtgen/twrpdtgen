@@ -25,5 +25,5 @@ if __name__ == '__main__':
 
 	setup_logging(args.verbose)
 
-	dt = generate_device_tree(args.recovery_image, args.output, no_git=args.no_git, keep_aik=args.keep_aik )
+	dt = generate_device_tree(args.recovery_image, args.output, no_git=args.no_git, keep_aik=args.keep_aik)
 	print(f"\nDone! You can find the device tree in {str(dt.path)}")
