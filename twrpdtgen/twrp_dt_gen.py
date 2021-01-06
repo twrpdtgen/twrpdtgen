@@ -17,7 +17,7 @@ info = info
 warning = warning
 error = error
 
-def generate_device_tree(recovery_image: Path, output_path: Path, keep_aik=False) -> DeviceTree:
+def generate_device_tree(recovery_image: Path, output_path: Path, no_git=False, keep_aik=False) -> DeviceTree:
 	"""
 	Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
@@ -128,24 +128,25 @@ def generate_device_tree(recovery_image: Path, output_path: Path, keep_aik=False
 	debug("Creating vendorsetup.sh...")
 	render_template(device_tree.path, "vendorsetup.sh.jinja2", device_codename=props.codename)
 
-	git_config_reader = device_tree.git_repo.config_reader()
-	git_config_writer = device_tree.git_repo.config_writer()
-	try:
-		git_global_email, git_global_name = git_config_reader.get_value('user', 'email'), git_config_reader.get_value('user', 'name')
-	except:
-		git_global_email, git_global_name = None, None
-	if git_global_email is None or git_global_name is None:
-		git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
-		git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
-	device_tree.git_repo.index.add(["*"])
-	commit_message = render_template(None, "commit_message.jinja2", to_file=False,
-									 device_codename=props.codename,
-									 device_arch=props.arch,
-									 device_manufacturer=props.manufacturer,
-									 device_brand=props.brand,
-									 device_model=props.model,
-									 version=version)
-	device_tree.git_repo.index.commit(commit_message)
+	if not no_git:
+		git_config_reader = device_tree.git_repo.config_reader()
+		git_config_writer = device_tree.git_repo.config_writer()
+		try:
+			git_global_email, git_global_name = git_config_reader.get_value('user', 'email'), git_config_reader.get_value('user', 'name')
+		except:
+			git_global_email, git_global_name = None, None
+		if git_global_email is None or git_global_name is None:
+			git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
+			git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
+		device_tree.git_repo.index.add(["*"])
+		commit_message = render_template(None, "commit_message.jinja2", to_file=False,
+										device_codename=props.codename,
+										device_arch=props.arch,
+										device_manufacturer=props.manufacturer,
+										device_brand=props.brand,
+										device_model=props.model,
+										version=version)
+		device_tree.git_repo.index.commit(commit_message)
 
 	# Cleanup
 	aik.cleanup()

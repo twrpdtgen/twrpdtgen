@@ -15,6 +15,8 @@ if __name__ == '__main__':
 						help="path to a recovery image (or boot image if the device is A/B)")
 	parser.add_argument("-o", "--output", type=Path, default=current_path / "output",
 						help="custom output folder")
+	parser.add_argument("--no-git", action='store_true',
+						help="don't create a git repo after the generation")
 	parser.add_argument("-v", "--verbose", action='store_true',
 						help="enable debugging logging")
 	parser.add_argument("-k", "--keep-aik", action='store_true',
@@ -23,5 +25,5 @@ if __name__ == '__main__':
 
 	setup_logging(args.verbose)
 
-	dt = generate_device_tree(args.recovery_image, args.output, keep_aik=args.keep_aik)
+	dt = generate_device_tree(args.recovery_image, args.output, no_git=args.no_git, keep_aik=args.keep_aik )
 	print(f"\nDone! You can find the device tree in {str(dt.path)}")
