@@ -17,7 +17,7 @@ info = info
 warning = warning
 error = error
 
-def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False) -> DeviceTree:
+def generate_device_tree(recovery_image: Path, output_path: Path, keep_aik=False) -> DeviceTree:
 	"""
 	Generate a TWRP-compatible device tree from a recovery image (or a boot image if the device is A/B)
 
@@ -26,7 +26,7 @@ def generate_device_tree(recovery_image: Path, output_path: Path, is_debug=False
 	if not recovery_image.is_file():
 		raise FileNotFoundError("Specified file doesn't exist")
 
-	aik = AIKManager(is_debug)
+	aik = AIKManager(keep_aik)
 	aik.extract(recovery_image)
 
 	debug("Getting device infos...")
