@@ -3,9 +3,9 @@ from twrpdtgen.utils.build_prop import BuildProp
 PARTITIONS = ["odm", "product", "system", "system_ext", "vendor"]
 
 DEVICE_CODENAME = ["ro.product.device"] + [f"ro.product.{partition}.device" for partition in PARTITIONS]
-DEVICE_MANUFACTURER = ["ro.product.manufacturer"] + [f"ro.product{partition}.manufacturer" for partition in PARTITIONS]
-DEVICE_BRAND = ["ro.product.brand"] + [f"ro.product{partition}.brand" for partition in PARTITIONS]
-DEVICE_MODEL = ["ro.product.model"] + [f"ro.product{partition}.brand" for partition in PARTITIONS]
+DEVICE_MANUFACTURER = ["ro.product.manufacturer"] + [f"ro.product.{partition}.manufacturer" for partition in PARTITIONS]
+DEVICE_BRAND = ["ro.product.brand"] + [f"ro.product.{partition}.brand" for partition in PARTITIONS]
+DEVICE_MODEL = ["ro.product.model"] + [f"ro.product.{partition}.brand" for partition in PARTITIONS]
 DEVICE_ARCH = ["ro.product.cpu.abi", "ro.product.cpu.abilist"]
 DEVICE_IS_AB = ["ro.build.ab_update"]
 DEVICE_PLATFORM = ["ro.board.platform", "ro.hardware.keystore", "ro.hardware.chipname"]
