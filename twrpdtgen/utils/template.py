@@ -1,9 +1,6 @@
 from pathlib import Path
-from stat import S_IWRITE
 from typing import Optional
-
 from twrpdtgen import jinja_env
-
 
 def render_template(device_tree_path: Optional[Path], template_file: str,
 					out_file: str = '', to_file=True, **kwargs):
@@ -17,8 +14,3 @@ def render_template(device_tree_path: Optional[Path], template_file: str,
 		return True
 	else:
 		return rendered_template
-
-
-def handle_remove_readonly(func, path, _):
-	Path(path).chmod(S_IWRITE)
-	func(path)

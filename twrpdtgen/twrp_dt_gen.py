@@ -6,10 +6,10 @@ from shutil import copyfile
 from twrpdtgen import __version__ as version
 from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
-from twrpdtgen.misc import render_template
 from twrpdtgen.utils.build_prop import BuildProp
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
+from twrpdtgen.utils.template import render_template
 
 # Makes the linter happy
 debug = debug
