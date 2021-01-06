@@ -1,3 +1,4 @@
+from twrpdtgen.twrp_dt_gen import warning
 from twrpdtgen.utils.build_prop import BuildProp
 
 PARTITIONS = ["odm", "product", "system", "system_ext", "vendor"]
@@ -24,11 +25,16 @@ class BuildPropReader:
 		# Parse props
 		self.codename = self.get_prop(DEVICE_CODENAME, "codename")
 		self.manufacturer = self.get_prop(DEVICE_MANUFACTURER, "manufacturer").split()[0].lower()
-		self.platform = self.get_prop(DEVICE_PLATFORM, "platform")
 		self.brand = self.get_prop(DEVICE_BRAND, "brand")
 		self.model = self.get_prop(DEVICE_MODEL, "model")
 		self.arch = self.parse_arch(self.get_prop(DEVICE_ARCH, "arch"))
 		self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
+
+		try:
+			self.platform = self.get_prop(DEVICE_PLATFORM, "platform")
+		except AssertionError:
+			warning('Platform prop not found! Defaulting to "default"')
+			self.platform = "default"
 
 		try:
 			self.device_is_ab = bool(self.get_prop(DEVICE_IS_AB, "A/B"))
