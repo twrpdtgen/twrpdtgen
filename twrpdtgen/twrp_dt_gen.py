@@ -4,8 +4,8 @@ from logging import debug, info, warning, error
 from pathlib import Path
 from shutil import copyfile
 from twrpdtgen import __version__ as version
-from twrpdtgen.aik_manager import AIKManager
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
+from twrpdtgen.utils.aik_manager import AIKManager
 from twrpdtgen.utils.build_prop import BuildProp
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
