@@ -10,7 +10,7 @@ It has been confirmed that this script supports images built starting from Andro
 ## Installation
 
 ```
-pip install twrpdtgen
+pip3 install twrpdtgen
 ```
 The module is supported on Python 3.6 and above.
 
@@ -19,10 +19,10 @@ Linux only: Be sure to have cpio installed in your system (Install cpio using `s
 ## How to use
 
 ```
-$ twrpdtgen -h
+$ python3 -m twrpdtgen -h
 TWRP device tree generator
 
-usage: twrpdtgen [-h] [-o OUTPUT] [--no-git] [-v] [-k] recovery_image
+usage: python3 -m twrpdtgen [-h] [-o OUTPUT] [--no-git] [-v] [-k] recovery_image
 
 positional arguments:
   recovery_image        path to a recovery image (or boot image if the device is A/B)
