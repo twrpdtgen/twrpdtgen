@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 
 module_path = Path(__file__).parent
 current_path = Path(os.getcwd())
