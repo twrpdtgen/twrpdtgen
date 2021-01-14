@@ -101,10 +101,10 @@ BOARD_KERNEL_TAGS_OFFSET := {{ tags_offset }}
 BOARD_FLASH_BLOCK_SIZE := {{ flash_block_size }} # (BOARD_KERNEL_PAGESIZE * 64)
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
-{% if has_dt_image %}
+{% if dt_image != None %}
 BOARD_MKBOOTIMG_ARGS += --dt $(TARGET_PREBUILT_DT)
 {% endif %}
-{% if has_dtb_image %}
+{% if dtb_image != None %}
 BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
 {% endif %}
 {% if header_version != "0" %}
