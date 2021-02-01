@@ -12,7 +12,7 @@ from twrpdtgen import __version__ as version
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.utils.aik_manager import AIKManager
 from twrpdtgen.utils.build_prop import BuildProp
-from twrpdtgen.utils.constants import FSTAB_LOCATIONS
+from twrpdtgen.utils.constants import FSTAB_LOCATIONS, INIT_RC_LOCATIONS
 from twrpdtgen.utils.fstab import make_twrp_fstab
 from twrpdtgen.utils.huawei import HuaweiUtils
 from twrpdtgen.utils.kernel import get_kernel_name
@@ -113,10 +113,18 @@ class DeviceTree:
 		if not self.fstab.is_file():
 			raise AssertionError("fstab not found")
 
-		for file in aik.ramdisk_path.iterdir():
-			if file.name.endswith(".rc") and file != "init.rc":
-				copyfile(aik.ramdisk_path / file,
-						self.recovery_root_path / file.name, follow_symlinks=True)
+		# Search for init rc files
+		for init_rc_path in INIT_RC_LOCATIONS:
+			init_rc_path = aik.ramdisk_path / init_rc_path
+			if not init_rc_path.is_dir():
+				continue
+			debug(f"Checking {init_rc_path} for init rc files")
+			for file in init_rc_path.iterdir():
+				file = file
+				if not file.name.endswith(".rc") or file.name == "init.rc":
+					continue
+				debug(f"Found an init rc file, {file.name}")
+				copyfile(file, self.recovery_root_path / file.name, follow_symlinks=True)
 
 		# Fill makefiles
 		debug("Creating Android.mk...")
