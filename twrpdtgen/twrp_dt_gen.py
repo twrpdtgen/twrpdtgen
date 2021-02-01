@@ -9,6 +9,7 @@ from twrpdtgen.utils.aik_manager import AIKManager
 from twrpdtgen.utils.build_prop import BuildProp
 from twrpdtgen.utils.device_tree import DeviceTree
 from twrpdtgen.utils.fstab import make_twrp_fstab
+from twrpdtgen.utils.kernel import get_kernel_name
 from twrpdtgen.utils.template import render_template
 
 # Makes the linter happy
@@ -39,16 +40,7 @@ def generate_device_tree(recovery_image: Path, output_path: Path, no_git=False, 
 
 	debug("Copying kernel...")
 	# Create a new kernel name from arch
-	kernel_names = {
-		"arm": "zImage",
-		"arm64": "Image.gz",
-		"x86": "bzImage",
-		"x86_64": "bzImage"
-	}
-	try:
-		new_kernel_name = kernel_names[props.arch]
-	except KeyError:
-		new_kernel_name = "zImage"
+	new_kernel_name = get_kernel_name(props.arch)
 	if props.arch in ("arm", "arm64") and (aik.dt_image is None and aik.dtb_image is None):
 		new_kernel_name += "-dtb"
 
