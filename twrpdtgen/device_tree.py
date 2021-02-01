@@ -12,6 +12,7 @@ from twrpdtgen import __version__ as version
 from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.utils.aik_manager import AIKManager
 from twrpdtgen.utils.build_prop import BuildProp
+from twrpdtgen.utils.constants import FSTAB_LOCATIONS
 from twrpdtgen.utils.fstab import make_twrp_fstab
 from twrpdtgen.utils.huawei import HuaweiUtils
 from twrpdtgen.utils.kernel import get_kernel_name
@@ -100,15 +101,16 @@ class DeviceTree:
 		if Path(aik.ramdisk_path / "etc" / "twrp.fstab").is_file():
 			debug("Found a TWRP fstab, copying it...")
 			copyfile(aik.ramdisk_path / "etc" / "twrp.fstab", self.fstab)
-		elif Path(aik.ramdisk_path / "etc" / "recovery.fstab").is_file():
-			debug("Generating fstab...")
-			make_twrp_fstab(aik.ramdisk_path / "etc" / "recovery.fstab",
-							self.fstab)
-		elif Path(aik.ramdisk_path / "system" / "etc" / "recovery.fstab").is_file():
-			debug("Generating fstab...")
-			make_twrp_fstab(aik.ramdisk_path / "system" / "etc" / "recovery.fstab",
-							self.fstab)
 		else:
+			for fstab in FSTAB_LOCATIONS:
+				fstab = aik.ramdisk_path / fstab
+				debug(f"Checking {fstab}")
+				if not (aik.ramdisk_path / fstab).is_file():
+					continue
+				debug(f"Generating fstab, using {fstab} as reference...")
+				make_twrp_fstab(fstab, self.fstab)
+				break
+		if not self.fstab.is_file():
 			raise AssertionError("fstab not found")
 
 		for file in aik.ramdisk_path.iterdir():
