@@ -15,7 +15,6 @@ from twrpdtgen.utils.build_prop import BuildProp
 from twrpdtgen.utils.fstab import make_twrp_fstab
 from twrpdtgen.utils.kernel import get_kernel_name
 from twrpdtgen.utils.template import render_template
-from twrpdtgen.twrp_dt_gen import debug
 
 class DeviceTree:
 	"""

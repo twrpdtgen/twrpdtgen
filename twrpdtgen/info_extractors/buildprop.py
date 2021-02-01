@@ -1,4 +1,4 @@
-from twrpdtgen.twrp_dt_gen import warning
+from logging import warning
 from twrpdtgen.utils.build_prop import BuildProp
 
 PARTITIONS = ["odm", "product", "system", "system_ext", "vendor"]

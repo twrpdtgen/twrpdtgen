@@ -3,7 +3,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 from twrpdtgen import __version__ as version, current_path
-from twrpdtgen.twrp_dt_gen import generate_device_tree
+from twrpdtgen.device_tree import DeviceTree
 from twrpdtgen.utils.logging import setup_logging
 
 if __name__ == '__main__':
@@ -25,5 +25,5 @@ if __name__ == '__main__':
 
 	setup_logging(args.verbose)
 
-	dt = generate_device_tree(args.recovery_image, args.output, no_git=args.no_git, keep_aik=args.keep_aik)
+	dt = DeviceTree(args.recovery_image, args.output, no_git=args.no_git, keep_aik=args.keep_aik)
 	print(f"\nDone! You can find the device tree in {str(dt.path)}")
