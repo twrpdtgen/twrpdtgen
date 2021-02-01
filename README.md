@@ -22,7 +22,9 @@ Linux only: Be sure to have cpio installed in your system (Install cpio using `s
 $ python3 -m twrpdtgen -h
 TWRP device tree generator
 
-usage: python3 -m twrpdtgen [-h] [-o OUTPUT] [--no-git] [-v] [-k] recovery_image
+usage: python3 -m twrpdtgen [-h] [-o OUTPUT] [-k] [--no-git] [--huawei] [--recovery_kernel RECOVERY_KERNEL] [--recovery_ramdisk RECOVERY_RAMDISK]
+                            [--recovery_vendor RECOVERY_VENDOR] [-v]
+                            [recovery_image]
 
 positional arguments:
   recovery_image        path to a recovery image (or boot image if the device is A/B)
@@ -31,9 +33,16 @@ optional arguments:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
                         custom output folder
-  --no-git              don't create a git repo after the generation
-  -v, --verbose         enable debugging logging
   -k, --keep-aik        keep AIK after the generation
+  --no-git              don't create a git repo after the generation
+  --huawei              Huawei mode (split kernel, ramdisk and vendor)
+  --recovery_kernel RECOVERY_KERNEL
+                        path to a recovery_kernel file (huawei mode only)
+  --recovery_ramdisk RECOVERY_RAMDISK
+                        path to a recovery_ramdisk file (huawei mode only)
+  --recovery_vendor RECOVERY_VENDOR
+                        path to a recovery_vendor file (huawei mode only)
+  -v, --verbose         enable debugging logging
 ```
 
 When an image is provided, if everything goes well, there will be a device tree at `output/manufacturer/codename`

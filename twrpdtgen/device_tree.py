@@ -13,6 +13,7 @@ from twrpdtgen.info_extractors.buildprop import BuildPropReader
 from twrpdtgen.utils.aik_manager import AIKManager
 from twrpdtgen.utils.build_prop import BuildProp
 from twrpdtgen.utils.fstab import make_twrp_fstab
+from twrpdtgen.utils.huawei import HuaweiUtils
 from twrpdtgen.utils.kernel import get_kernel_name
 from twrpdtgen.utils.template import render_template
 
@@ -23,16 +24,31 @@ class DeviceTree:
 	It initialize a basic device tree structure
 	and save the location of some important files
 	"""
-	def __init__(self, recovery_image: Path, output_path: Path, no_git=False, keep_aik=False) -> None:
+	def __init__(self, output_path: Path, recovery_image=None,
+				 no_git=False, keep_aik=False, huawei=False,
+				 recovery_kernel=None, recovery_ramdisk=None, recovery_vendor=None) -> None:
 		"""Initialize the device tree class."""
 
-		# Check if the image exists
-		if not recovery_image.is_file():
-			raise FileNotFoundError("Specified file doesn't exist")
+		if not huawei:
+			self.images = [recovery_image]
+		else:
+			self.images = [recovery_kernel, recovery_ramdisk, recovery_vendor]
 
-		# Extract the image
-		aik = AIKManager(keep_aik)
-		aik.extract(recovery_image)
+		for image in self.images:
+			# Check if the provided images are None
+			if image is None:
+				raise FileNotFoundError("Missing image argument")
+			# Check if the image exists
+			elif not image.is_file():
+				raise FileNotFoundError("Specified file doesn't exist")
+
+		if not huawei:
+			# Extract the image
+			aik = AIKManager(keep_aik)
+			aik.extract(recovery_image)
+		else:
+			huawei_utils = HuaweiUtils(recovery_kernel, recovery_ramdisk, recovery_vendor, is_debug=keep_aik)
+			aik = huawei_utils.extract()
 
 		# Parse build prop
 		debug("Getting device infos...")
