@@ -51,15 +51,18 @@ class AIKManager:
 		"""
 		new_recovery_image = self.path / "recovery.img"
 		copyfile(recovery_image, new_recovery_image)
-		# TODO Check if AIK extract is successful
 		if system() == "Linux":
 			aik_process = Popen([self.path / "unpackimg.sh", "--nosudo", new_recovery_image],
 								stdout=PIPE, stderr=PIPE, universal_newlines=True)
 			_, _ = aik_process.communicate()
+			aik_returncode = aik_process.returncode
 		elif system() == "Windows":
-			call([self.path / "unpackimg.bat", new_recovery_image])
+			aik_returncode = call([self.path / "unpackimg.bat", new_recovery_image])
 		else:
 			raise NotImplementedError(f"{system()} is not supported!")
+
+		if aik_returncode != 0:
+			raise RuntimeError("AIK extraction failed")
 
 		self.get_image_infos()
 
