@@ -71,7 +71,7 @@ class AIKManager:
 		if returncode != 0:
 			if self.is_debug:
 				print(output)
-			raise RuntimeError("AIK extraction failed")
+			raise RuntimeError(f"AIK extraction failed, return code {returncode}")
 
 		self.get_image_infos()
 
