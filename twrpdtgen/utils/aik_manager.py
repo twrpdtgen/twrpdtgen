@@ -4,7 +4,7 @@ from pathlib import Path
 from platform import system
 from shutil import copyfile, rmtree
 from stat import S_IWRITE
-from subprocess import Popen, PIPE, call
+from subprocess import check_output, STDOUT, CalledProcessError
 from tempfile import TemporaryDirectory
 from twrpdtgen import current_path
 from typing import Union
@@ -51,17 +51,26 @@ class AIKManager:
 		"""
 		new_recovery_image = self.path / "recovery.img"
 		copyfile(recovery_image, new_recovery_image)
+
 		if system() == "Linux":
-			aik_process = Popen([self.path / "unpackimg.sh", "--nosudo", new_recovery_image],
-								stdout=PIPE, stderr=PIPE, universal_newlines=True)
-			_, _ = aik_process.communicate()
-			aik_returncode = aik_process.returncode
+			command = [self.path / "unpackimg.sh", "--nosudo", new_recovery_image]
 		elif system() == "Windows":
-			aik_returncode = call([self.path / "unpackimg.bat", new_recovery_image])
+			command = [self.path / "unpackimg.bat", new_recovery_image]
 		else:
 			raise NotImplementedError(f"{system()} is not supported!")
 
-		if aik_returncode != 0:
+		try:
+			process = check_output(command, stderr=STDOUT, universal_newlines=True)
+		except CalledProcessError as e:
+			returncode = e.returncode
+			output = e.output
+		else:
+			returncode = 0
+			output = process
+
+		if returncode != 0:
+			if self.is_debug:
+				print(output)
 			raise RuntimeError("AIK extraction failed")
 
 		self.get_image_infos()
