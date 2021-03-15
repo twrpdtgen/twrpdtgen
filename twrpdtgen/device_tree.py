@@ -141,6 +141,7 @@ class DeviceTree:
 						device_is_ab=self.build_prop_reader.device_is_ab,
 						device_platform=self.build_prop_reader.platform,
 						device_arch=self.build_prop_reader.arch,
+						device_pixel_format = self.build_prop_reader.device_pixel_format,
 						board_name=aik.board_name,
 						recovery_size=aik.recovery_size,
 						cmdline=aik.cmdline,

@@ -10,6 +10,7 @@ DEVICE_MODEL = ["ro.product.model"] + [f"ro.product.{partition}.brand" for parti
 DEVICE_ARCH = ["ro.product.cpu.abi", "ro.product.cpu.abilist"]
 DEVICE_IS_AB = ["ro.build.ab_update"]
 DEVICE_PLATFORM = ["ro.board.platform", "ro.hardware.keystore", "ro.hardware.chipname"]
+DEVICE_PIXEL_FORMAT = ["ro.minui.pixel_format"]
 
 class BuildPropReader:
 	"""
@@ -40,6 +41,11 @@ class BuildPropReader:
 			self.device_is_ab = bool(self.get_prop(DEVICE_IS_AB, "A/B"))
 		except AssertionError:
 			self.device_is_ab = False
+
+		try:
+			self.device_pixel_format = self.get_prop(DEVICE_PIXEL_FORMAT, "pixel format")
+		except AssertionError:
+			self.device_pixel_format = None
 
 	def get_prop(self, props: list, error: str):
 		"""
