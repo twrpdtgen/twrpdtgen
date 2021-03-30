@@ -7,6 +7,7 @@ from stat import S_IWRITE
 from subprocess import check_output, STDOUT, CalledProcessError
 from tempfile import TemporaryDirectory
 from twrpdtgen import current_path
+from twrpdtgen.utils.find_package import find_package
 from typing import Union
 
 def handle_remove_readonly(func, path, _):
@@ -37,6 +38,10 @@ class AIKManager:
 
 		self.images_path = self.path / "split_img"
 		self.ramdisk_path = self.path / "ramdisk"
+
+		# Check whether cpio package is installed
+		if platform.system() == "Linux" and not find_package("cpio"):
+			raise RuntimeError("cpio package is not installed. Install it by sudo apt install cpio or sudo pacman -S cpio (Based on what package manager you're using)")
 
 		info("Cloning AIK...")
 		if system() == "Linux":
