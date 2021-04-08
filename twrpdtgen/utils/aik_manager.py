@@ -40,7 +40,7 @@ class AIKManager:
 		self.ramdisk_path = self.path / "ramdisk"
 
 		# Check whether cpio package is installed
-		if platform.system() == "Linux" and not find_package("cpio"):
+		if system() == "Linux" and not find_package("cpio"):
 			raise RuntimeError("cpio package is not installed. Install it by sudo apt install cpio or sudo pacman -S cpio (Based on what package manager you're using)")
 
 		info("Cloning AIK...")
