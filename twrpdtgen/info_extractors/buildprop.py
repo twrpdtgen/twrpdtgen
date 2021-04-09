@@ -1,5 +1,6 @@
 from logging import warning
 from twrpdtgen.utils.build_prop import BuildProp
+from distutils.util import strtobool
 
 PARTITIONS = ["odm", "product", "system", "system_ext", "vendor"]
 
@@ -38,7 +39,7 @@ class BuildPropReader:
 			self.platform = "default"
 
 		try:
-			self.device_is_ab = bool(self.get_prop(DEVICE_IS_AB, "A/B"))
+			self.device_is_ab = bool(strtobool(self.get_prop(DEVICE_IS_AB, "A/B")))
 		except AssertionError:
 			self.device_is_ab = False
 
