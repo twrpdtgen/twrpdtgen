@@ -40,11 +40,11 @@ class AIKManager:
 		self.ramdisk_path = self.path / "ramdisk"
 
 		# Check whether cpio package is installed
-		if system() == "Linux" and not find_package("cpio"):
-			raise RuntimeError("cpio package is not installed. Install it by sudo apt install cpio or sudo pacman -S cpio (Based on what package manager you're using)")
+		if system() in ["Linux", "Darwin"] and not find_package("cpio"):
+			raise RuntimeError("cpio package is not installed. Install it by sudo apt install cpio or sudo pacman -S cpio or brew install cpio (Based on what package manager you're using)")
 
 		info("Cloning AIK...")
-		if system() == "Linux":
+		if system() in ["Linux", "Darwin"]:
 			Repo.clone_from("https://github.com/SebaUbuntu/AIK-Linux-mirror", self.path)
 		elif system() == "Windows":
 			Repo.clone_from("https://github.com/SebaUbuntu/AIK-Windows-mirror", self.path)
@@ -57,7 +57,7 @@ class AIKManager:
 		new_recovery_image = self.path / "recovery.img"
 		copyfile(recovery_image, new_recovery_image)
 
-		if system() == "Linux":
+		if system() in ["Linux", "Darwin"]:
 			command = [self.path / "unpackimg.sh", "--nosudo", new_recovery_image]
 		elif system() == "Windows":
 			command = [self.path / "unpackimg.bat", new_recovery_image]
