@@ -30,18 +30,18 @@ def main():
 		old_version = dependencies[dependency][1:]
 		try:
 			new_version = get_new_versions(dependency)
-		except:
+		except Exception:
 			new_version = old_version
 
 		print(f"{dependency}: old: {old_version}, new: {new_version}")
 		dependencies[dependency] = new_version
 
-	for line in range(len(pyproject_list)):
-		if pyproject_list[line].split() == []:
+	for line in pyproject_list:
+		if line.split() == []:
 			continue
-		maybe_dep = pyproject_list[line].split()[0]
+		maybe_dep = line.split()[0]
 		if maybe_dep in dependencies:
-			pyproject_list[line] = f'{maybe_dep} = "^{dependencies[maybe_dep]}"\n'
+			line = f'{maybe_dep} = "^{dependencies[maybe_dep]}"\n'
 
 	with open(FILE, 'w') as f:
 		f.writelines(pyproject_list)
