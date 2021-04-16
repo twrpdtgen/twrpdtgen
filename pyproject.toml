@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twrpdtgen"
-version = "1.2.5"
+version = "1.2.6"
 description = "TWRP Device Tree Generator. A script that generates a TWRP-compatible device tree."
 license = "Apache-2.0"
 readme = "README.md"
