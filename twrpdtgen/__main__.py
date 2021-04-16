@@ -44,7 +44,7 @@ if __name__ == '__main__':
 		parser.error("the following arguments are required: recovery_image")
 	elif args.huawei:
 		if args.recovery_kernel is None or args.recovery_ramdisk is None or args.recovery_vendor is None:
-			parser.error("the following arguments are required:" 
+			parser.error("the following arguments are required:"
 						 " --recovery_kernel, --recovery_ramdisk, --recovery_vendor")
 
 	setup_logging(args.verbose)

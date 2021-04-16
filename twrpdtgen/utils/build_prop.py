@@ -29,7 +29,7 @@ class BuildProp:
 				continue
 			else:
 				self.set_prop(prop_name, prop_value)
-	
+
 	def get_prop(self, prop: str) -> Union[str, None]:
 		"""
 		From a prop name, return the prop value.

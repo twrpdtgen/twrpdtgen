@@ -30,13 +30,13 @@ class HuaweiUtils:
 		self.recovery_ramdisk = recovery_ramdisk
 		self.recovery_vendor = recovery_vendor
 		self.is_debug = is_debug
-	
+
 	def extract(self):
 		self.recovery_kernel_aik = AIKManager(self.is_debug)
 		self.recovery_ramdisk_aik = AIKManager(False)
 		self.recovery_vendor_aik = AIKManager(False)
 
-		self.recovery_kernel_aik.extract(self.recovery_kernel)		
+		self.recovery_kernel_aik.extract(self.recovery_kernel)
 		self.recovery_ramdisk_aik.extract(self.recovery_ramdisk)
 		self.recovery_vendor_aik.extract(self.recovery_vendor)
 
