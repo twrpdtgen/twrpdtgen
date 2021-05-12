@@ -76,7 +76,7 @@ python-versions = "*"
 
 [[package]]
 name = "jinja2"
-version = "3.0.0rc2"
+version = "3.0.0"
 description = "A very fast and expressive template engine."
 category = "main"
 optional = false
@@ -230,8 +230,8 @@ iniconfig = [
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 jinja2 = [
-    {file = "Jinja2-3.0.0rc2-py3-none-any.whl", hash = "sha256:8e68a2e702a59a57c86305752df25532472a0dad2b4b2756a1d289c618a9e1f5"},
-    {file = "Jinja2-3.0.0rc2.tar.gz", hash = "sha256:fd581ab32650fec6d24e8f035dd9757f3549ea6e559534d5d2385d4ade7e0fe1"},
+    {file = "Jinja2-3.0.0-py3-none-any.whl", hash = "sha256:2f2de5285cf37f33d33ecd4a9080b75c87cd0c1994d5a9c6df17131ea1f049c6"},
+    {file = "Jinja2-3.0.0.tar.gz", hash = "sha256:ea8d7dd814ce9df6de6a761ec7f1cac98afe305b8cdc4aaae4e114b8d8ce24c5"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.0.0rc2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:41d3b3776bc820c8fcc585df6b49c2a3e245c64a46ad7aa1b21ce08179d9167b"},
