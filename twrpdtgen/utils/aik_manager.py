@@ -122,7 +122,7 @@ class AIKManager:
 		:param file: file as a Path object
 		:return: string of the first line of the file contents
 		"""
-		return file.read_text().splitlines()[0]
+		return file.read_text().splitlines()[0] if file.exists() else None
 
 	def get_extracted_info(self, file: str) -> Path:
 		return self.images_path / ("recovery.img-" + file)

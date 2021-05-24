@@ -94,13 +94,27 @@ BOARD_INCLUDE_RECOVERY_DTBO := true
 {% if header_version != "0" %}
 BOARD_BOOTIMG_HEADER_VERSION := {{ header_version }}
 {% endif %}
+{% if base_address is not None %}
 BOARD_KERNEL_BASE := {{ base_address }}
+{% endif %}
+{% if pagesize is not None %}
 BOARD_KERNEL_PAGESIZE := {{ pagesize }}
+{% endif %}
+{% if ramdisk_offset is not None %}
 BOARD_RAMDISK_OFFSET := {{ ramdisk_offset }}
+{% endif %}
+{% if tags_offset is not None %}
 BOARD_KERNEL_TAGS_OFFSET := {{ tags_offset }}
+{% endif %}
+{% if flash_block_size is not None %}
 BOARD_FLASH_BLOCK_SIZE := {{ flash_block_size }} # (BOARD_KERNEL_PAGESIZE * 64)
+{% endif %}
+{% if ramdisk_offset is not None %}
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
+{% endif %}
+{% if tags_offset is not None %}
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
+{% endif %}
 {% if dt_image != None %}
 BOARD_MKBOOTIMG_ARGS += --dt $(TARGET_PREBUILT_DT)
 {% endif %}
