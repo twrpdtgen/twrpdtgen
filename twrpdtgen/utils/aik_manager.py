@@ -82,7 +82,7 @@ class AIKManager:
 
 	def get_image_infos(self):
 		self.aik_images_path_base = str(self.images_path / "recovery.img-")
-		kernel = self.get_extracted_info("zImage")
+		kernel = self.get_extracted_info("kernel")
 		self.kernel = kernel if kernel.is_file() else None
 		dt_image = self.get_extracted_info("dt")
 		self.dt_image = dt_image if dt_image.is_file() else None
