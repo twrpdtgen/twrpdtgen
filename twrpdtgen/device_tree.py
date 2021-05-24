@@ -156,7 +156,7 @@ class DeviceTree:
 						ramdisk_offset=aik.ramdisk_offset,
 						tags_offset=aik.tags_offset,
 						ramdisk_compression=aik.ramdisk_compression,
-						flash_block_size=str(int(aik.pagesize) * 64)) if aik.pagesize is not None else None
+						flash_block_size=str(int(aik.pagesize) * 64) if aik.pagesize is not None else None)
 
 		debug("Creating device.mk...")
 		render_template(self.path, "device.mk.jinja2",
