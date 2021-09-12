@@ -78,11 +78,13 @@ class FstabEntry:
 			mount_point_location = 0
 			fstype_location = 1
 			device_location = 2
+			flags_location = -1
 		else:
 			# AOSP syntax
 			device_location = 0
 			mount_point_location = 1
 			fstype_location = 2
+			flags_location = -1
 
 		# Parse elements
 		self.mount_point = line[mount_point_location]
@@ -92,6 +94,7 @@ class FstabEntry:
 
 		self.fstype = line[fstype_location]
 		self.device = line[device_location]
+		self.fsflags = line[flags_location]
 
 		# Create a readable name
 		if self.mount_point.startswith("/"):
@@ -113,6 +116,8 @@ class FstabEntry:
 				self.flags += ['backup=1']
 		if not self.device.startswith("/"):
 			self.flags += ['logical']
+		if 'slotselect' in self.fsflags:
+			self.flags += ['slotselect']
 
 	def get_formatted_line(self) -> str:
 		"""
