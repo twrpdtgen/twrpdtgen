@@ -107,6 +107,7 @@ class AIKManager:
 		# Get a usable build.prop to parse
 		self.buildprop = None
 		buildprop_locations = [self.ramdisk_path / "default.prop",
+							   self.ramdisk_path / "prop.default",
 							   self.ramdisk_path / "vendor" / "build.prop",
 							   self.ramdisk_path / "system" / "build.prop",
 							   self.ramdisk_path / "system" / "etc" / "build.prop"]
