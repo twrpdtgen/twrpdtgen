@@ -47,6 +47,9 @@ oem_partitions = [
 	"persist",
 ]
 
+# Partitions which are A/B
+ab_partitions = []
+
 # Partitions that can be backed up
 partition_backup_flag = []
 partition_backup_flag += bootloader_partitions
@@ -117,6 +120,9 @@ class FstabEntry:
 		if not self.device.startswith("/"):
 			self.flags += ['logical']
 		if 'slotselect' in self.fsflags:
+			self.flags += ['slotselect']
+			ab_partitions.append(self.name)
+		elif is_image and self.name[:-6] in ab_partitions:
 			self.flags += ['slotselect']
 
 	def get_formatted_line(self) -> str:
