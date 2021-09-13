@@ -4,7 +4,7 @@ from distutils.util import strtobool
 
 PARTITIONS = ["odm", "product", "system", "system_ext", "vendor"]
 
-DEVICE_CODENAME = ["ro.product.device"] + [f"ro.product.{partition}.device" for partition in PARTITIONS]
+DEVICE_CODENAME = ["ro.product.device", "ro.omni.device"] + [f"ro.product.{partition}.device" for partition in PARTITIONS]
 DEVICE_MANUFACTURER = ["ro.product.manufacturer"] + [f"ro.product.{partition}.manufacturer" for partition in PARTITIONS]
 DEVICE_BRAND = ["ro.product.brand"] + [f"ro.product.{partition}.brand" for partition in PARTITIONS]
 DEVICE_MODEL = ["ro.product.model"] + [f"ro.product.{partition}.model" for partition in PARTITIONS]
