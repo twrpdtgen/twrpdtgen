@@ -37,7 +37,7 @@ class DeviceTree:
 	It initialize a basic device tree structure
 	and save the location of some important files
 	"""
-	def __init__(self, image: Path = None, debug = False):
+	def __init__(self, image: Path, debug = False):
 		"""Initialize the device tree class."""
 		self.image = image
 
