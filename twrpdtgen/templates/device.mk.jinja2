@@ -1,7 +1,6 @@
 {% include 'LICENSE' %}
 
 LOCAL_PATH := device/{{ device_manufacturer }}/{{ device_codename }}
-
 {% if device_is_ab %}
 # A/B
 AB_OTA_PARTITIONS += \
@@ -36,3 +35,4 @@ PRODUCT_PACKAGES += \
     update_verifier \
     update_engine_sideload
 {% endif %}
+

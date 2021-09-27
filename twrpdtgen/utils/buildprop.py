@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2020 The Android Open Source Project
+# Copyright (C) 2021 The Android Open Source Project
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -30,16 +30,11 @@ class BuildProp:
 			else:
 				self.set_prop(prop_name, prop_value)
 
-	def get_prop(self, prop: str) -> Union[str, None]:
-		"""
-		From a prop name, return the prop value.
+	def get_prop(self, key: str, default=None) -> Union[str, None]:
+		if key in self.props:
+			return self.props[key]
+		else:
+			return default
 
-		Returns a string if it exists, else None
-		"""
-		try:
-			return self.props[prop]
-		except KeyError:
-			return None
-
-	def set_prop(self, prop_name: str, prop_value: str):
-		self.props[prop_name] = prop_value
+	def set_prop(self, key: str, value: str):
+		self.props[key] = value
