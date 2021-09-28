@@ -12,7 +12,7 @@ It has been confirmed that this script supports images built starting from Andro
 ```
 pip3 install twrpdtgen
 ```
-The module is supported on Python 3.6 and above.
+The module is supported on Python 3.9 and above.
 
 Linux only: Be sure to have cpio installed in your system (Install cpio using `sudo apt install cpio` or `sudo pacman -S cpio` based on what package manager you're using)
 
