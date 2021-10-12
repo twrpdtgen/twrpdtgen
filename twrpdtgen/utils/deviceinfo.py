@@ -9,16 +9,16 @@ from twrpdtgen.utils.buildprop import BuildProp
 
 PARTITIONS = [
 	"",
-	"bootimage.",
-	"odm.",
-	"product.",
-	"system.",
-	"system_ext.",
-	"vendor.",
+	"bootimage",
+	"odm",
+	"product",
+	"system",
+	"system_ext",
+	"vendor",
 ]
 
 def get_product_props(value: str):
-	return [f"ro.product.{partition}{value}" for partition in PARTITIONS]
+	return [f"ro.product.{partition}.{value}" for partition in PARTITIONS]
 
 DEVICE_CODENAME = get_product_props("device")
 DEVICE_MANUFACTURER = get_product_props("manufacturer")
