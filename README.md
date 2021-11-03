@@ -42,11 +42,11 @@ When an image is provided, if everything goes well, there will be a device tree 
 You can also use the module in a script, with the following code:
 
 ```python
-from twrpdtgen.twrp_dt_gen import generate_device_tree
+from twrpdtgen.devicetree import DeviceTree
 
-# The function will return a DeviceTree object, you can find its declaration here:
-from twrpdtgen.utils.device_tree import DeviceTree
+# Get image info
+devicetree = DeviceTree(image_path)
 
-result = generate_device_tree(image_path, output_path)
-
+# Dump device tree to folder
+devicetree.dump_to_folder(output_path)
 ```
