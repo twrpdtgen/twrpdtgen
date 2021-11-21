@@ -70,6 +70,14 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 TARGET_COPY_OUT_VENDOR := vendor
 
+{% if device_is_dynamic %}
+# Dynamic Partition
+BOARD_SUPER_PARTITION_GROUPS := {{ device_brand|lower }}_dynamic_partitions
+BOARD_{{ device_brand|upper }}_DYNAMIC_PARTITIONS_PARTITION_LIST := \
+    system \
+    vendor
+{% endif %}
+
 {% if device_is_ab %}
 # A/B
 AB_OTA_UPDATER := true

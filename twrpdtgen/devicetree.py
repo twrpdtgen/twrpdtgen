@@ -67,6 +67,11 @@ class DeviceTree:
 				and (self.aik.dt_image is None and self.aik.dtb_image is None)):
 			self.kernel_name += "-dtb"
 
+		# Define TWRP Vendor
+		self.tw_vendor = "omni" # default vendor omni
+		if self.deviceinfo.device_is_dynamic:
+		    self.tw_vendor = "twrp"
+
 		# Generate fstab
 		self.fstab = None
 		for fstab in [self.aik.ramdisk_path / location for location in FSTAB_LOCATIONS]:
@@ -108,16 +113,19 @@ class DeviceTree:
 
 		LOGD("Creating AndroidProducts.mk...")
 		render_template(device_tree_folder, "AndroidProducts.mk.jinja2",
-						device_codename=self.deviceinfo.codename)
+						device_codename=self.deviceinfo.codename,
+						tw_vendor=self.tw_vendor)
 
 		LOGD("Creating BoardConfig.mk...")
 		render_template(device_tree_folder, "BoardConfig.mk.jinja2",
 						device_manufacturer=self.deviceinfo.manufacturer,
 						device_codename=self.deviceinfo.codename,
 						device_is_ab=self.deviceinfo.device_is_ab,
+						device_is_dynamic=self.deviceinfo.device_is_dynamic,
 						device_platform=self.deviceinfo.platform,
 						device_arch=ARCH_TO_STRING[self.deviceinfo.arch],
 						device_pixel_format = self.deviceinfo.device_pixel_format,
+						device_brand=self.deviceinfo.brand,
 						board_name=self.aik.board_name,
 						recovery_size=self.aik.recovery_size,
 						cmdline=self.aik.cmdline,
@@ -140,19 +148,21 @@ class DeviceTree:
 						device_codename=self.deviceinfo.codename,
 						device_manufacturer=self.deviceinfo.manufacturer,
 						device_platform=self.deviceinfo.platform,
-						device_is_ab=self.deviceinfo.device_is_ab)
+						device_is_ab=self.deviceinfo.device_is_ab,
+						device_is_dynamic=self.deviceinfo.device_is_dynamic)
 
-		LOGD(f"Creating omni_{self.deviceinfo.codename}.mk...")
-		render_template(device_tree_folder, "omni.mk.jinja2", out_file=f"omni_{self.deviceinfo.codename}.mk",
+		LOGD(f"Creating {self.tw_vendor}_{self.deviceinfo.codename}.mk...")
+		render_template(device_tree_folder, "omni.mk.jinja2", out_file=f"{self.tw_vendor}_{self.deviceinfo.codename}.mk",
 						device_codename=self.deviceinfo.codename,
 						device_manufacturer=self.deviceinfo.manufacturer,
 						device_brand=self.deviceinfo.brand,
 						device_model=self.deviceinfo.model,
-						device_has_64bit_arch=self.deviceinfo.device_has_64bit_arch)
-
-		LOGD("Creating vendorsetup.sh...")
-		render_template(device_tree_folder, "vendorsetup.sh.jinja2",
-		                device_codename=self.deviceinfo.codename)
+						device_has_64bit_arch=self.deviceinfo.device_has_64bit_arch,
+						tw_vendor=self.tw_vendor)
+		if self.tw_vendor == "omni":
+		    LOGD("Creating vendorsetup.sh...")
+		    render_template(device_tree_folder, "vendorsetup.sh.jinja2",
+		                    device_codename=self.deviceinfo.codename)
 
 		LOGD("Copying kernel...")
 		if self.aik.kernel is not None:

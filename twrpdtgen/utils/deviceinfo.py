@@ -26,6 +26,7 @@ DEVICE_BRAND = get_product_props("brand")
 DEVICE_MODEL = get_product_props("model")
 DEVICE_ARCH = ["ro.product.cpu.abi", "ro.product.cpu.abilist"] + [f"ro.{partition}product.cpu.abi" for partition in PARTITIONS] + [f"ro.{partition}product.cpu.abilist" for partition in PARTITIONS]
 DEVICE_IS_AB = ["ro.build.ab_update"]
+DEVICE_IS_DYNAMIC = ["ro.boot.dynamic_partitions"]
 DEVICE_PLATFORM = ["ro.board.platform"]
 DEVICE_PIXEL_FORMAT = ["ro.minui.pixel_format"]
 
@@ -80,6 +81,7 @@ class DeviceInfo:
 		self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
 		self.platform = self.get_prop(DEVICE_PLATFORM, default="default")
 		self.device_is_ab = bool(strtobool(self.get_prop(DEVICE_IS_AB, default="false")))
+		self.device_is_dynamic = bool(strtobool(self.get_prop(DEVICE_IS_DYNAMIC, default="false")))
 		self.device_pixel_format = self.get_prop(DEVICE_PIXEL_FORMAT, raise_exception=False)
 		self.kernel_name = KERNEL_NAMES[self.arch]
 
