@@ -37,7 +37,7 @@ class DeviceTree:
 	It initialize a basic device tree structure
 	and save the location of some important files
 	"""
-	def __init__(self, image: Path, debug = False):
+	def __init__(self, image: Path, debug: bool = False):
 		"""Initialize the device tree class."""
 		self.image = image
 
@@ -187,7 +187,7 @@ class DeviceTree:
 		except Exception:
 			git_global_email, git_global_name = None, None
 
-		if git_global_email is None or git_global_name is None:
+		if not all((git_global_email, git_global_name)):
 			git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
 			git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
 
