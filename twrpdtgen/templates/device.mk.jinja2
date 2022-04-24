@@ -1,7 +1,7 @@
 {% include 'LICENSE' %}
 
-LOCAL_PATH := device/{{ device_manufacturer }}/{{ device_codename }}
-{% if device_is_ab %}
+LOCAL_PATH := device/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}
+{% if deviceinfo.device_is_ab %}
 # A/B
 AB_OTA_POSTINSTALL_CONFIG += \
     RUN_POSTINSTALL_system=true \
@@ -15,10 +15,10 @@ PRODUCT_PACKAGES += \
     android.hardware.boot@1.0-service
 
 PRODUCT_PACKAGES += \
-    bootctrl.{{ device_platform }}
+    bootctrl.{{ deviceinfo.platform }}
 
 PRODUCT_STATIC_BOOT_CONTROL_HAL := \
-    bootctrl.{{ device_platform }} \
+    bootctrl.{{ deviceinfo.platform }} \
     libgptutils \
     libz \
     libcutils

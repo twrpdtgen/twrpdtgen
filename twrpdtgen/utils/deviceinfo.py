@@ -77,6 +77,7 @@ class DeviceInfo:
 		self.model = self.get_prop(DEVICE_MODEL)
 
 		self.arch = self.parse_arch(self.get_prop(DEVICE_ARCH))
+		self.arch_str = ARCH_TO_STRING[self.arch]
 		self.device_has_64bit_arch = self.arch in ("arm64", "x86_64")
 		self.platform = self.get_prop(DEVICE_PLATFORM, default="default")
 		self.device_is_ab = bool(strtobool(self.get_prop(DEVICE_IS_AB, default="false")))

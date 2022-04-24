@@ -1,12 +1,12 @@
 {% include 'LICENSE' %}
 
-DEVICE_PATH := device/{{ device_manufacturer }}/{{ device_codename }}
+DEVICE_PATH := device/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}
 
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES := true
 
 # Architecture
-{% if device_arch == "arm64" %}
+{% if deviceinfo.arch_str == "arm64" %}
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
@@ -21,14 +21,14 @@ TARGET_2ND_CPU_VARIANT := generic
 TARGET_BOARD_SUFFIX := _64
 TARGET_USES_64_BIT_BINDER := true
 {% endif %}
-{% if device_arch == "arm" %}
+{% if deviceinfo.arch_str == "arm" %}
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_VARIANT := generic
 {% endif %}
-{% if device_arch == "x86" %}
+{% if deviceinfo.arch_str == "x86" %}
 "TARGET_ARCH := x86
 TARGET_ARCH_VARIANT := generic
 TARGET_CPU_ABI := x86
@@ -37,7 +37,7 @@ TARGET_CPU_ABI_LIST := x86,armeabi-v7a,armeabi
 TARGET_CPU_ABI_LIST_32_BIT := x86,armeabi-v7a,armeabi
 TARGET_CPU_VARIANT := generic
 {% endif %}
-{% if device_arch == "x86_64" %}
+{% if deviceinfo.arch_str == "x86_64" %}
 TARGET_ARCH := x86_64
 TARGET_ARCH_VARIANT := x86_64
 TARGET_CPU_ABI := x86_64
@@ -53,16 +53,16 @@ TARGET_USES_64_BIT_BINDER := true
 {% endif %}
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := {{ device_codename }}
+TARGET_OTA_ASSERT_DEVICE := {{ deviceinfo.codename }}
 
-{% if board_name %}
-# Bootloader"
-TARGET_BOOTLOADER_BOARD_NAME := {{ board_name }}
+{% if aik.board_name %}
+# Bootloader
+TARGET_BOOTLOADER_BOARD_NAME := {{ aik.board_name }}
 
 {% endif %}
 # File systems
 BOARD_HAS_LARGE_FILESYSTEM := true
-#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {{ recovery_size }} # This is the maximum known partition size, but it can be higher, so we just omit it
+#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {{ aik.recovery_size }} # This is the maximum known partition size, but it can be higher, so we just omit it
 BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4
 BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
@@ -70,7 +70,7 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 TARGET_COPY_OUT_VENDOR := vendor
 
-{% if device_is_ab %}
+{% if deviceinfo.device_is_ab %}
 # A/B
 AB_OTA_UPDATER := true
 AB_OTA_PARTITIONS += \
@@ -82,70 +82,70 @@ TW_INCLUDE_REPACKTOOLS := true
 
 {% endif %}
 # Kernel
-BOARD_KERNEL_CMDLINE := {{ cmdline }}
-{% if kernel != None %}
+BOARD_KERNEL_CMDLINE := {{ aik.cmdline }}
+{% if aik.kernel != None %}
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/{{ kernel_name }}
 {% endif %}
-{% if dt_image != None %}
+{% if aik.dt_image != None %}
 TARGET_PREBUILT_DT := $(DEVICE_PATH)/prebuilt/dt.img
 {% endif %}
-{% if dtb_image != None %}
+{% if aik.dtb_image != None %}
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
 {% endif %}
-{% if dtbo_image != None %}
+{% if aik.dtbo_image != None %}
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
 BOARD_INCLUDE_RECOVERY_DTBO := true
 {% endif %}
-{% if header_version != "0" %}
-BOARD_BOOTIMG_HEADER_VERSION := {{ header_version }}
+{% if aik.header_version != "0" %}
+BOARD_BOOTIMG_HEADER_VERSION := {{ aik.header_version }}
 {% endif %}
-{% if base_address != None %}
-BOARD_KERNEL_BASE := {{ base_address }}
+{% if aik.base_address != None %}
+BOARD_KERNEL_BASE := {{ aik.base_address }}
 {% endif %}
-{% if pagesize != None %}
-BOARD_KERNEL_PAGESIZE := {{ pagesize }}
+{% if aik.pagesize != None %}
+BOARD_KERNEL_PAGESIZE := {{ aik.pagesize }}
 {% endif %}
-{% if ramdisk_offset != None %}
-BOARD_RAMDISK_OFFSET := {{ ramdisk_offset }}
+{% if aik.ramdisk_offset != None %}
+BOARD_RAMDISK_OFFSET := {{ aik.ramdisk_offset }}
 {% endif %}
-{% if tags_offset != None %}
-BOARD_KERNEL_TAGS_OFFSET := {{ tags_offset }}
+{% if aik.tags_offset != None %}
+BOARD_KERNEL_TAGS_OFFSET := {{ aik.tags_offset }}
 {% endif %}
 {% if flash_block_size != None %}
 BOARD_FLASH_BLOCK_SIZE := {{ flash_block_size }} # (BOARD_KERNEL_PAGESIZE * 64)
 {% endif %}
-{% if ramdisk_offset != None %}
+{% if aik.ramdisk_offset != None %}
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 {% endif %}
-{% if tags_offset != None %}
+{% if aik.tags_offset != None %}
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
 {% endif %}
-{% if dt_image != None %}
+{% if aik.dt_image != None %}
 BOARD_MKBOOTIMG_ARGS += --dt $(TARGET_PREBUILT_DT)
 {% endif %}
-{% if dtb_image != None %}
+{% if aik.dtb_image != None %}
 BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
 {% endif %}
-{% if header_version != "0" %}
+{% if aik.header_version != "0" %}
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)
 {% endif %}
 BOARD_KERNEL_IMAGE_NAME := {{ kernel_name }}
-TARGET_KERNEL_ARCH := {{ device_arch }}
-TARGET_KERNEL_HEADER_ARCH := {{ device_arch }}
-TARGET_KERNEL_SOURCE := kernel/{{ device_manufacturer }}/{{ device_codename }}
-TARGET_KERNEL_CONFIG := {{ device_codename }}_defconfig
+TARGET_KERNEL_ARCH := {{ deviceinfo.arch_str }}
+TARGET_KERNEL_HEADER_ARCH := {{ deviceinfo.arch_str }}
+TARGET_KERNEL_SOURCE := kernel/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}
+TARGET_KERNEL_CONFIG := {{ deviceinfo.codename }}_defconfig
 
-{% if ramdisk_compression == "lzma" %}
+{% if aik.ramdisk_compression == "lzma" %}
 # Ramdisk compression
 LZMA_RAMDISK_TARGETS := recovery
 
 {% endif %}
 # Platform
-TARGET_BOARD_PLATFORM := {{ device_platform }}
+TARGET_BOARD_PLATFORM := {{ deviceinfo.platform }}
 
-{% if device_pixel_format != None %}
+{% if deviceinfo.device_pixel_format != None %}
 # Recovery
-TARGET_RECOVERY_PIXEL_FORMAT := {{ device_pixel_format }}
+TARGET_RECOVERY_PIXEL_FORMAT := {{ deviceinfo.device_pixel_format }}
 
 {% endif %}
 # Hack: prevent anti rollback

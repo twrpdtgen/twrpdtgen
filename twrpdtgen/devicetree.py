@@ -10,7 +10,7 @@ from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
 from twrpdtgen.utils.aikmanager import AIKManager
 from twrpdtgen.utils.buildprop import BuildProp
-from twrpdtgen.utils.deviceinfo import DeviceInfo, ARCH_TO_STRING, ARCH_ARM, ARCH_ARM64
+from twrpdtgen.utils.deviceinfo import DeviceInfo, ARCH_ARM, ARCH_ARM64
 from twrpdtgen.utils.fstab import Fstab
 from twrpdtgen.utils.logging import LOGD
 from twrpdtgen.utils.template import render_template
@@ -103,56 +103,22 @@ class DeviceTree:
 
 		# Fill makefiles
 		LOGD("Creating Android.mk...")
-		render_template(device_tree_folder, "Android.mk.jinja2",
-		                device_codename=self.deviceinfo.codename)
+		self._render_template(device_tree_folder, "Android.mk")
 
 		LOGD("Creating AndroidProducts.mk...")
-		render_template(device_tree_folder, "AndroidProducts.mk.jinja2",
-						device_codename=self.deviceinfo.codename)
+		self._render_template(device_tree_folder, "AndroidProducts.mk")
 
 		LOGD("Creating BoardConfig.mk...")
-		render_template(device_tree_folder, "BoardConfig.mk.jinja2",
-						device_manufacturer=self.deviceinfo.manufacturer,
-						device_codename=self.deviceinfo.codename,
-						device_is_ab=self.deviceinfo.device_is_ab,
-						device_platform=self.deviceinfo.platform,
-						device_arch=ARCH_TO_STRING[self.deviceinfo.arch],
-						device_pixel_format = self.deviceinfo.device_pixel_format,
-						board_name=self.aik.board_name,
-						recovery_size=self.aik.recovery_size,
-						cmdline=self.aik.cmdline,
-						kernel=self.aik.kernel,
-						kernel_name=self.kernel_name,
-						dt_image=self.aik.dt_image,
-						dtb_image=self.aik.dtb_image,
-						dtbo_image=self.aik.dtbo_image,
-						header_version=self.aik.header_version,
-						base_address=self.aik.base_address,
-						pagesize=self.aik.pagesize,
-						ramdisk_offset=self.aik.ramdisk_offset,
-						tags_offset=self.aik.tags_offset,
-						ramdisk_compression=self.aik.ramdisk_compression,
-						flash_block_size=(str(int(self.aik.pagesize) * 64)
-						                  if self.aik.pagesize is not None else None))
+		self._render_template(device_tree_folder, "BoardConfig.mk")
 
 		LOGD("Creating device.mk...")
-		render_template(device_tree_folder, "device.mk.jinja2",
-						device_codename=self.deviceinfo.codename,
-						device_manufacturer=self.deviceinfo.manufacturer,
-						device_platform=self.deviceinfo.platform,
-						device_is_ab=self.deviceinfo.device_is_ab)
+		self._render_template(device_tree_folder, "device.mk")
 
 		LOGD(f"Creating omni_{self.deviceinfo.codename}.mk...")
-		render_template(device_tree_folder, "omni.mk.jinja2", out_file=f"omni_{self.deviceinfo.codename}.mk",
-						device_codename=self.deviceinfo.codename,
-						device_manufacturer=self.deviceinfo.manufacturer,
-						device_brand=self.deviceinfo.brand,
-						device_model=self.deviceinfo.model,
-						device_has_64bit_arch=self.deviceinfo.device_has_64bit_arch)
+		self._render_template(device_tree_folder, "omni.mk", out_file=f"omni_{self.deviceinfo.codename}.mk")
 
 		LOGD("Creating vendorsetup.sh...")
-		render_template(device_tree_folder, "vendorsetup.sh.jinja2",
-		                device_codename=self.deviceinfo.codename)
+		self._render_template(device_tree_folder, "vendorsetup.sh")
 
 		LOGD("Copying kernel...")
 		if self.aik.kernel is not None:
@@ -192,16 +158,22 @@ class DeviceTree:
 			git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
 
 		git_repo.index.add(["*"])
-		commit_message = render_template(None, "commit_message.jinja2", to_file=False,
-		                                 device_codename=self.deviceinfo.codename,
-		                                 device_arch=self.deviceinfo.arch,
-		                                 device_manufacturer=self.deviceinfo.manufacturer,
-		                                 device_brand=self.deviceinfo.brand,
-		                                 device_model=self.deviceinfo.model,
-		                                 version=version)
+		commit_message = self._render_template(None, "commit_message", to_file=False)
 		git_repo.index.commit(commit_message)
 
 		return device_tree_folder
+
+	def _render_template(self, *args, **kwargs):
+		return render_template(*args,
+		                       aik=self.aik,
+		                       deviceinfo=self.deviceinfo,
+		                       fstab=self.fstab,
+		                       kernel_name=self.kernel_name,
+		                       flash_block_size=(str(int(self.aik.pagesize) * 64)
+		                                         if self.aik.pagesize is not None
+		                                         else None),
+		                       version=version,
+		                       **kwargs)
 
 	def cleanup(self):
 		# Cleanup
