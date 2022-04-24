@@ -19,20 +19,14 @@ ALLOWED_OS = [
 	"Darwin",
 ]
 
-def handle_remove_readonly(func, path, _):
-	Path(path).chmod(S_IWRITE)
-	func(path)
-
 class AIKManager:
 	"""
 	This class is responsible for dealing with AIK tasks
 	such as cloning, updating, and extracting recovery images.
 	"""
 
-	def __init__(self, image: Path, debug=False):
+	def __init__(self, image: Path):
 		"""Initialize AIKManager class."""
-		self.debug = debug
-
 		if system() not in ALLOWED_OS:
 			raise NotImplementedError(f"{system()} is not supported!")
 
@@ -40,13 +34,8 @@ class AIKManager:
 		if which("cpio") is None:
 			raise RuntimeError("cpio package is not installed")
 
-		if not self.debug:
-			self.tempdir = TemporaryDirectory()
-			self.path = Path(self.tempdir.name)
-		else:
-			self.path = current_path / "extract"
-		if self.path.is_dir():
-			rmtree(self.path, ignore_errors=False, onerror=handle_remove_readonly)
+		self.tempdir = TemporaryDirectory()
+		self.path = Path(self.tempdir.name)
 
 		self.images_path = self.path / "split_img"
 		self.ramdisk_path = self.path / "ramdisk"
@@ -60,17 +49,13 @@ class AIKManager:
 		command = [self.path / "unpackimg.sh", "--nosudo", new_image]
 
 		try:
-			process = check_output(command, stderr=STDOUT, universal_newlines=True)
+			check_output(command, stderr=STDOUT, universal_newlines=True)
 		except CalledProcessError as e:
 			returncode = e.returncode
-			output = e.output
 		else:
 			returncode = 0
-			output = process
 
 		if returncode != 0:
-			if self.debug:
-				print(output)
 			raise RuntimeError(f"AIK extraction failed, return code {returncode}")
 
 		kernel = self.get_extracted_info("kernel")
@@ -103,5 +88,4 @@ class AIKManager:
 		return self.images_path / ("recovery.img-" + fragment)
 
 	def cleanup(self):
-		if not self.debug:
-			self.tempdir.cleanup()
+		self.tempdir.cleanup()

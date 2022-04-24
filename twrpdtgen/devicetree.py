@@ -37,7 +37,7 @@ class DeviceTree:
 	It initialize a basic device tree structure
 	and save the location of some important files
 	"""
-	def __init__(self, image: Path, debug = False):
+	def __init__(self, image: Path):
 		"""Initialize the device tree class."""
 		self.image = image
 
@@ -46,7 +46,7 @@ class DeviceTree:
 			raise FileNotFoundError("Specified file doesn't exist")
 
 		# Extract the image
-		self.aik = AIKManager(image, debug=debug)
+		self.aik = AIKManager(image)
 
 		LOGD("Getting device infos...")
 		self.buildprop = None
