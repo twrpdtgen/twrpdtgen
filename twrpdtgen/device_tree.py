@@ -8,12 +8,12 @@ from datetime import datetime
 from git import Repo
 from pathlib import Path
 from sebaubuntu_libs.libaik import AIKManager
+from sebaubuntu_libs.libfstab import Fstab
 from sebaubuntu_libs.liblogging import LOGD
 from sebaubuntu_libs.libprop import BuildProp
 from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
 from twrpdtgen.utils.device_info import DeviceInfo, ARCH_ARM, ARCH_ARM64
-from twrpdtgen.utils.fstab import Fstab
 from twrpdtgen.utils.template import render_template
 
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
@@ -132,7 +132,7 @@ class DeviceTree:
 			copyfile(self.image_info.dtbo, prebuilt_path / "dtbo.img")
 
 		LOGD("Copying fstab...")
-		(device_tree_folder / "recovery.fstab").write_text(self.fstab.format())
+		(device_tree_folder / "recovery.fstab").write_text(self.fstab.format(twrp=True))
 
 		LOGD("Copying init scripts...")
 		for init_rc in self.init_rcs:
