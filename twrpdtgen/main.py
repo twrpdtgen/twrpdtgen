@@ -1,3 +1,9 @@
+#
+# Copyright (C) 2022 The Android Open Source Project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 from argparse import ArgumentParser
 from pathlib import Path
 from sebaubuntu_libs.liblogging import setup_logging
