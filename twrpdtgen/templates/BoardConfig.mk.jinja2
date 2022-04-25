@@ -55,14 +55,14 @@ TARGET_USES_64_BIT_BINDER := true
 # Assert
 TARGET_OTA_ASSERT_DEVICE := {{ deviceinfo.codename }}
 
-{% if aik.board_name %}
+{% if image_info.board_name %}
 # Bootloader
-TARGET_BOOTLOADER_BOARD_NAME := {{ aik.board_name }}
+TARGET_BOOTLOADER_BOARD_NAME := {{ image_info.board_name }}
 
 {% endif %}
 # File systems
 BOARD_HAS_LARGE_FILESYSTEM := true
-#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {{ aik.recovery_size }} # This is the maximum known partition size, but it can be higher, so we just omit it
+#BOARD_RECOVERYIMAGE_PARTITION_SIZE := {{ image_info.origsize }} # This is the maximum known partition size, but it can be higher, so we just omit it
 BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4
 BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
@@ -82,51 +82,51 @@ TW_INCLUDE_REPACKTOOLS := true
 
 {% endif %}
 # Kernel
-BOARD_KERNEL_CMDLINE := {{ aik.cmdline }}
-{% if aik.kernel != None %}
+BOARD_KERNEL_CMDLINE := {{ image_info.cmdline }}
+{% if image_info.kernel != None %}
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/{{ kernel_name }}
 {% endif %}
-{% if aik.dt_image != None %}
+{% if image_info.dt != None %}
 TARGET_PREBUILT_DT := $(DEVICE_PATH)/prebuilt/dt.img
 {% endif %}
-{% if aik.dtb_image != None %}
+{% if image_info.dtb != None %}
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
 {% endif %}
-{% if aik.dtbo_image != None %}
+{% if image_info.dtbo != None %}
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
 BOARD_INCLUDE_RECOVERY_DTBO := true
 {% endif %}
-{% if aik.header_version != "0" %}
-BOARD_BOOTIMG_HEADER_VERSION := {{ aik.header_version }}
+{% if image_info.header_version != "0" %}
+BOARD_BOOTIMG_HEADER_VERSION := {{ image_info.header_version }}
 {% endif %}
-{% if aik.base_address != None %}
-BOARD_KERNEL_BASE := {{ aik.base_address }}
+{% if image_info.base_address != None %}
+BOARD_KERNEL_BASE := {{ image_info.base_address }}
 {% endif %}
-{% if aik.pagesize != None %}
-BOARD_KERNEL_PAGESIZE := {{ aik.pagesize }}
+{% if image_info.pagesize != None %}
+BOARD_KERNEL_PAGESIZE := {{ image_info.pagesize }}
 {% endif %}
-{% if aik.ramdisk_offset != None %}
-BOARD_RAMDISK_OFFSET := {{ aik.ramdisk_offset }}
+{% if image_info.ramdisk_offset != None %}
+BOARD_RAMDISK_OFFSET := {{ image_info.ramdisk_offset }}
 {% endif %}
-{% if aik.tags_offset != None %}
-BOARD_KERNEL_TAGS_OFFSET := {{ aik.tags_offset }}
+{% if image_info.tags_offset != None %}
+BOARD_KERNEL_TAGS_OFFSET := {{ image_info.tags_offset }}
 {% endif %}
 {% if flash_block_size != None %}
 BOARD_FLASH_BLOCK_SIZE := {{ flash_block_size }} # (BOARD_KERNEL_PAGESIZE * 64)
 {% endif %}
-{% if aik.ramdisk_offset != None %}
+{% if image_info.ramdisk_offset != None %}
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 {% endif %}
-{% if aik.tags_offset != None %}
+{% if image_info.tags_offset != None %}
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
 {% endif %}
-{% if aik.dt_image != None %}
+{% if image_info.dt != None %}
 BOARD_MKBOOTIMG_ARGS += --dt $(TARGET_PREBUILT_DT)
 {% endif %}
-{% if aik.dtb_image != None %}
+{% if image_info.dtb != None %}
 BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
 {% endif %}
-{% if aik.header_version != "0" %}
+{% if image_info.header_version != "0" %}
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)
 {% endif %}
 BOARD_KERNEL_IMAGE_NAME := {{ kernel_name }}
@@ -135,7 +135,7 @@ TARGET_KERNEL_HEADER_ARCH := {{ deviceinfo.arch_str }}
 TARGET_KERNEL_SOURCE := kernel/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}
 TARGET_KERNEL_CONFIG := {{ deviceinfo.codename }}_defconfig
 
-{% if aik.ramdisk_compression == "lzma" %}
+{% if image_info.ramdisk_compression == "lzma" %}
 # Ramdisk compression
 LZMA_RAMDISK_TARGETS := recovery
 

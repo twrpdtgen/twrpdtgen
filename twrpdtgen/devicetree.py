@@ -6,13 +6,13 @@
 
 from git import Repo
 from pathlib import Path
+from sebaubuntu_libs.libaik import AIKManager
+from sebaubuntu_libs.liblogging import LOGD
+from sebaubuntu_libs.libprop import BuildProp
 from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
-from twrpdtgen.utils.aikmanager import AIKManager
-from twrpdtgen.utils.buildprop import BuildProp
 from twrpdtgen.utils.deviceinfo import DeviceInfo, ARCH_ARM, ARCH_ARM64
 from twrpdtgen.utils.fstab import Fstab
-from twrpdtgen.utils.logging import LOGD
 from twrpdtgen.utils.template import render_template
 
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
@@ -46,30 +46,28 @@ class DeviceTree:
 			raise FileNotFoundError("Specified file doesn't exist")
 
 		# Extract the image
-		self.aik = AIKManager(image)
+		self.aik = AIKManager()
+		self.image_info = self.aik.unpackimg(image)
 
 		LOGD("Getting device infos...")
-		self.buildprop = None
-		for buildprop in [self.aik.ramdisk_path / location for location in BUILDPROP_LOCATIONS]:
-			if buildprop.is_file():
-				self.buildprop = BuildProp(buildprop)
-				break
+		self.buildprop = BuildProp()
+		for buildprop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
+			if not buildprop.is_file():
+				continue
 
-		if self.buildprop is None:
-			raise AssertionError("Couldn't find any build.prop")
+			self.buildprop.import_props(buildprop)
 
-		LOGD(f"Using {self.buildprop} as build.prop")
 		self.deviceinfo = DeviceInfo(self.buildprop)
 
 		# Create a new kernel name from arch
 		self.kernel_name = self.deviceinfo.kernel_name
 		if (self.deviceinfo.arch in [ARCH_ARM, ARCH_ARM64]
-				and (self.aik.dt_image is None and self.aik.dtb_image is None)):
+				and (self.image_info.dt is None and self.image_info.dtb is None)):
 			self.kernel_name += "-dtb"
 
 		# Generate fstab
 		self.fstab = None
-		for fstab in [self.aik.ramdisk_path / location for location in FSTAB_LOCATIONS]:
+		for fstab in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
 			if not fstab.is_file():
 				continue
 
@@ -82,7 +80,7 @@ class DeviceTree:
 
 		# Search for init rc files
 		self.init_rcs = []
-		for init_rc_path in [self.aik.ramdisk_path / location for location in INIT_RC_LOCATIONS]:
+		for init_rc_path in [self.image_info.ramdisk / location for location in INIT_RC_LOCATIONS]:
 			if not init_rc_path.is_dir():
 				continue
 
@@ -121,14 +119,14 @@ class DeviceTree:
 		self._render_template(device_tree_folder, "vendorsetup.sh")
 
 		LOGD("Copying kernel...")
-		if self.aik.kernel is not None:
-			copyfile(self.aik.kernel, prebuilt_path / self.kernel_name)
-		if self.aik.dt_image is not None:
-			copyfile(self.aik.dt_image, prebuilt_path / "dt.img")
-		if self.aik.dtb_image is not None:
-			copyfile(self.aik.dtb_image, prebuilt_path / "dtb.img")
-		if self.aik.dtbo_image is not None:
-			copyfile(self.aik.dtbo_image, prebuilt_path / "dtbo.img")
+		if self.image_info.kernel is not None:
+			copyfile(self.image_info.kernel, prebuilt_path / self.kernel_name)
+		if self.image_info.dt is not None:
+			copyfile(self.image_info.dt, prebuilt_path / "dt.img")
+		if self.image_info.dtb is not None:
+			copyfile(self.image_info.dtb, prebuilt_path / "dtb.img")
+		if self.image_info.dtbo is not None:
+			copyfile(self.image_info.dtbo, prebuilt_path / "dtbo.img")
 
 		LOGD("Copying fstab...")
 		with open(device_tree_folder / "recovery.fstab", 'w') as f:
@@ -165,12 +163,12 @@ class DeviceTree:
 
 	def _render_template(self, *args, **kwargs):
 		return render_template(*args,
-		                       aik=self.aik,
 		                       deviceinfo=self.deviceinfo,
 		                       fstab=self.fstab,
+		                       image_info=self.image_info,
 		                       kernel_name=self.kernel_name,
-		                       flash_block_size=(str(int(self.aik.pagesize) * 64)
-		                                         if self.aik.pagesize is not None
+		                       flash_block_size=(str(int(self.image_info.pagesize) * 64)
+		                                         if self.image_info.pagesize is not None
 		                                         else None),
 		                       version=version,
 		                       **kwargs)

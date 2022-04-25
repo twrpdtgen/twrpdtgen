@@ -43,6 +43,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "sebaubuntu-libs"
+version = "1.0.2"
+description = "SebaUbuntu's shared libs"
+category = "main"
+optional = false
+python-versions = ">=3.9,<4.0"
+
+[package.dependencies]
+GitPython = ">=3.1.27,<4.0.0"
+
+[[package]]
 name = "smmap"
 version = "5.0.0"
 description = "A pure Python implementation of a sliding window memory map manager"
@@ -53,7 +64,7 @@ python-versions = ">=3.6"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "0184e3b5836eb8ad4b7f3f9d0fe760d7b9f73601619f5cee9724b0e04845b42f"
+content-hash = "305b650b61dcfdee009ad6f157b022d216b61039e9e74e8746a832310cd88179"
 
 [metadata.files]
 gitdb = [
@@ -109,6 +120,10 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1-cp39-cp39-win32.whl", hash = "sha256:d4306c36ca495956b6d568d276ac11fdd9c30a36f1b6eb928070dc5360b22e1c"},
     {file = "MarkupSafe-2.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:46d00d6cfecdde84d40e572d63735ef81423ad31184100411e6e3388d405e247"},
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
+]
+sebaubuntu-libs = [
+    {file = "sebaubuntu_libs-1.0.2-py3-none-any.whl", hash = "sha256:50766e094ee5f2ab4f8f7e14d3c95b436dd27d363ee6190eeab810b341c530c0"},
+    {file = "sebaubuntu_libs-1.0.2.tar.gz", hash = "sha256:2601d917c79fd0e4f69d87777ad90f0aa2d7297a8e2b713d6a35f4ef24fb0f05"},
 ]
 smmap = [
     {file = "smmap-5.0.0-py3-none-any.whl", hash = "sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94"},

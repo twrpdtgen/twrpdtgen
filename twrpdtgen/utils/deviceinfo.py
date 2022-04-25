@@ -5,7 +5,7 @@
 #
 
 from distutils.util import strtobool
-from twrpdtgen.utils.buildprop import BuildProp
+from sebaubuntu_libs.libprop import BuildProp
 
 PARTITIONS = [
 	"",
