@@ -34,16 +34,14 @@ DEVICE_PIXEL_FORMAT = ["ro.minui.pixel_format"]
 	ARCH_ARM64,
 	ARCH_X86,
 	ARCH_X86_64,
-	ARCH_MIPS,
 	ARCH_UNKNOWN,
-) = range(6)
+) = range(5)
 
 ARCH_TO_STRING = {
 	ARCH_ARM: "arm",
 	ARCH_ARM64: "arm64",
 	ARCH_X86: "x86",
 	ARCH_X86_64: "x86_64",
-	ARCH_MIPS: "mips",
 	ARCH_UNKNOWN: "unknown",
 }
 
@@ -54,7 +52,6 @@ KERNEL_NAMES = {
 	ARCH_ARM64: "Image.gz",
 	ARCH_X86: "bzImage",
 	ARCH_X86_64: "bzImage",
-	ARCH_MIPS: "Image",
 	ARCH_UNKNOWN: "Image",
 }
 
@@ -104,6 +101,4 @@ class DeviceInfo:
 			return ARCH_X86
 		if arch.startswith("x86_64"):
 			return ARCH_X86_64
-		if arch.startswith("mips"):
-			return ARCH_MIPS
 		return ARCH_UNKNOWN
