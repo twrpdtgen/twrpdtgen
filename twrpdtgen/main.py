@@ -8,11 +8,11 @@ from argparse import ArgumentParser
 from pathlib import Path
 from sebaubuntu_libs.liblogging import setup_logging
 from twrpdtgen import __version__ as version, current_path
-from twrpdtgen.devicetree import DeviceTree
+from twrpdtgen.device_tree import DeviceTree
 
 def main():
 	print(f"TWRP device tree generator\n"
-		  f"Version {version}\n")
+	      f"Version {version}\n")
 
 	parser = ArgumentParser(prog='python3 -m twrpdtgen')
 

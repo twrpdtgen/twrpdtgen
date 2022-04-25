@@ -1,12 +1,12 @@
 {% include 'LICENSE' %}
 
-DEVICE_PATH := device/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}
+DEVICE_PATH := device/{{ device_info.manufacturer }}/{{ device_info.codename }}
 
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES := true
 
 # Architecture
-{% if deviceinfo.arch_str == "arm64" %}
+{% if device_info.arch_str == "arm64" %}
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
@@ -21,14 +21,14 @@ TARGET_2ND_CPU_VARIANT := generic
 TARGET_BOARD_SUFFIX := _64
 TARGET_USES_64_BIT_BINDER := true
 {% endif %}
-{% if deviceinfo.arch_str == "arm" %}
+{% if device_info.arch_str == "arm" %}
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_VARIANT := generic
 {% endif %}
-{% if deviceinfo.arch_str == "x86" %}
+{% if device_info.arch_str == "x86" %}
 "TARGET_ARCH := x86
 TARGET_ARCH_VARIANT := generic
 TARGET_CPU_ABI := x86
@@ -37,7 +37,7 @@ TARGET_CPU_ABI_LIST := x86,armeabi-v7a,armeabi
 TARGET_CPU_ABI_LIST_32_BIT := x86,armeabi-v7a,armeabi
 TARGET_CPU_VARIANT := generic
 {% endif %}
-{% if deviceinfo.arch_str == "x86_64" %}
+{% if device_info.arch_str == "x86_64" %}
 TARGET_ARCH := x86_64
 TARGET_ARCH_VARIANT := x86_64
 TARGET_CPU_ABI := x86_64
@@ -53,7 +53,7 @@ TARGET_USES_64_BIT_BINDER := true
 {% endif %}
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := {{ deviceinfo.codename }}
+TARGET_OTA_ASSERT_DEVICE := {{ device_info.codename }}
 
 {% if image_info.board_name %}
 # Bootloader
@@ -70,7 +70,7 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 TARGET_COPY_OUT_VENDOR := vendor
 
-{% if deviceinfo.device_is_ab %}
+{% if device_info.device_is_ab %}
 # A/B
 AB_OTA_UPDATER := true
 AB_OTA_PARTITIONS += \
@@ -130,10 +130,10 @@ BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)
 {% endif %}
 BOARD_KERNEL_IMAGE_NAME := {{ kernel_name }}
-TARGET_KERNEL_ARCH := {{ deviceinfo.arch_str }}
-TARGET_KERNEL_HEADER_ARCH := {{ deviceinfo.arch_str }}
-TARGET_KERNEL_SOURCE := kernel/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}
-TARGET_KERNEL_CONFIG := {{ deviceinfo.codename }}_defconfig
+TARGET_KERNEL_ARCH := {{ device_info.arch_str }}
+TARGET_KERNEL_HEADER_ARCH := {{ device_info.arch_str }}
+TARGET_KERNEL_SOURCE := kernel/{{ device_info.manufacturer }}/{{ device_info.codename }}
+TARGET_KERNEL_CONFIG := {{ device_info.codename }}_defconfig
 
 {% if image_info.ramdisk_compression == "lzma" %}
 # Ramdisk compression
@@ -141,11 +141,11 @@ LZMA_RAMDISK_TARGETS := recovery
 
 {% endif %}
 # Platform
-TARGET_BOARD_PLATFORM := {{ deviceinfo.platform }}
+TARGET_BOARD_PLATFORM := {{ device_info.platform }}
 
-{% if deviceinfo.device_pixel_format != None %}
+{% if device_info.device_pixel_format != None %}
 # Recovery
-TARGET_RECOVERY_PIXEL_FORMAT := {{ deviceinfo.device_pixel_format }}
+TARGET_RECOVERY_PIXEL_FORMAT := {{ device_info.device_pixel_format }}
 
 {% endif %}
 # Hack: prevent anti rollback

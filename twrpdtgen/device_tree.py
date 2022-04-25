@@ -12,7 +12,7 @@ from sebaubuntu_libs.liblogging import LOGD
 from sebaubuntu_libs.libprop import BuildProp
 from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
-from twrpdtgen.utils.deviceinfo import DeviceInfo, ARCH_ARM, ARCH_ARM64
+from twrpdtgen.utils.device_info import DeviceInfo, ARCH_ARM, ARCH_ARM64
 from twrpdtgen.utils.fstab import Fstab
 from twrpdtgen.utils.template import render_template
 
@@ -49,22 +49,22 @@ class DeviceTree:
 			raise FileNotFoundError("Specified file doesn't exist")
 
 		# Extract the image
-		self.aik = AIKManager()
-		self.image_info = self.aik.unpackimg(image)
+		self.aik_manager = AIKManager()
+		self.image_info = self.aik_manager.unpackimg(image)
 
 		LOGD("Getting device infos...")
-		self.buildprop = BuildProp()
-		for buildprop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
-			if not buildprop.is_file():
+		self.build_prop = BuildProp()
+		for build_prop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
+			if not build_prop.is_file():
 				continue
 
-			self.buildprop.import_props(buildprop)
+			self.build_prop.import_props(build_prop)
 
-		self.deviceinfo = DeviceInfo(self.buildprop)
+		self.device_info = DeviceInfo(self.build_prop)
 
 		# Create a new kernel name from arch
-		self.kernel_name = self.deviceinfo.kernel_name
-		if (self.deviceinfo.arch in [ARCH_ARM, ARCH_ARM64]
+		self.kernel_name = self.device_info.kernel_name
+		if (self.device_info.arch in [ARCH_ARM, ARCH_ARM64]
 				and (self.image_info.dt is None and self.image_info.dtb is None)):
 			self.kernel_name += "-dtb"
 
@@ -91,7 +91,7 @@ class DeviceTree:
 			                  if init_rc.name.endswith(".rc") and init_rc.name != "init.rc"]
 
 	def dump_to_folder(self, output_path: Path, git: bool = False) -> Path:
-		device_tree_folder = output_path / self.deviceinfo.manufacturer / self.deviceinfo.codename
+		device_tree_folder = output_path / self.device_info.manufacturer / self.device_info.codename
 		prebuilt_path = device_tree_folder / "prebuilt"
 		recovery_root_path = device_tree_folder / "recovery" / "root"
 
@@ -115,8 +115,8 @@ class DeviceTree:
 		LOGD("Creating device.mk...")
 		self._render_template(device_tree_folder, "device.mk")
 
-		LOGD(f"Creating omni_{self.deviceinfo.codename}.mk...")
-		self._render_template(device_tree_folder, "omni.mk", out_file=f"omni_{self.deviceinfo.codename}.mk")
+		LOGD(f"Creating omni_{self.device_info.codename}.mk...")
+		self._render_template(device_tree_folder, "omni.mk", out_file=f"omni_{self.device_info.codename}.mk")
 
 		LOGD("Creating vendorsetup.sh...")
 		self._render_template(device_tree_folder, "vendorsetup.sh")
@@ -166,7 +166,7 @@ class DeviceTree:
 	def _render_template(self, *args, **kwargs):
 		return render_template(*args,
 		                       current_year=self.current_year,
-		                       deviceinfo=self.deviceinfo,
+		                       device_info=self.device_info,
 		                       fstab=self.fstab,
 		                       image_info=self.image_info,
 		                       kernel_name=self.kernel_name,
@@ -178,4 +178,4 @@ class DeviceTree:
 
 	def cleanup(self):
 		# Cleanup
-		self.aik.cleanup()
+		self.aik_manager.cleanup()

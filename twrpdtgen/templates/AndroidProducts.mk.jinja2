@@ -1,10 +1,10 @@
 {% include 'LICENSE' %}
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/omni_{{ deviceinfo.codename }}.mk
+    $(LOCAL_DIR)/omni_{{ device_info.codename }}.mk
 
 COMMON_LUNCH_CHOICES := \
-    omni_{{ deviceinfo.codename }}-user \
-    omni_{{ deviceinfo.codename }}-userdebug \
-    omni_{{ deviceinfo.codename }}-eng
+    omni_{{ device_info.codename }}-user \
+    omni_{{ device_info.codename }}-userdebug \
+    omni_{{ device_info.codename }}-eng
 

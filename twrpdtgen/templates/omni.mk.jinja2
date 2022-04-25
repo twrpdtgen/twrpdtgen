@@ -1,24 +1,24 @@
 {% include 'LICENSE' %}
 
 # Inherit from those products. Most specific first.
-{% if deviceinfo.device_has_64bit_arch %}
+{% if device_info.device_has_64bit_arch %}
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 {% endif %}
 $(call inherit-product-if-exists, $(SRC_TARGET_DIR)/product/embedded.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
-# Inherit from {{ deviceinfo.codename }} device
-$(call inherit-product, device/{{ deviceinfo.manufacturer }}/{{ deviceinfo.codename }}/device.mk)
+# Inherit from {{ device_info.codename }} device
+$(call inherit-product, device/{{ device_info.manufacturer }}/{{ device_info.codename }}/device.mk)
 
 # Inherit some common Omni stuff.
 $(call inherit-product, vendor/omni/config/common.mk)
 $(call inherit-product, vendor/omni/config/gsm.mk)
 
 # Device identifier. This must come after all inclusions
-PRODUCT_DEVICE := {{ deviceinfo.codename }}
-PRODUCT_NAME := omni_{{ deviceinfo.codename }}
-PRODUCT_BRAND := {{ deviceinfo.brand }}
-PRODUCT_MODEL := {{ deviceinfo.model }}
-PRODUCT_MANUFACTURER := {{ deviceinfo.manufacturer }}
+PRODUCT_DEVICE := {{ device_info.codename }}
+PRODUCT_NAME := omni_{{ device_info.codename }}
+PRODUCT_BRAND := {{ device_info.brand }}
+PRODUCT_MODEL := {{ device_info.model }}
+PRODUCT_MANUFACTURER := {{ device_info.manufacturer }}
 
