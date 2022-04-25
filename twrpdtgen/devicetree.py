@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+from datetime import datetime
 from git import Repo
 from pathlib import Path
 from sebaubuntu_libs.libaik import AIKManager
@@ -40,6 +41,8 @@ class DeviceTree:
 	def __init__(self, image: Path):
 		"""Initialize the device tree class."""
 		self.image = image
+
+		self.current_year = str(datetime.now().year)
 
 		# Check if the image exists
 		if not self.image.is_file():
@@ -162,6 +165,7 @@ class DeviceTree:
 
 	def _render_template(self, *args, **kwargs):
 		return render_template(*args,
+		                       current_year=self.current_year,
 		                       deviceinfo=self.deviceinfo,
 		                       fstab=self.fstab,
 		                       image_info=self.image_info,
