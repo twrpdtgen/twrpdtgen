@@ -21,7 +21,7 @@ Linux only: Be sure to have cpio installed in your system (Install cpio using `s
 ```
 $ python3 -m twrpdtgen -h
 TWRP device tree generator
-Version 2.1.0
+Version 2.2.0
 
 usage: python3 -m twrpdtgen [-h] [-o OUTPUT] [--git] [-d] image
 
