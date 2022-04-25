@@ -79,7 +79,7 @@ class DeviceTree:
 			raise AssertionError("fstab not found")
 
 		# Search for init rc files
-		self.init_rcs = []
+		self.init_rcs: list[Path] = []
 		for init_rc_path in [self.image_info.ramdisk / location for location in INIT_RC_LOCATIONS]:
 			if not init_rc_path.is_dir():
 				continue
@@ -129,8 +129,7 @@ class DeviceTree:
 			copyfile(self.image_info.dtbo, prebuilt_path / "dtbo.img")
 
 		LOGD("Copying fstab...")
-		with open(device_tree_folder / "recovery.fstab", 'w') as f:
-			f.write(self.fstab.format())
+		(device_tree_folder / "recovery.fstab").write_text(self.fstab.format())
 
 		LOGD("Copying init scripts...")
 		for init_rc in self.init_rcs:
