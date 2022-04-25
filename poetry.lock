@@ -44,7 +44,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "sebaubuntu-libs"
-version = "1.0.2"
+version = "1.0.4"
 description = "SebaUbuntu's shared libs"
 category = "main"
 optional = false
@@ -64,7 +64,7 @@ python-versions = ">=3.6"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "305b650b61dcfdee009ad6f157b022d216b61039e9e74e8746a832310cd88179"
+content-hash = "2e8d1d776eab088de8fd5580cbd58f083a2a9bd4eddece88355363e9f0e0f5a6"
 
 [metadata.files]
 gitdb = [
@@ -122,8 +122,8 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
 ]
 sebaubuntu-libs = [
-    {file = "sebaubuntu_libs-1.0.2-py3-none-any.whl", hash = "sha256:50766e094ee5f2ab4f8f7e14d3c95b436dd27d363ee6190eeab810b341c530c0"},
-    {file = "sebaubuntu_libs-1.0.2.tar.gz", hash = "sha256:2601d917c79fd0e4f69d87777ad90f0aa2d7297a8e2b713d6a35f4ef24fb0f05"},
+    {file = "sebaubuntu_libs-1.0.4-py3-none-any.whl", hash = "sha256:30ea0d75a883c1d339711d2e9004dc27e2bf56082393479257e2d0f7cb48c921"},
+    {file = "sebaubuntu_libs-1.0.4.tar.gz", hash = "sha256:99240d0794661a82d782e703f89180fdc38a7a5206ab71455e08646a3dd584f7"},
 ]
 smmap = [
     {file = "smmap-5.0.0-py3-none-any.whl", hash = "sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94"},
