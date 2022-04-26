@@ -44,7 +44,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "sebaubuntu-libs"
-version = "1.0.4"
+version = "1.0.5"
 description = "SebaUbuntu's shared libs"
 category = "main"
 optional = false
@@ -122,8 +122,8 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
 ]
 sebaubuntu-libs = [
-    {file = "sebaubuntu_libs-1.0.4-py3-none-any.whl", hash = "sha256:30ea0d75a883c1d339711d2e9004dc27e2bf56082393479257e2d0f7cb48c921"},
-    {file = "sebaubuntu_libs-1.0.4.tar.gz", hash = "sha256:99240d0794661a82d782e703f89180fdc38a7a5206ab71455e08646a3dd584f7"},
+    {file = "sebaubuntu_libs-1.0.5-py3-none-any.whl", hash = "sha256:39d6751055dbc79181deee169216b7a50ba5e7c0104085ca212ba2e33508f4fc"},
+    {file = "sebaubuntu_libs-1.0.5.tar.gz", hash = "sha256:b291a72b26394ce18b129237462de4855ac21de21b9689560c417ab5c7db006d"},
 ]
 smmap = [
     {file = "smmap-5.0.0-py3-none-any.whl", hash = "sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94"},
