@@ -43,10 +43,11 @@ You can also use the module in a script, with the following code:
 
 ```python
 from twrpdtgen.devicetree import DeviceTree
+from pathlib import Path
 
 # Get image info
-devicetree = DeviceTree(image_path)
+devicetree = DeviceTree(Path(image_path))
 
 # Dump device tree to folder
-devicetree.dump_to_folder(output_path)
+devicetree.dump_to_folder(Path(output_path))
 ```
