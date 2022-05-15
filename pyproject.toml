@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twrpdtgen"
-version = "2.2.0"
+version = "2.3.0"
 description = "A Python library/script to automatically generate TWRP-compatible device tree from a boot/recovery image"
 authors = ["Sebastiano Barezzi <barezzisebastiano@gmail.com>"]
 license = "Apache-2.0"
