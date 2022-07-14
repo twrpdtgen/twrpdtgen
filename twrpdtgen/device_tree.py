@@ -8,9 +8,9 @@ from datetime import datetime
 from git import Repo
 from pathlib import Path
 from sebaubuntu_libs.libaik import AIKManager
+from sebaubuntu_libs.libandroid.props import BuildProp
 from sebaubuntu_libs.libfstab import Fstab
 from sebaubuntu_libs.liblogging import LOGD
-from sebaubuntu_libs.libprop import BuildProp
 from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
 from twrpdtgen.utils.device_info import DeviceInfo, ARCH_ARM, ARCH_ARM64

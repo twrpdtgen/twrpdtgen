@@ -5,7 +5,7 @@
 #
 
 from distutils.util import strtobool
-from sebaubuntu_libs.libprop import BuildProp
+from sebaubuntu_libs.libandroid.props import BuildProp
 
 PARTITIONS = [
 	"",
