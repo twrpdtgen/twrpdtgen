@@ -7,12 +7,13 @@
 Create a [TWRP](https://twrp.me/)-compatible device tree only from an Android recovery image (or a boot image if the device uses non-dynamic partitions A/B) of your device's stock ROM
 It has been confirmed that this script supports images built starting from Android 4.4 up to Android 12
 
+Requires Python 3.8 or greater
+
 ## Installation
 
 ```
 pip3 install twrpdtgen
 ```
-The module is supported on Python 3.9 and above.
 
 Linux only: Be sure to have cpio installed in your system (Install cpio using `sudo apt install cpio` or `sudo pacman -S cpio` based on what package manager you're using)
 

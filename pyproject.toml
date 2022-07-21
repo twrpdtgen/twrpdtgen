@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/twrpdtgen/twrpdtgen"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 GitPython = "^3.1.27"
 Jinja2 = "^3.1.1"
 sebaubuntu-libs = "^1.0.4"

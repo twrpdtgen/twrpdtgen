@@ -15,6 +15,7 @@ from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
 from twrpdtgen.utils.device_info import DeviceInfo, ARCH_ARM, ARCH_ARM64
 from twrpdtgen.utils.template import render_template
+from typing import List
 
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
                        Path() / "prop.default",]
@@ -82,7 +83,7 @@ class DeviceTree:
 			raise AssertionError("fstab not found")
 
 		# Search for init rc files
-		self.init_rcs: list[Path] = []
+		self.init_rcs: List[Path] = []
 		for init_rc_path in [self.image_info.ramdisk / location for location in INIT_RC_LOCATIONS]:
 			if not init_rc_path.is_dir():
 				continue
