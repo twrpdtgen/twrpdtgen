@@ -8,8 +8,8 @@ from datetime import datetime
 from git import Repo
 from pathlib import Path
 from sebaubuntu_libs.libaik import AIKManager
+from sebaubuntu_libs.libandroid.fstab import Fstab
 from sebaubuntu_libs.libandroid.props import BuildProp
-from sebaubuntu_libs.libfstab import Fstab
 from sebaubuntu_libs.liblogging import LOGD
 from shutil import copyfile, rmtree
 from twrpdtgen import __version__ as version
