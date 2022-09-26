@@ -9,7 +9,7 @@ from git import Repo
 from os import chmod
 from pathlib import Path
 from sebaubuntu_libs.libaik import AIKManager
-from sebaubuntu_libs.libandroid.device_info import DeviceArch, DeviceInfo
+from sebaubuntu_libs.libandroid.device_info import DeviceInfo
 from sebaubuntu_libs.libandroid.fstab import Fstab
 from sebaubuntu_libs.libandroid.props import BuildProp
 from sebaubuntu_libs.liblogging import LOGD
