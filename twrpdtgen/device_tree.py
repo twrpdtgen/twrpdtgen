@@ -6,15 +6,17 @@
 
 from datetime import datetime
 from git import Repo
+from os import chmod
 from pathlib import Path
 from sebaubuntu_libs.libaik import AIKManager
+from sebaubuntu_libs.libandroid.device_info import DeviceArch, DeviceInfo
 from sebaubuntu_libs.libandroid.fstab import Fstab
 from sebaubuntu_libs.libandroid.props import BuildProp
 from sebaubuntu_libs.liblogging import LOGD
 from shutil import copyfile, rmtree
+from stat import S_IRWXU, S_IRGRP, S_IROTH
 from twrpdtgen import __version__ as version
-from twrpdtgen.utils.device_info import DeviceInfo, ARCH_ARM, ARCH_ARM64
-from twrpdtgen.utils.template import render_template
+from twrpdtgen.templates import render_template
 from typing import List
 
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
@@ -63,12 +65,6 @@ class DeviceTree:
 
 		self.device_info = DeviceInfo(self.build_prop)
 
-		# Create a new kernel name from arch
-		self.kernel_name = self.device_info.kernel_name
-		if (self.device_info.arch in [ARCH_ARM, ARCH_ARM64]
-				and (self.image_info.dt is None and self.image_info.dtb is None)):
-			self.kernel_name += "-dtb"
-
 		# Generate fstab
 		self.fstab = None
 		for fstab in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
@@ -103,28 +99,25 @@ class DeviceTree:
 		prebuilt_path.mkdir(parents=True)
 		recovery_root_path.mkdir(parents=True)
 
-		# Fill makefiles
-		LOGD("Creating Android.mk...")
+		LOGD("Writing makefiles/blueprints")
+		self._render_template(device_tree_folder, "Android.bp", comment_prefix="//")
 		self._render_template(device_tree_folder, "Android.mk")
-
-		LOGD("Creating AndroidProducts.mk...")
 		self._render_template(device_tree_folder, "AndroidProducts.mk")
-
-		LOGD("Creating BoardConfig.mk...")
 		self._render_template(device_tree_folder, "BoardConfig.mk")
-
-		LOGD("Creating device.mk...")
 		self._render_template(device_tree_folder, "device.mk")
-
-		LOGD(f"Creating omni_{self.device_info.codename}.mk...")
-		self._render_template(device_tree_folder, "omni.mk", out_file=f"omni_{self.device_info.codename}.mk")
-
-		LOGD("Creating vendorsetup.sh...")
+		self._render_template(device_tree_folder, "extract-files.sh")
+		self._render_template(device_tree_folder, "omni_device.mk", out_file=f"omni_{self.device_info.codename}.mk")
+		self._render_template(device_tree_folder, "README.md")
+		self._render_template(device_tree_folder, "setup-makefiles.sh")
 		self._render_template(device_tree_folder, "vendorsetup.sh")
+
+		# Set permissions
+		chmod(device_tree_folder / "extract-files.sh", S_IRWXU | S_IRGRP | S_IROTH)
+		chmod(device_tree_folder / "setup-makefiles.sh", S_IRWXU | S_IRGRP | S_IROTH)
 
 		LOGD("Copying kernel...")
 		if self.image_info.kernel is not None:
-			copyfile(self.image_info.kernel, prebuilt_path / self.kernel_name)
+			copyfile(self.image_info.kernel, prebuilt_path / "kernel")
 		if self.image_info.dt is not None:
 			copyfile(self.image_info.dt, prebuilt_path / "dt.img")
 		if self.image_info.dtb is not None:
@@ -164,16 +157,13 @@ class DeviceTree:
 
 		return device_tree_folder
 
-	def _render_template(self, *args, **kwargs):
+	def _render_template(self, *args, comment_prefix: str = "#", **kwargs):
 		return render_template(*args,
+		                       comment_prefix=comment_prefix,
 		                       current_year=self.current_year,
 		                       device_info=self.device_info,
 		                       fstab=self.fstab,
 		                       image_info=self.image_info,
-		                       kernel_name=self.kernel_name,
-		                       flash_block_size=(str(int(self.image_info.pagesize) * 64)
-		                                         if self.image_info.pagesize is not None
-		                                         else None),
 		                       version=version,
 		                       **kwargs)
 
