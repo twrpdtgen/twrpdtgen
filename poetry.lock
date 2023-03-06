@@ -173,14 +173,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "sebaubuntu-libs"
-version = "1.3.1"
+version = "1.3.2"
 description = "SebaUbuntu's shared libs"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "sebaubuntu_libs-1.3.1-py3-none-any.whl", hash = "sha256:40df9e574192981cff95e41c44cbc30e2c68482d189a0d87f03c56f7f2c70360"},
-    {file = "sebaubuntu_libs-1.3.1.tar.gz", hash = "sha256:786e9d21c8cba6bc03651c2eb7ec69113e06d8dd0a3d1c7d91f8244b6967d761"},
+    {file = "sebaubuntu_libs-1.3.2-py3-none-any.whl", hash = "sha256:980cab861db2ccba890b1f7eb70330b6dbc50a93d888d1fdd9dfd9e0322bb1ba"},
+    {file = "sebaubuntu_libs-1.3.2.tar.gz", hash = "sha256:50b9c020690dd6c49e77a7a074071d173515264ff07f14d247da1965409a051c"},
 ]
 
 [package.dependencies]
