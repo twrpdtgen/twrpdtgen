@@ -55,6 +55,8 @@ class DeviceTree:
 		self.aik_manager = AIKManager()
 		self.image_info = self.aik_manager.unpackimg(image)
 
+		assert self.image_info.ramdisk, "Ramdisk not found"
+
 		LOGD("Getting device infos...")
 		self.build_prop = BuildProp()
 		for build_prop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
@@ -66,17 +68,19 @@ class DeviceTree:
 		self.device_info = DeviceInfo(self.build_prop)
 
 		# Generate fstab
-		self.fstab = None
-		for fstab in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
-			if not fstab.is_file():
+		fstab = None
+		for fstab_location in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
+			if not fstab_location.is_file():
 				continue
 
 			LOGD(f"Generating fstab using {fstab} as reference...")
-			self.fstab = Fstab(fstab)
+			fstab = Fstab(fstab_location)
 			break
 
-		if self.fstab is None:
+		if fstab is None:
 			raise AssertionError("fstab not found")
+
+		self.fstab = fstab
 
 		# Search for init rc files
 		self.init_rcs: List[Path] = []
