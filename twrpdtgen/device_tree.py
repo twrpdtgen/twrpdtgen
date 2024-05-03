@@ -20,157 +20,157 @@ from twrpdtgen.templates import render_template
 from typing import List
 
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
-                       Path() / "prop.default",]
-BUILDPROP_LOCATIONS += [Path() / dir / "build.prop"
-                        for dir in ["system", "vendor"]]
-BUILDPROP_LOCATIONS += [Path() / dir / "etc" / "build.prop"
-                        for dir in ["system", "vendor"]]
+                       Path() / "prop.default", ]
+BUILDPROP_LOCATIONS += [Path() / dir_ / "build.prop"
+                        for dir_ in ["system", "vendor"]]
+BUILDPROP_LOCATIONS += [Path() / dir_ / "etc" / "build.prop"
+                        for dir_ in ["system", "vendor"]]
 
 FSTAB_LOCATIONS = [Path() / "etc" / "recovery.fstab"]
-FSTAB_LOCATIONS += [Path() / dir / "etc" / "recovery.fstab"
-                    for dir in ["system", "vendor"]]
+FSTAB_LOCATIONS += [Path() / dir_ / "etc" / "recovery.fstab"
+                    for dir_ in ["system", "vendor"]]
 
 INIT_RC_LOCATIONS = [Path()]
-INIT_RC_LOCATIONS += [Path() / dir / "etc" / "init"
-                      for dir in ["system", "vendor"]]
+INIT_RC_LOCATIONS += [Path() / dir_ / "etc" / "init"
+                      for dir_ in ["system", "vendor"]]
+
 
 class DeviceTree:
-	"""
+    """
 	A class representing a device tree
 
 	It initialize a basic device tree structure
 	and save the location of some important files
 	"""
-	def __init__(self, image: Path):
-		"""Initialize the device tree class."""
-		self.image = image
 
-		self.current_year = str(datetime.now().year)
+    def __init__(self, image: Path):
+        """Initialize the device tree class."""
+        self.image = image
 
-		# Check if the image exists
-		if not self.image.is_file():
-			raise FileNotFoundError("Specified file doesn't exist")
+        self.current_year = str(datetime.now().year)
 
-		# Extract the image
-		self.aik_manager = AIKManager()
-		self.image_info = self.aik_manager.unpackimg(image)
+        # Check if the image exists
+        if not self.image.is_file():
+            raise FileNotFoundError("Specified file doesn't exist")
 
-		assert self.image_info.ramdisk, "Ramdisk not found"
+        # Extract the image
+        self.aik_manager = AIKManager()
+        self.image_info = self.aik_manager.unpackimg(image)
 
-		LOGD("Getting device infos...")
-		self.build_prop = BuildProp()
-		for build_prop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
-			if not build_prop.is_file():
-				continue
+        assert self.image_info.ramdisk, "Ramdisk not found"
 
-			self.build_prop.import_props(build_prop)
+        LOGD("Getting device infos...")
+        self.build_prop = BuildProp()
+        for build_prop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
+            if not build_prop.is_file():
+                continue
 
-		self.device_info = DeviceInfo(self.build_prop)
+            self.build_prop.import_props(build_prop)
 
-		# Generate fstab
-		fstab = None
-		for fstab_location in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
-			if not fstab_location.is_file():
-				continue
+        self.device_info = DeviceInfo(self.build_prop)
 
-			LOGD(f"Generating fstab using {fstab} as reference...")
-			fstab = Fstab(fstab_location)
-			break
+        # Generate fstab
+        fstab = None
+        for fstab_location in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
+            if not fstab_location.is_file():
+                continue
 
-		if fstab is None:
-			raise AssertionError("fstab not found")
+            LOGD(f"Generating fstab using {fstab} as reference...")
+            fstab = Fstab(fstab_location)
+            break
 
-		self.fstab = fstab
+        if fstab is None:
+            raise AssertionError("fstab not found")
 
-		# Search for init rc files
-		self.init_rcs: List[Path] = []
-		for init_rc_path in [self.image_info.ramdisk / location for location in INIT_RC_LOCATIONS]:
-			if not init_rc_path.is_dir():
-				continue
+        self.fstab = fstab
 
-			self.init_rcs += [init_rc for init_rc in init_rc_path.iterdir()
-			                  if init_rc.name.endswith(".rc") and init_rc.name != "init.rc"]
+        # Search for init rc files
+        self.init_rcs: List[Path] = []
+        for init_rc_path in [self.image_info.ramdisk / location for location in INIT_RC_LOCATIONS]:
+            if not init_rc_path.is_dir():
+                continue
 
-	def dump_to_folder(self, output_path: Path, git: bool = False) -> Path:
-		device_tree_folder = output_path / self.device_info.manufacturer / self.device_info.codename
-		prebuilt_path = device_tree_folder / "prebuilt"
-		recovery_root_path = device_tree_folder / "recovery" / "root"
+            self.init_rcs += [init_rc for init_rc in init_rc_path.iterdir()
+                              if init_rc.name.endswith(".rc") and init_rc.name != "init.rc"]
 
-		LOGD("Creating device tree folders...")
-		if device_tree_folder.is_dir():
-			rmtree(device_tree_folder, ignore_errors=True)
-		device_tree_folder.mkdir(parents=True)
-		prebuilt_path.mkdir(parents=True)
-		recovery_root_path.mkdir(parents=True)
+    def dump_to_folder(self, output_path: Path, git: bool = False) -> Path:
+        device_tree_folder = output_path / self.device_info.manufacturer / self.device_info.codename
+        prebuilt_path = device_tree_folder / "prebuilt"
+        recovery_root_path = device_tree_folder / "recovery" / "root"
 
-		LOGD("Writing makefiles/blueprints")
-		self._render_template(device_tree_folder, "Android.bp", comment_prefix="//")
-		self._render_template(device_tree_folder, "Android.mk")
-		self._render_template(device_tree_folder, "AndroidProducts.mk")
-		self._render_template(device_tree_folder, "BoardConfig.mk")
-		self._render_template(device_tree_folder, "device.mk")
-		self._render_template(device_tree_folder, "extract-files.sh")
-		self._render_template(device_tree_folder, "omni_device.mk", out_file=f"omni_{self.device_info.codename}.mk")
-		self._render_template(device_tree_folder, "README.md")
-		self._render_template(device_tree_folder, "setup-makefiles.sh")
-		self._render_template(device_tree_folder, "vendorsetup.sh")
+        LOGD("Creating device tree folders...")
+        if device_tree_folder.is_dir():
+            rmtree(device_tree_folder, ignore_errors=True)
+        device_tree_folder.mkdir(parents=True)
+        prebuilt_path.mkdir(parents=True)
+        recovery_root_path.mkdir(parents=True)
 
-		# Set permissions
-		chmod(device_tree_folder / "extract-files.sh", S_IRWXU | S_IRGRP | S_IROTH)
-		chmod(device_tree_folder / "setup-makefiles.sh", S_IRWXU | S_IRGRP | S_IROTH)
+        LOGD("Writing makefiles/blueprints")
+        self._render_template(device_tree_folder, "Android.bp", comment_prefix="//")
+        self._render_template(device_tree_folder, "Android.mk")
+        self._render_template(device_tree_folder, "AndroidProducts.mk")
+        self._render_template(device_tree_folder, "BoardConfig.mk")
+        self._render_template(device_tree_folder, "device.mk")
+        self._render_template(device_tree_folder, "extract-files.sh")
+        self._render_template(device_tree_folder, "omni_device.mk", out_file=f"omni_{self.device_info.codename}.mk")
+        self._render_template(device_tree_folder, "README.md")
+        self._render_template(device_tree_folder, "setup-makefiles.sh")
+        self._render_template(device_tree_folder, "vendorsetup.sh")
 
-		LOGD("Copying kernel...")
-		if self.image_info.kernel is not None:
-			copyfile(self.image_info.kernel, prebuilt_path / "kernel")
-		if self.image_info.dt is not None:
-			copyfile(self.image_info.dt, prebuilt_path / "dt.img")
-		if self.image_info.dtb is not None:
-			copyfile(self.image_info.dtb, prebuilt_path / "dtb.img")
-		if self.image_info.dtbo is not None:
-			copyfile(self.image_info.dtbo, prebuilt_path / "dtbo.img")
+        # Set permissions
+        chmod(device_tree_folder / "extract-files.sh", S_IRWXU | S_IRGRP | S_IROTH)
+        chmod(device_tree_folder / "setup-makefiles.sh", S_IRWXU | S_IRGRP | S_IROTH)
 
-		LOGD("Copying fstab...")
-		(device_tree_folder / "recovery.fstab").write_text(self.fstab.format(twrp=True))
+        LOGD("Copying kernel...")
+        if self.image_info.kernel is not None:
+            copyfile(self.image_info.kernel, prebuilt_path / "kernel")
+        if self.image_info.dt is not None:
+            copyfile(self.image_info.dt, prebuilt_path / "dt.img")
+        if self.image_info.dtb is not None:
+            copyfile(self.image_info.dtb, prebuilt_path / "dtb.img")
+        if self.image_info.dtbo is not None:
+            copyfile(self.image_info.dtbo, prebuilt_path / "dtbo.img")
 
-		LOGD("Copying init scripts...")
-		for init_rc in self.init_rcs:
-			copyfile(init_rc, recovery_root_path / init_rc.name, follow_symlinks=True)
+        LOGD("Copying fstab...")
+        (device_tree_folder / "recovery.fstab").write_text(self.fstab.format(twrp=True))
 
-		if not git:
-			return device_tree_folder
+        LOGD("Copying init scripts...")
+        for init_rc in self.init_rcs:
+            copyfile(init_rc, recovery_root_path / init_rc.name, follow_symlinks=True)
 
-		# Create a git repo
-		LOGD("Creating git repo...")
+        if not git:
+            return device_tree_folder
 
-		git_repo = Repo.init(device_tree_folder)
-		git_config_reader = git_repo.config_reader()
-		git_config_writer = git_repo.config_writer()
+        # Create a git repo
+        LOGD("Creating git repo...")
 
-		try:
-			git_global_email, git_global_name = git_config_reader.get_value('user', 'email'), git_config_reader.get_value('user', 'name')
-		except Exception:
-			git_global_email, git_global_name = None, None
+        git_repo = Repo.init(device_tree_folder)
+        git_config_reader = git_repo.config_reader()
+        git_config_writer = git_repo.config_writer()
 
-		if git_global_email is None or git_global_name is None:
-			git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
-			git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
+        try:
+            git_global_email, git_global_name = git_config_reader.get_value('user',
+                                                                            'email'), git_config_reader.get_value(
+                'user', 'name')
+        except Exception:
+            git_global_email, git_global_name = None, None
 
-		git_repo.index.add(["*"])
-		commit_message = self._render_template(None, "commit_message", to_file=False)
-		git_repo.index.commit(commit_message)
+        if git_global_email is None or git_global_name is None:
+            git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
+            git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
 
-		return device_tree_folder
+        git_repo.index.add(["*"])
+        commit_message = self._render_template(None, "commit_message", to_file=False)
+        git_repo.index.commit(commit_message)
 
-	def _render_template(self, *args, comment_prefix: str = "#", **kwargs):
-		return render_template(*args,
-		                       comment_prefix=comment_prefix,
-		                       current_year=self.current_year,
-		                       device_info=self.device_info,
-		                       fstab=self.fstab,
-		                       image_info=self.image_info,
-		                       version=version,
-		                       **kwargs)
+        return device_tree_folder
 
-	def cleanup(self):
-		# Cleanup
-		self.aik_manager.cleanup()
+    def _render_template(self, *args, comment_prefix: str = "#", **kwargs):
+        return render_template(*args,
+                               comment_prefix=comment_prefix,
+                               current_year=self.current_year,
+                               device_info=self.device_info,
+                               fstab=self.fstab,
+                               image_info=self.image_info,
+                               version=version,
+                               **kwargs)
