@@ -1,9 +1,9 @@
 {% include 'LICENSE.jinja2' %}
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/omni_{{ device_info.codename }}.mk
+    $(LOCAL_DIR)/twrp_{{ device_info.codename }}.mk
 
 COMMON_LUNCH_CHOICES := \
-    omni_{{ device_info.codename }}-user \
-    omni_{{ device_info.codename }}-userdebug \
-    omni_{{ device_info.codename }}-eng
+    twrp_{{ device_info.codename }}-user \
+    twrp_{{ device_info.codename }}-userdebug \
+    twrp_{{ device_info.codename }}-eng
