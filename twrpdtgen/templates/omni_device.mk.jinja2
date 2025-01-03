@@ -6,14 +6,14 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 {% endif %}
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Inherit some common Omni stuff.
-$(call inherit-product, vendor/omni/config/common.mk)
+# Inherit some common TWRP stuff.
+$(call inherit-product, vendor/twrp/config/common.mk)
 
 # Inherit from {{ device_info.codename }} device
 $(call inherit-product, device/{{ device_info.manufacturer }}/{{ device_info.codename }}/device.mk)
 
 PRODUCT_DEVICE := {{ device_info.codename }}
-PRODUCT_NAME := omni_{{ device_info.codename }}
+PRODUCT_NAME := twrp_{{ device_info.codename }}
 {% if device_info.brand %}
 PRODUCT_BRAND := {{ device_info.brand }}
 {% endif %}
@@ -28,4 +28,3 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
     PRIVATE_BUILD_DESC="{{ device_info.build_description }}"
 
 BUILD_FINGERPRINT := {{ device_info.build_fingerprint }}
-

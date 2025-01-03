@@ -1,7 +1,16 @@
 #
-# Copyright (C) 2022 The Android Open Source Project
+# Copyright (C) 2025 The Android Open Source Project
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# SPDX-License-Identifier: Apache-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
 from datetime import datetime
@@ -110,7 +119,7 @@ class DeviceTree:
 		self._render_template(device_tree_folder, "BoardConfig.mk")
 		self._render_template(device_tree_folder, "device.mk")
 		self._render_template(device_tree_folder, "extract-files.sh")
-		self._render_template(device_tree_folder, "omni_device.mk", out_file=f"omni_{self.device_info.codename}.mk")
+		self._render_template(device_tree_folder, "twrp_device.mk", out_file=f"twrp_{self.device_info.codename}.mk")
 		self._render_template(device_tree_folder, "README.md")
 		self._render_template(device_tree_folder, "setup-makefiles.sh")
 		self._render_template(device_tree_folder, "vendorsetup.sh")
