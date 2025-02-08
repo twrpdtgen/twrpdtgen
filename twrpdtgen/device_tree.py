@@ -61,8 +61,10 @@ class DeviceTree:
 		self.build_prop = BuildProp()
 		for build_prop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
 			if not build_prop.is_file():
+				LOGD(f"File not found: {build_prop}")
 				continue
 
+			LOGD(f"Using file: {build_prop}")
 			self.build_prop.import_props(build_prop)
 
 		self.device_info = DeviceInfo(self.build_prop)
