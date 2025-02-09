@@ -30,6 +30,9 @@ FSTAB_LOCATIONS = [Path() / "etc" / "recovery.fstab"]
 FSTAB_LOCATIONS += [Path() / dir / "etc" / "recovery.fstab"
                     for dir in ["system", "vendor"]]
 
+# Additional file in current directory where the user can put missing configuration lines.
+BUILDPROP_LOCATIONS += [Path().cwd() / "userconfig.prop"]
+
 INIT_RC_LOCATIONS = [Path()]
 INIT_RC_LOCATIONS += [Path() / dir / "etc" / "init"
                       for dir in ["system", "vendor"]]
