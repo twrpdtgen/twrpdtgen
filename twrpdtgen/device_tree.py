@@ -110,7 +110,7 @@ class DeviceTree:
 		self._render_template(device_tree_folder, "BoardConfig.mk")
 		self._render_template(device_tree_folder, "device.mk")
 		self._render_template(device_tree_folder, "extract-files.sh")
-		self._render_template(device_tree_folder, "omni_device.mk", out_file=f"omni_{self.device_info.codename}.mk")
+		self._render_template(device_tree_folder, "twrp_device.mk", out_file=f"omni_{self.device_info.codename}.mk")
 		self._render_template(device_tree_folder, "README.md")
 		self._render_template(device_tree_folder, "setup-makefiles.sh")
 		self._render_template(device_tree_folder, "vendorsetup.sh")
