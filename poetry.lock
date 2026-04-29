@@ -44,14 +44,14 @@ smmap = ">=3.0.1,<6"
 
 [[package]]
 name = "gitpython"
-version = "3.1.48"
+version = "3.1.49"
 description = "GitPython is a Python library used to interact with Git repositories"
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "gitpython-3.1.48-py3-none-any.whl", hash = "sha256:737698b05889cca0f9aba7054d796620df2092c68926ee1470e5c7f5ac886680"},
-    {file = "gitpython-3.1.48.tar.gz", hash = "sha256:b7c49ff4a49946fce38ac84116efa311b15e7dad06dc3787fc9e206bf9ef75e1"},
+    {file = "gitpython-3.1.49-py3-none-any.whl", hash = "sha256:024b0422d7f84d15cd794844e029ffebd4c5d42a7eb9b936b458697ef550a02c"},
+    {file = "gitpython-3.1.49.tar.gz", hash = "sha256:42f9399c9eb33fc581014bedd76049dfbaf6375aa2a5754575966387280315e1"},
 ]
 
 [package.dependencies]
