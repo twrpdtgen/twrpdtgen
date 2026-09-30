@@ -12,7 +12,9 @@ from twrpdtgen.device_tree import DeviceTree
 
 def main():
 	print(f"TWRP device tree generator\n"
-	      f"Version {version}\n")
+	      f"Version {version}\n\n"
+		  f"If a file userconfig.prop exists in current working directory, missing properties not found in "
+		  f"build.prop can be added and read from there.\n")
 
 	parser = ArgumentParser(prog='python3 -m twrpdtgen')
 
